@@ -1,0 +1,16 @@
+{
+  "users": [
+    {
+      "id": "1765141425145",
+      "fullname": "vaios",
+      "email": "vaios@gmail.com",
+      "password": "vaios123",
+      "afm": "",
+      "role": "owner"
+    }
+  ],
+  "pets": [],
+  "appointments": [],
+  "lostPets": [],
+  "vets": []
+}
