@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Accordion, 
   AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, 
-  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem 
+  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 // Icons
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -22,6 +23,10 @@ import TwitterIcon from '@mui/icons-material/Twitter';
 import YouTubeIcon from '@mui/icons-material/YouTube';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // IMPORT
+
+// Import PageHeader
+import PageHeader from './PageHeader'; 
 
 const theme = createTheme({
   palette: {
@@ -36,7 +41,7 @@ const theme = createTheme({
   shape: { borderRadius: 16 }
 });
 
-// --- NAVBAR COMPONENT ---
+// NAVBAR
 const Navbar = () => {
   const [anchorElGenika, setAnchorElGenika] = useState(null);
   const [anchorElVet, setAnchorElVet] = useState(null);
@@ -44,11 +49,9 @@ const Navbar = () => {
 
   const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
   const handleCloseMenu = (setAnchor) => setAnchor(null);
+  const navigate = useNavigate();
 
-  const navButtonStyle = {
-    fontSize: '16px', color: '#546e7a', 
-    '&:hover': { color: '#00695c', backgroundColor: 'transparent' }
-  };
+  const navButtonStyle = { fontSize: '16px', color: '#546e7a', '&:hover': { color: '#00695c', backgroundColor: 'transparent' } };
 
   return (
     <AppBar position="sticky" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
@@ -60,32 +63,43 @@ const Navbar = () => {
             </Box>
             <Typography variant="h5" color="primary">Care4Pets</Typography>
           </Box>
-
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
                 <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
-                    <MenuItem onClick={() => handleCloseMenu(setAnchorElGenika)}>Αναζήτηση</MenuItem>
+                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση</MenuItem>
                 </Menu>
             </Box>
             <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
                 <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
-                    <MenuItem onClick={() => handleCloseMenu(setAnchorElVet)}>Υπηρεσίες</MenuItem>
+                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Υπηρεσίες</MenuItem>
                 </Menu>
             </Box>
             <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
                 <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
-                    <MenuItem onClick={() => handleCloseMenu(setAnchorElOwner)}>Dashboard</MenuItem>
+                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Dashboard</MenuItem>
                 </Menu>
             </Box>
-            <Button href="/contact" sx={navButtonStyle}>Επικοινωνία</Button>
+            <Button onClick={() => navigate('/contact')} sx={navButtonStyle}>Επικοινωνία</Button>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <IconButton sx={{ color: 'text.secondary' }}><SearchIcon /></IconButton>
-            <Button variant="outlined" color="primary" href="/login">Αποσύνδεση</Button>
+            
+            {/* --- ΚΟΥΜΠΙ ΠΡΟΦΙΛ --- */}
+            <IconButton 
+                onClick={() => navigate('/vet/profile')}
+                sx={{ color: 'primary.main', bgcolor: '#e0f2f1', '&:hover': { bgcolor: '#b2dfdb' } }}
+            >
+                <AccountCircleIcon fontSize="large" />
+            </IconButton>
+            {/* ------------------- */}
+
+            <Button variant="outlined" color="primary" onClick={() => { localStorage.removeItem('user'); navigate('/login'); }} sx={{ ml: 1 }}>
+                Αποσύνδεση
+            </Button>
           </Box>
         </Toolbar>
       </Container>
@@ -93,7 +107,6 @@ const Navbar = () => {
   );
 };
 
-// --- FOOTER COMPONENT ---
 const Footer = () => (
   <Box sx={{ bgcolor: '#1a2327', color: '#b0bec5', py: 8, mt: 'auto' }}>
     <Container>
@@ -110,12 +123,6 @@ const Footer = () => (
           <Box sx={{ display: 'flex', gap: 1, mt: 1 }}><PhoneIcon fontSize="small"/> 210-1234567</Box>
           <Box sx={{ display: 'flex', gap: 1 }}><EmailIcon fontSize="small"/> support@care4pets.gr</Box>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" color="white">Social</Typography>
-          <Box sx={{ '& > svg': { mr: 2, cursor: 'pointer', color: 'white' } }}>
-            <FacebookIcon /><InstagramIcon /><TwitterIcon /><YouTubeIcon />
-          </Box>
-        </Grid>
       </Grid>
     </Container>
   </Box>
@@ -126,28 +133,38 @@ const VET_INFO = [
     id: 'profile',
     title: 'Επαγγελματικό Προφίλ',
     icon: <AssignmentIndIcon color="primary" />,
-    items: ['Επεξεργασία στοιχείων', 'Διαχείριση διαθεσιμότητας', 'Αξιολογήσεις', 'Πιστοποιητικά']
+    path: '/vet/profile',
+    items: [{ text: 'Επεξεργασία στοιχείων', path: '/vet/profile' }, { text: 'Διαχείριση διαθεσιμότητας', path: '/vet/schedule' }]
   },
   {
     id: 'medical',
     title: 'Διαχείριση Ασθενών',
     icon: <MedicalInformationIcon color="primary" />,
-    items: ['Καταγραφή νέου ζώου', 'Ενημέρωση Βιβλιαρίου', 'Ιατρικές Πράξεις', 'Δήλωση συμβάντων']
+    path: '/vet/patients',
+    items: [{ text: 'Καταγραφή νέου ζώου', path: '/vet/patients' }, { text: 'Ιατρικές Πράξεις', path: '/vet/patients' }]
   },
   {
     id: 'schedule',
     title: 'Πρόγραμμα & Ραντεβού',
     icon: <EventAvailableIcon color="primary" />,
-    items: ['Ημερήσιο πρόγραμμα', 'Αιτήματα ραντεβού', 'Ιστορικό επισκέψεων', 'Ακυρώσεις']
+    path: '/vet/schedule',
+    items: [{ text: 'Ημερήσιο πρόγραμμα', path: '/vet/schedule' }, { text: 'Ιστορικό επισκέψεων', path: '/vet/schedule' }]
   }
 ];
 
 export default function VetDashboard() {
+  const navigate = useNavigate();
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f4f6f8', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
         
+        {/* --- PAGE HEADER --- */}
+        <Container maxWidth="xl">
+            <PageHeader />
+        </Container>
+
         {/* HERO */}
         <Box sx={{ 
           position: 'relative', height: '300px', bgcolor: '#263238',
@@ -168,12 +185,12 @@ export default function VetDashboard() {
         <Container maxWidth="lg" sx={{ mt: -10, mb: 6, position: 'relative', zIndex: 2 }}>
           <Grid container spacing={3} justifyContent="center">
             {[
-              { label: 'Νέα Καταγραφή', icon: <VaccinesIcon fontSize="large" />, color: '#00897B' },
-              { label: 'Ραντεβού', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B' },
-              { label: 'Το Ιατρείο', icon: <AssignmentIndIcon fontSize="large" />, color: '#00897B' }
+              { label: 'Νέα Καταγραφή', icon: <VaccinesIcon fontSize="large" />, color: '#00897B', path: '/vet/new-record' },
+              { label: 'Ραντεβού', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B', path: '/vet/schedule' },
+              { label: 'Το Ιατρείο', icon: <AssignmentIndIcon fontSize="large" />, color: '#00897B', path: '/vet/clinic' }
             ].map((action) => (
               <Grid item xs={12} sm={4} key={action.label}>
-                <Paper elevation={6} sx={{ 
+                <Paper elevation={6} onClick={() => navigate(action.path)} sx={{ 
                     p: 3, textAlign: 'center', borderRadius: '20px', cursor: 'pointer',
                     transition: '0.3s', bgcolor: action.color, color: 'white',
                     '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 15px 30px rgba(0,137,123,0.4)' }
@@ -204,13 +221,13 @@ export default function VetDashboard() {
               <AccordionDetails sx={{ bgcolor: '#fafafa', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', p: 3 }}>
                 <List dense>
                   {section.items.map((item, index) => (
-                    <ListItem key={index}>
+                    <ListItemButton key={index} onClick={() => navigate(item.path)}>
                       <ListItemIcon><ArrowForwardIcon fontSize="small" color="primary" /></ListItemIcon>
-                      <ListItemText primary={item} primaryTypographyProps={{ fontSize: '15px', fontWeight: 500 }} />
-                    </ListItem>
+                      <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '15px', fontWeight: 500 }} />
+                    </ListItemButton>
                   ))}
                 </List>
-                <Button variant="contained" size="small" sx={{ mt: 2, ml: 2, borderRadius: '20px', bgcolor: '#00897B' }}>Άνοιγμα</Button>
+                <Button variant="contained" size="small" onClick={() => navigate(section.path)} sx={{ mt: 2, ml: 2, borderRadius: '20px', bgcolor: '#00897B' }}>Άνοιγμα</Button>
               </AccordionDetails>
             </Accordion>
           ))}

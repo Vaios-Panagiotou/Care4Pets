@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Accordion, 
   AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, 
-  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem 
+  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 // Icons
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -20,6 +21,10 @@ import TwitterIcon from '@mui/icons-material/Twitter';
 import YouTubeIcon from '@mui/icons-material/YouTube';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // <--- ΝΕΟ IMPORT
+
+// Import PageHeader
+import PageHeader from './PageHeader'; 
 
 // --- THEME ---
 const theme = createTheme({
@@ -35,7 +40,42 @@ const theme = createTheme({
   shape: { borderRadius: 16 }
 });
 
-// --- NAVBAR COMPONENT (Ενσωματωμένο) ---
+// --- DATA ---
+const OWNER_INFO = [
+  {
+    id: 'pets',
+    title: 'Τα Κατοικίδιά μου',
+    icon: <PetsIcon color="primary" />,
+    path: '/owner/pets',
+    items: [
+      { text: 'Προβολή/Επεξεργασία προφίλ', path: '/owner/pets' },
+      { text: 'Ηλεκτρονικό Βιβλιάριο', path: '/owner/pets' },
+      { text: 'Δήλωση απώλειας', path: '/lost-pets' }
+    ]
+  },
+  {
+    id: 'history',
+    title: 'Ιστορικό & Ραντεβού',
+    icon: <HistoryIcon color="primary" />,
+    path: '/owner/history',
+    items: [
+        { text: 'Ιστορικό ιατρικών πράξεων', path: '/owner/history' },
+        { text: 'Προγραμματισμένα ραντεβού', path: '/owner/history' }
+    ]
+  },
+  {
+    id: 'vet',
+    title: 'Κτηνίατροι & Υπηρεσίες',
+    icon: <MedicalServicesIcon color="primary" />,
+    path: '/owner/search',
+    items: [
+        { text: 'Αναζήτηση κτηνιάτρου', path: '/owner/search' },
+        { text: 'Κλείσιμο ραντεβού', path: '/owner/book' }
+    ]
+  }
+];
+
+// --- NAVBAR ---
 const Navbar = () => {
   const [anchorElGenika, setAnchorElGenika] = useState(null);
   const [anchorElVet, setAnchorElVet] = useState(null);
@@ -43,11 +83,9 @@ const Navbar = () => {
 
   const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
   const handleCloseMenu = (setAnchor) => setAnchor(null);
+  const navigate = useNavigate();
 
-  const navButtonStyle = {
-    fontSize: '16px', color: '#546e7a', 
-    '&:hover': { color: '#00695c', backgroundColor: 'transparent' }
-  };
+  const navButtonStyle = { fontSize: '16px', color: '#546e7a', '&:hover': { color: '#00695c', backgroundColor: 'transparent' } };
 
   return (
     <AppBar position="sticky" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
@@ -62,29 +100,42 @@ const Navbar = () => {
 
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             <Box>
-              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
-              <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
-                <MenuItem onClick={() => handleCloseMenu(setAnchorElGenika)}>Αναζήτηση</MenuItem>
-              </Menu>
+                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
+                <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
+                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση</MenuItem>
+                </Menu>
             </Box>
             <Box>
-              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
-              <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
-                <MenuItem onClick={() => handleCloseMenu(setAnchorElVet)}>Υπηρεσίες</MenuItem>
-              </Menu>
+                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
+                <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
+                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Υπηρεσίες</MenuItem>
+                </Menu>
             </Box>
             <Box>
-              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
-              <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
-                <MenuItem onClick={() => handleCloseMenu(setAnchorElOwner)}>Dashboard</MenuItem>
-              </Menu>
+                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
+                <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
+                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Dashboard</MenuItem>
+                </Menu>
             </Box>
-            <Button href="/contact" sx={navButtonStyle}>Επικοινωνία</Button>
+            <Button onClick={() => navigate('/contact')} sx={navButtonStyle}>Επικοινωνία</Button>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {/* Search Icon */}
             <IconButton sx={{ color: 'text.secondary' }}><SearchIcon /></IconButton>
-            <Button variant="outlined" color="primary" href="/login">Αποσύνδεση</Button>
+            
+            {/* --- ΝΕΟ ΚΟΥΜΠΙ ΠΡΟΦΙΛ --- */}
+            <IconButton 
+                onClick={() => navigate('/owner/profile')}
+                sx={{ color: 'primary.main', bgcolor: '#e0f2f1', '&:hover': { bgcolor: '#b2dfdb' } }}
+            >
+                <AccountCircleIcon fontSize="large" />
+            </IconButton>
+            {/* ------------------------- */}
+
+            <Button variant="outlined" color="primary" onClick={() => { localStorage.removeItem('user'); navigate('/login'); }} sx={{ ml: 1 }}>
+                Αποσύνδεση
+            </Button>
           </Box>
         </Toolbar>
       </Container>
@@ -92,7 +143,7 @@ const Navbar = () => {
   );
 };
 
-// --- FOOTER COMPONENT (Ενσωματωμένο) ---
+// --- FOOTER ---
 const Footer = () => (
   <Box sx={{ bgcolor: '#1a2327', color: '#b0bec5', py: 8, mt: 'auto' }}>
     <Container>
@@ -120,34 +171,19 @@ const Footer = () => (
   </Box>
 );
 
-// --- DATA ---
-const OWNER_INFO = [
-  {
-    id: 'pets',
-    title: 'Τα Κατοικίδιά μου',
-    icon: <PetsIcon color="primary" />,
-    items: ['Προβολή/Επεξεργασία προφίλ', 'Ηλεκτρονικό Βιβλιάριο', 'Δήλωση απώλειας', 'Εκτύπωση στοιχείων']
-  },
-  {
-    id: 'history',
-    title: 'Ιστορικό & Ραντεβού',
-    icon: <HistoryIcon color="primary" />,
-    items: ['Ιστορικό ιατρικών πράξεων', 'Προγραμματισμένα ραντεβού', 'Ιστορικό δηλώσεων', 'Ακύρωση ραντεβού']
-  },
-  {
-    id: 'vet',
-    title: 'Κτηνίατροι & Υπηρεσίες',
-    icon: <MedicalServicesIcon color="primary" />,
-    items: ['Αναζήτηση κτηνιάτρου', 'Προβολή προφίλ', 'Αξιολόγηση', 'Νέο ραντεβού']
-  }
-];
-
 export default function OwnerDashboard() {
+  const navigate = useNavigate();
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f4f6f8', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
         
+        {/* --- PAGE HEADER --- */}
+        <Container maxWidth="xl">
+            <PageHeader />
+        </Container>
+
         {/* HERO */}
         <Box sx={{ 
           position: 'relative', height: '300px', bgcolor: '#344055',
@@ -168,16 +204,20 @@ export default function OwnerDashboard() {
         <Container maxWidth="lg" sx={{ mt: -10, mb: 6, position: 'relative', zIndex: 2 }}>
           <Grid container spacing={3} justifyContent="center">
             {[
-              { label: 'Τα Κατοικίδια', icon: <PetsIcon fontSize="large" />, color: '#00ACC1' },
-              { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#00ACC1' },
-              { label: 'Εύρεση Ιατρού', icon: <SearchIcon fontSize="large" />, color: '#00ACC1' }
+              { label: 'Τα Κατοικίδια', icon: <PetsIcon fontSize="large" />, color: '#00ACC1', path: '/owner/pets' },
+              { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#00ACC1', path: '/owner/history' },
+              { label: 'Εύρεση Ιατρού', icon: <SearchIcon fontSize="large" />, color: '#00ACC1', path: '/owner/search' }
             ].map((action) => (
               <Grid item xs={12} sm={4} key={action.label}>
-                <Paper elevation={6} sx={{ 
+                <Paper 
+                  elevation={6} 
+                  onClick={() => navigate(action.path)}
+                  sx={{ 
                     p: 3, textAlign: 'center', borderRadius: '20px', cursor: 'pointer',
                     transition: '0.3s', bgcolor: action.color, color: 'white',
                     '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 15px 30px rgba(0,172,193,0.4)' }
-                  }}>
+                  }}
+                >
                   <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 60, height: 60, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
                     {action.icon}
                   </Box>
@@ -204,13 +244,15 @@ export default function OwnerDashboard() {
               <AccordionDetails sx={{ bgcolor: '#fafafa', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', p: 3 }}>
                 <List dense>
                   {section.items.map((item, index) => (
-                    <ListItem key={index}>
+                    <ListItemButton key={index} onClick={() => navigate(item.path)}>
                       <ListItemIcon><ArrowForwardIcon fontSize="small" color="secondary" /></ListItemIcon>
-                      <ListItemText primary={item} primaryTypographyProps={{ fontSize: '15px', fontWeight: 500 }} />
-                    </ListItem>
+                      <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '15px', fontWeight: 500 }} />
+                    </ListItemButton>
                   ))}
                 </List>
-                <Button variant="outlined" size="small" sx={{ mt: 2, ml: 2, borderRadius: '20px' }}>Μετάβαση</Button>
+                <Button variant="outlined" size="small" onClick={() => navigate(section.path)} sx={{ mt: 2, ml: 2, borderRadius: '20px' }}>
+                    Μετάβαση
+                </Button>
               </AccordionDetails>
             </Accordion>
           ))}

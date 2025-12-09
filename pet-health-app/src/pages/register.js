@@ -9,6 +9,7 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import GoogleIcon from '@mui/icons-material/Google';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import MapIcon from '@mui/icons-material/Map';
+import PageHeader from './PageHeader'; // IMPORT TO PAGEHEADER
 
 export default function Register() {
   const navigate = useNavigate(); // Hook για αλλαγή σελίδας
@@ -89,7 +90,13 @@ export default function Register() {
 
       {/* RIGHT FORM */}
       <Grid item xs={12} sm={8} md={7} component={Paper} elevation={6} square>
-        <Container maxWidth="sm" sx={{ py: 8 }}>
+        
+        {/* PageHeader ADDED HERE */}
+        <Box sx={{ px: 4, pt: 2 }}>
+            <PageHeader />
+        </Box>
+
+        <Container maxWidth="sm" sx={{ py: 4 }}> {/* Reduced py to accommodate header */}
           
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
              <Box sx={{ bgcolor: '#00695c', borderRadius: '50%', p: 1, mr: 1 }}>

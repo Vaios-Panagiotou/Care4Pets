@@ -3,6 +3,7 @@ import { Box, Button, Checkbox, FormControlLabel, Grid, Link, TextField, Typogra
 import { useNavigate } from 'react-router-dom'; // Import για πλοήγηση
 import GoogleIcon from '@mui/icons-material/Google';
 import PetsIcon from '@mui/icons-material/Pets';
+import PageHeader from './PageHeader'; // IMPORT TO PAGEHEADER
 
 export default function Login() {
   const navigate = useNavigate();
@@ -61,8 +62,14 @@ export default function Login() {
       />
 
       {/* ΦΟΡΜΑ ΔΕΞΙΑ */}
-      <Grid item xs={12} sm={8} md={6} component={Paper} elevation={6} square sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Box sx={{ my: 8, mx: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '400px', width: '100%' }}>
+      <Grid item xs={12} sm={8} md={6} component={Paper} elevation={6} square sx={{ display: 'flex', flexDirection: 'column' }}>
+        
+        {/* PageHeader ADDED HERE */}
+        <Box sx={{ width: '100%', px: 4, pt: 2 }}>
+            <PageHeader />
+        </Box>
+
+        <Box sx={{ my: 4, mx: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '400px', width: '100%', alignSelf: 'center' }}>
           
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
              <Box sx={{ bgcolor: '#00695c', borderRadius: '50%', p: 1, mr: 1 }}>

@@ -7,6 +7,14 @@
       "password": "vaios123",
       "afm": "",
       "role": "owner"
+    },
+    {
+      "id": "1765143289475",
+      "fullname": "vaios ktin",
+      "email": "ktiniatros@gmail.com",
+      "password": "123456",
+      "afm": "12345678",
+      "role": "vet"
     }
   ],
   "pets": [],
