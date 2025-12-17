@@ -16,44 +16,119 @@ import NewRecord from "./pages/NewRecord"; // IMPORT
 import VetSchedule from "./pages/VetSchedule"; // IMPORT
 import VetClinic from "./pages/VetClinic"; // IMPORT
 import News from "./pages/News"; // IMPORT
+import RequireAuth from "./components/RequireAuth"; // Προστασία διαδρομών
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Βασικές Σελίδες */}
+        {/* Δημόσιες Σελίδες */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/lost-pets" element={<LostPets />} />
-        <Route path="/owner/pets" element={<MyPets />} />
-        <Route path="/owner/profile" element={<Profile />} />
-        <Route path="/vet/profile" element={<Profile />} />
-        <Route path="/owner/health-book/:id" element={<PetHealthBook />} />
-        <Route path="/owner/search" element={<VetSearch />} />
-        <Route path="/owner/history" element={<History />} />
-        <Route path="/vet/new-record" element={<NewRecord />} />
-        <Route path="/vet/schedule" element={<VetSchedule />} />
-        <Route path="/vet/profile" element={<VetClinic />} /> {/* Το συνδέουμε εδώ */}
         <Route path="/news" element={<News />} />
 
-        {/* Dashboards */}
-        <Route path="/owner" element={<OwnerDashboard />} />
-        <Route path="/vet" element={<VetDashboard />} />
+        {/* Σελίδες Συνδεδεμένων Χρηστών (Owner) */}
+        <Route
+          path="/owner"
+          element={
+            <RequireAuth>
+              <OwnerDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/pets"
+          element={
+            <RequireAuth>
+              <MyPets />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/profile"
+          element={
+            <RequireAuth>
+              <Profile />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/health-book/:id"
+          element={
+            <RequireAuth>
+              <PetHealthBook />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/search"
+          element={
+            <RequireAuth>
+              <VetSearch />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/history"
+          element={
+            <RequireAuth>
+              <History />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/book"
+          element={
+            <RequireAuth>
+              <PlaceholderPage title="Κλείσιμο Ραντεβού" />
+            </RequireAuth>
+          }
+        />
 
-        {/* Υπο-σελίδες Ιδιοκτήτη (Λειτουργούν με το Placeholder προς το παρόν) */}
-        <Route path="/owner/pets" element={<PlaceholderPage title="Τα Κατοικίδιά μου" />} />
-        <Route path="/owner/history" element={<PlaceholderPage title="Ιστορικό & Ραντεβού" />} />
-        <Route path="/owner/search" element={<PlaceholderPage title="Εύρεση Κτηνίατρου" />} />
-        <Route path="/owner/book" element={<PlaceholderPage title="Κλείσιμο Ραντεβού" />} />
-
-        {/* Υπο-σελίδες Κτηνίατρου */}
-        <Route path="/vet/patients" element={<PlaceholderPage title="Διαχείριση Ασθενών" />} />
-        <Route path="/vet/schedule" element={<PlaceholderPage title="Πρόγραμμα & Ραντεβού" />} />
-        <Route path="/vet/profile" element={<PlaceholderPage title="Επαγγελματικό Προφίλ" />} />
-        
-
+        {/* Σελίδες Κτηνιάτρων (Vet) */}
+        <Route
+          path="/vet"
+          element={
+            <RequireAuth>
+              <VetDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/new-record"
+          element={
+            <RequireAuth>
+              <NewRecord />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/schedule"
+          element={
+            <RequireAuth>
+              <VetSchedule />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/profile"
+          element={
+            <RequireAuth>
+              <VetClinic />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/patients"
+          element={
+            <RequireAuth>
+              <PlaceholderPage title="Διαχείριση Ασθενών" />
+            </RequireAuth>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
