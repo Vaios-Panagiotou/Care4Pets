@@ -16,8 +16,7 @@ import NewRecord from "./pages/NewRecord"; // IMPORT
 import VetSchedule from "./pages/VetSchedule"; // IMPORT
 import VetClinic from "./pages/VetClinic"; // IMPORT
 import News from "./pages/News"; // IMPORT
-import NewsDetail from "./pages/NewsDetail"; // IMPORT
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import RequireAuth from "./components/RequireAuth"; // Προστασία διαδρομών
 
 function App() {
   const PrivateRoute = ({ children, role }) => {
@@ -33,47 +32,118 @@ function App() {
   };
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-        {/* Βασικές Σελίδες */}
+    <BrowserRouter>
+      <Routes>
+        {/* Δημόσιες Σελίδες */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/lost-pets" element={<LostPets />} />
-        <Route path="/owner/pets" element={<PrivateRoute role="owner"><MyPets /></PrivateRoute>} />
-        <Route path="/owner/profile" element={<PrivateRoute role="owner"><Profile /></PrivateRoute>} />
-        <Route path="/vet/profile" element={<PrivateRoute role="vet"><Profile /></PrivateRoute>} />
-        <Route path="/owner/health-book/:id" element={<PrivateRoute role="owner"><PetHealthBook /></PrivateRoute>} />
-        <Route path="/owner/search" element={<PrivateRoute role="owner"><VetSearch /></PrivateRoute>} />
-        <Route path="/owner/history" element={<PrivateRoute role="owner"><History /></PrivateRoute>} />
-        <Route path="/vet/new-record" element={<PrivateRoute role="vet"><NewRecord /></PrivateRoute>} />
-        <Route path="/vet/schedule" element={<PrivateRoute role="vet"><VetSchedule /></PrivateRoute>} />
-        <Route path="/vet/clinic" element={<PrivateRoute role="vet"><VetClinic /></PrivateRoute>} />
-        <Route path="/vet/profile" element={<PrivateRoute role="vet"><Profile /></PrivateRoute>} />
         <Route path="/news" element={<News />} />
         <Route path="/news/:id" element={<NewsDetail />} />
 
-        {/* Dashboards */}
-        <Route path="/owner" element={<PrivateRoute role="owner"><OwnerDashboard /></PrivateRoute>} />
-        <Route path="/vet" element={<PrivateRoute role="vet"><VetDashboard /></PrivateRoute>} />
+        {/* Σελίδες Συνδεδεμένων Χρηστών (Owner) */}
+        <Route
+          path="/owner"
+          element={
+            <RequireAuth>
+              <OwnerDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/pets"
+          element={
+            <RequireAuth>
+              <MyPets />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/profile"
+          element={
+            <RequireAuth>
+              <Profile />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/health-book/:id"
+          element={
+            <RequireAuth>
+              <PetHealthBook />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/search"
+          element={
+            <RequireAuth>
+              <VetSearch />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/history"
+          element={
+            <RequireAuth>
+              <History />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/owner/book"
+          element={
+            <RequireAuth>
+              <PlaceholderPage title="Κλείσιμο Ραντεβού" />
+            </RequireAuth>
+          }
+        />
 
-        {/* Υπο-σελίδες Ιδιοκτήτη (Λειτουργούν με το Placeholder προς το παρόν) */}
-        <Route path="/owner/pets" element={<PrivateRoute role="owner"><PlaceholderPage title="Τα Κατοικίδιά μου" /></PrivateRoute>} />
-        <Route path="/owner/history" element={<PrivateRoute role="owner"><PlaceholderPage title="Ιστορικό & Ραντεβού" /></PrivateRoute>} />
-        <Route path="/owner/search" element={<PrivateRoute role="owner"><PlaceholderPage title="Εύρεση Κτηνίατρου" /></PrivateRoute>} />
-        <Route path="/owner/book" element={<PrivateRoute role="owner"><PlaceholderPage title="Κλείσιμο Ραντεβού" /></PrivateRoute>} />
-
-        {/* Υπο-σελίδες Κτηνίατρου */}
-        <Route path="/vet/patients" element={<PrivateRoute role="vet"><PlaceholderPage title="Διαχείριση Ασθενών" /></PrivateRoute>} />
-        <Route path="/vet/schedule" element={<PrivateRoute role="vet"><PlaceholderPage title="Πρόγραμμα & Ραντεβού" /></PrivateRoute>} />
-        <Route path="/vet/profile" element={<PrivateRoute role="vet"><PlaceholderPage title="Επαγγελματικό Προφίλ" /></PrivateRoute>} />
-        
-
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        {/* Σελίδες Κτηνιάτρων (Vet) */}
+        <Route
+          path="/vet"
+          element={
+            <RequireAuth>
+              <VetDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/new-record"
+          element={
+            <RequireAuth>
+              <NewRecord />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/schedule"
+          element={
+            <RequireAuth>
+              <VetSchedule />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/profile"
+          element={
+            <RequireAuth>
+              <VetClinic />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/vet/patients"
+          element={
+            <RequireAuth>
+              <PlaceholderPage title="Διαχείριση Ασθενών" />
+            </RequireAuth>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Box, Container, Typography, Paper, Grid, Divider, List, ListItem, ListItemText, Chip } from '@mui/material';
+import { Box, Container, Typography, Paper, Divider, List, ListItem, ListItemText, Chip } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import PageHeader from './PageHeader';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import { useAuth } from '../hooks/useAuth'; // Import authentication hook
 
 // Mock Data για τα ζώα μας
 const HEALTH_DATA = {
@@ -32,6 +33,7 @@ const HEALTH_DATA = {
 export default function PetHealthBook() {
   const { id } = useParams(); // Παίρνουμε το ID από το URL
   const data = HEALTH_DATA[id] || HEALTH_DATA[1]; // Fallback
+  const { isAuthenticated, user } = useAuth(); // Get authentication and user info
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f4f6f8', pb: 8 }}>
@@ -42,43 +44,53 @@ export default function PetHealthBook() {
         </Typography>
 
         {/* Εμβόλια */}
-        <Paper sx={{ p: 3, mb: 4, borderRadius: '16px' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <VaccinesIcon color="primary" fontSize="large"/>
-                <Typography variant="h6">Εμβολιασμοί</Typography>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            <List>
-                {data.vaccines.map((v, i) => (
-                    <ListItem key={i} sx={{ bgcolor: '#f9f9f9', mb: 1, borderRadius: '8px' }}>
-                        <ListItemText 
-                            primary={<Typography fontWeight="bold">{v.name}</Typography>} 
-                            secondary={`Έγινε: ${v.date} | Κτηνίατρος: ${v.vet}`} 
-                        />
-                        <Chip label={`Επόμενο: ${v.next}`} color="success" size="small" variant="outlined" />
-                    </ListItem>
-                ))}
-            </List>
-        </Paper>
+        {isAuthenticated && user.role === 'vet' && (
+          <Paper sx={{ p: 3, mb: 4, borderRadius: '16px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <VaccinesIcon color="primary" fontSize="large"/>
+                  <Typography variant="h6">Εμβολιασμοί</Typography>
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              <List>
+                  {data.vaccines.map((v, i) => (
+                      <ListItem key={i} sx={{ bgcolor: '#f9f9f9', mb: 1, borderRadius: '8px' }}>
+                          <ListItemText 
+                              primary={<Typography fontWeight="bold">{v.name}</Typography>} 
+                              secondary={`Έγινε: ${v.date} | Κτηνίατρος: ${v.vet}`} 
+                          />
+                          <Chip label={`Επόμενο: ${v.next}`} color="success" size="small" variant="outlined" />
+                      </ListItem>
+                  ))}
+              </List>
+          </Paper>
+        )}
 
         {/* Ιστορικό */}
-        <Paper sx={{ p: 3, borderRadius: '16px' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <MedicalServicesIcon color="secondary" fontSize="large"/>
-                <Typography variant="h6">Ιστορικό Επισκέψεων</Typography>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            <List>
-                {data.history.map((h, i) => (
-                    <ListItem key={i} sx={{ borderLeft: '4px solid #FFA000', bgcolor: '#fffde7', mb: 1, borderRadius: '4px' }}>
-                        <ListItemText 
-                            primary={h.reason} 
-                            secondary={`${h.date} - ${h.treatment}`} 
-                        />
-                    </ListItem>
-                ))}
-            </List>
-        </Paper>
+        {isAuthenticated && (
+          <Paper sx={{ p: 3, borderRadius: '16px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <MedicalServicesIcon color="secondary" fontSize="large"/>
+                  <Typography variant="h6">Ιστορικό Επισκέψεων</Typography>
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              <List>
+                  {data.history.map((h, i) => (
+                      <ListItem key={i} sx={{ borderLeft: '4px solid #FFA000', bgcolor: '#fffde7', mb: 1, borderRadius: '4px' }}>
+                          <ListItemText 
+                              primary={h.reason} 
+                              secondary={`${h.date} - ${h.treatment}`} 
+                          />
+                      </ListItem>
+                  ))}
+              </List>
+          </Paper>
+        )}
+
+        {!isAuthenticated && (
+          <Typography color="error" sx={{ mt: 4 }}>
+            Πρέπει να συνδεθείτε για να δείτε τις πληροφορίες υγείας του ζώου.
+          </Typography>
+        )}
       </Container>
     </Box>
   );
