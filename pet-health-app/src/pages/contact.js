@@ -4,6 +4,7 @@ import {
   FormControlLabel, Paper, Dialog, DialogContent, Divider 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import PageHeader from './PageHeader';
 
 // Icons
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -95,6 +96,7 @@ export default function Contact() {
 
         {/* MAIN CONTAINER */}
         <Container maxWidth="lg" sx={{ mt: -8, mb: 10, position: 'relative', zIndex: 2 }}>
+          <PageHeader />
           <Paper elevation={6} sx={{ p: { xs: 3, md: 5 }, borderRadius: '24px' }}>
             
             <Typography variant="h4" align="center" sx={{ fontWeight: 'bold', color: '#7C4DFF', mb: 1 }}>

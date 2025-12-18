@@ -17,7 +17,18 @@
       "role": "vet"
     }
   ],
-  "pets": [],
+  "pets": [
+    {
+      "id": "a81e",
+      "name": "αλεχ",
+      "breed": "κανις",
+      "gender": "male",
+      "age": "15",
+      "weight": "20",
+      "img": "",
+      "ownerId": "1765141425145"
+    }
+  ],
   "appointments": [],
   "lostPets": [],
   "vets": []

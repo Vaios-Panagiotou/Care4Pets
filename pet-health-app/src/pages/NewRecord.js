@@ -18,21 +18,20 @@ import PageHeader from './PageHeader';
 
 const theme = createTheme({
   palette: {
-    primary: { main: '#00695c' },
-    secondary: { main: '#FFA726' },
-    text: { primary: '#333', secondary: '#555' },
-    background: { default: '#f8f9fa' }
+    primary: { main: '#1976d2' },
+    background: { default: '#f8fafc' },
+    text: { primary: '#1e293b', secondary: '#64748b' }
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", "Roboto", sans-serif',
     button: { textTransform: 'none', fontWeight: 600 },
-    h6: { fontWeight: 700 }
+    h6: { fontWeight: 600 }
   },
   shape: { borderRadius: 12 },
   components: {
     MuiTextField: {
       styleOverrides: {
-        root: { marginBottom: '20px', bgcolor: 'white' }
+        root: { marginBottom: '16px', bgcolor: 'white' }
       }
     }
   }
@@ -56,122 +55,110 @@ export default function NewRecord() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f4f6f8', pb: 10 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 8 }}>
         
         <Container maxWidth="xl" sx={{ pt: 2 }}>
             <PageHeader />
         </Container>
 
         {/* HERO HEADER */}
-        <Box sx={{ bgcolor: '#00695c', py: 6, mb: 6, color: 'white', textAlign: 'center', borderRadius: '0 0 50% 50% / 0 0 20px 20px' }}>
+        <Box sx={{ bgcolor: '#1976d2', py: 5, mb: 8, color: 'white', textAlign: 'center' }}>
             <Container maxWidth="md">
-                <Typography variant="h4" fontWeight="bold">Νέα Καταγραφή Ασθενούς</Typography>
-                <Typography variant="body1" sx={{ opacity: 0.9, mt: 1 }}>
-                    Συμπληρώστε τα στοιχεία του ζώου και του ιδιοκτήτη για να δημιουργήσετε νέο φάκελο.
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Νέα Καταγραφή Ασθενούς</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    Συμπληρώστε τα στοιχεία του ζώου και του ιδιοκτήτη
                 </Typography>
             </Container>
         </Box>
 
-        <Container maxWidth="lg">
-          <Paper elevation={3} sx={{ p: 5, borderRadius: '24px' }}>
+        <Container maxWidth="md">
+          <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: 'white', border: '1px solid #e2e8f0' }}>
             <Box component="form" onSubmit={handleSubmit}>
-                <Grid container spacing={6}>
+                {/* PET INFORMATION SECTION */}
+                <Box sx={{ mb: 6 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '2px solid #e2e8f0' }}>
+                        <PetsIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>Στοιχεία Ζώου</Typography>
+                    </Box>
+
+                    {/* Image Upload */}
+                    <Box sx={{ textAlign: 'center', mb: 4, p: 3, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                        <Avatar src={image} sx={{ width: 100, height: 100, mx: 'auto', mb: 2 }} />
+                        <Button variant="outlined" component="label" startIcon={<UploadIcon />} size="small">
+                            Ανέβασμα Φωτογραφίας
+                            <input type="file" hidden onChange={handleImageChange} />
+                        </Button>
+                    </Box>
+
+                    {/* Pet Fields */}
+                    <TextField fullWidth required label="Όνομα Ζώου" variant="outlined" size="small" sx={{ mb: 2 }} />
                     
-                    {/* LEFT COLUMN: PET INFO */}
-                    <Grid item xs={12} md={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                            <PetsIcon color="primary" fontSize="large" />
-                            <Typography variant="h6">Στοιχεία Ζώου</Typography>
-                        </Box>
+                    <FormControl fullWidth size="small" sx={{ bgcolor: 'white', mb: 2 }}>
+                        <InputLabel>Είδος</InputLabel>
+                        <Select label="Είδος" defaultValue="">
+                            <MenuItem value="dog">Σκύλος</MenuItem>
+                            <MenuItem value="cat">Γάτα</MenuItem>
+                            <MenuItem value="other">Άλλο</MenuItem>
+                        </Select>
+                    </FormControl>
 
-                        {/* Image Upload */}
-                        <Box sx={{ textAlign: 'center', mb: 4 }}>
-                            <Avatar src={image} sx={{ width: 120, height: 120, mx: 'auto', mb: 2, border: '4px solid #eee' }} />
-                            <Button variant="outlined" component="label" startIcon={<UploadIcon />}>
-                                Ανέβασμα Φωτογραφίας
-                                <input type="file" hidden onChange={handleImageChange} />
-                            </Button>
-                        </Box>
+                    <TextField fullWidth label="Φυλή" variant="outlined" size="small" sx={{ mb: 2 }} />
 
-                        <TextField fullWidth required label="Όνομα Ζώου" variant="outlined" />
-                        
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth sx={{ mb: 2, bgcolor: 'white' }}>
-                                    <InputLabel>Είδος</InputLabel>
-                                    <Select label="Είδος" defaultValue="">
-                                        <MenuItem value="dog">Σκύλος</MenuItem>
-                                        <MenuItem value="cat">Γάτα</MenuItem>
-                                        <MenuItem value="other">Άλλο</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField fullWidth label="Φυλή (Ράτσα)" variant="outlined" />
-                            </Grid>
-                        </Grid>
+                    <FormControl fullWidth size="small" sx={{ bgcolor: 'white', mb: 2 }}>
+                        <InputLabel>Φύλο</InputLabel>
+                        <Select label="Φύλο" defaultValue="">
+                            <MenuItem value="male">Αρσενικό</MenuItem>
+                            <MenuItem value="female">Θηλυκό</MenuItem>
+                        </Select>
+                    </FormControl>
 
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth sx={{ mb: 2, bgcolor: 'white' }}>
-                                    <InputLabel>Φύλο</InputLabel>
-                                    <Select label="Φύλο" defaultValue="">
-                                        <MenuItem value="male">Αρσενικό</MenuItem>
-                                        <MenuItem value="female">Θηλυκό</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField fullWidth label="Ηλικία" variant="outlined" />
-                            </Grid>
-                        </Grid>
+                    <TextField fullWidth label="Ηλικία" variant="outlined" size="small" sx={{ mb: 2 }} />
 
-                        <TextField fullWidth label="Χρώμα / Σημάδια" variant="outlined" />
-                        <TextField fullWidth required label="Αριθμός Microchip" variant="outlined" sx={{ bgcolor: '#e0f2f1' }} helperText="Υποχρεωτικό πεδίο για ταυτοποίηση" />
-                    </Grid>
+                    <TextField fullWidth label="Χρώμα / Σημάδια" variant="outlined" size="small" sx={{ mb: 2 }} />
+                    <TextField fullWidth required label="Αριθμός Microchip" variant="outlined" size="small" sx={{ bgcolor: '#e3f2fd', mb: 0 }} helperText="Υποχρεωτικό" />
+                </Box>
 
-                    {/* RIGHT COLUMN: OWNER INFO & ACTIONS */}
-                    <Grid item xs={12} md={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                            <PersonIcon color="primary" fontSize="large" />
-                            <Typography variant="h6">Στοιχεία Ιδιοκτήτη</Typography>
-                        </Box>
+                {/* OWNER INFORMATION SECTION */}
+                <Box sx={{ mb: 6 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '2px solid #e2e8f0' }}>
+                        <PersonIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>Στοιχεία Ιδιοκτήτη</Typography>
+                    </Box>
 
-                        <TextField fullWidth required label="Ονοματεπώνυμο Ιδιοκτήτη" variant="outlined" />
-                        <TextField fullWidth required label="Τηλέφωνο Επικοινωνίας" variant="outlined" />
-                        <TextField fullWidth label="Email" type="email" variant="outlined" />
-                        <TextField fullWidth label="Διεύθυνση Κατοικίας" variant="outlined" />
-                        <TextField fullWidth label="ΑΦΜ (Προαιρετικό)" variant="outlined" />
+                    <TextField fullWidth required label="Ονοματεπώνυμο" variant="outlined" size="small" sx={{ mb: 2 }} />
+                    <TextField fullWidth required label="Τηλέφωνο" variant="outlined" size="small" sx={{ mb: 2 }} />
+                    <TextField fullWidth label="Email" type="email" variant="outlined" size="small" sx={{ mb: 2 }} />
+                    <TextField fullWidth label="Διεύθυνση" variant="outlined" size="small" sx={{ mb: 2 }} />
+                    <TextField fullWidth label="ΑΦΜ" variant="outlined" size="small" sx={{ mb: 0 }} />
+                </Box>
 
-                        <Box sx={{ mt: 4, p: 3, bgcolor: '#f5f5f5', borderRadius: '12px' }}>
-                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Σημειώσεις Κτηνιάτρου</Typography>
-                            <TextField fullWidth multiline rows={4} placeholder="Γράψτε τυχόν παρατηρήσεις, αλλεργίες ή ιστορικό..." variant="outlined" sx={{ bgcolor: 'white', mb: 0 }} />
-                        </Box>
-
-                        {/* ACTION BUTTONS */}
-                        <Box sx={{ mt: 5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                            <Button 
-                                variant="outlined" 
-                                color="error" 
-                                startIcon={<ArrowBackIcon />}
-                                onClick={() => navigate('/vet')}
-                                sx={{ px: 3 }}
-                            >
-                                Ακύρωση
-                            </Button>
-                            <Button 
-                                type="submit" 
-                                variant="contained" 
-                                color="primary" 
-                                startIcon={<SaveIcon />}
-                                sx={{ px: 4, py: 1.5, fontSize: '1rem' }}
-                            >
-                                Αποθήκευση Καταγραφής
-                            </Button>
-                        </Box>
-                    </Grid>
-
-                </Grid>
+                {/* VET NOTES SECTION */}
+                <Box sx={{ mb: 6 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '2px solid #e2e8f0' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>Σημειώσεις Κτηνιάτρου</Typography>
+                    </Box>
+                    <TextField fullWidth multiline rows={5} placeholder="Γράψτε παρατηρήσεις, αλλεργίες, ιστορικό..." variant="outlined" size="small" sx={{ mb: 0 }} />
+                </Box>
+                {/* ACTION BUTTONS */}
+                <Box sx={{ mt: 6, display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 4, borderTop: '1px solid #e2e8f0' }}>
+                    <Button 
+                        variant="outlined" 
+                        startIcon={<ArrowBackIcon />}
+                        onClick={() => navigate('/vet')}
+                        sx={{ px: 4 }}
+                    >
+                        Ακύρωση
+                    </Button>
+                    <Button 
+                        type="submit" 
+                        variant="contained" 
+                        color="primary" 
+                        startIcon={<SaveIcon />}
+                        sx={{ px: 4, py: 1.25 }}
+                    >
+                        Αποθήκευση
+                    </Button>
+                </Box>
             </Box>
           </Paper>
         </Container>

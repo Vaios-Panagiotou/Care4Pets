@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Breadcrumbs, Link, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Breadcrumbs, Link, Typography, IconButton, Tooltip, Button } from '@mui/material';
 import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // Icons
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -18,16 +19,22 @@ const routeNameMap = {
   'lost-pets': 'Απολεσθέντα',
   'history': 'Ιστορικό',
   'pets': 'Τα Κατοικίδιά μου',
-  'search': 'Αναζήτηση',
+  'search': 'Αναζήτηση Κτηνιάτρου',
   'profile': 'Προφίλ',
   'patients': 'Ασθενείς',
   'schedule': 'Πρόγραμμα',
-  'book': 'Ραντεβού'
+  'book': 'Ραντεβού',
+  'dashboard': 'Πίνακας Ελέγχου',
+  'news': 'Νέα',
+  'health-book': 'Βιβλιάριο Υγείας',
+  'clinic': 'Κλινική',
+  'new-record': 'Νέα Καταχώρηση'
 };
 
 export default function PageHeader() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   
   // Σπάμε το URL σε κομμάτια (π.χ. /owner/history -> ['owner', 'history'])
   const pathnames = location.pathname.split('/').filter((x) => x);
@@ -39,10 +46,10 @@ export default function PageHeader() {
     <Box sx={{ 
       display: 'flex', 
       alignItems: 'center', 
-      gap: 2, 
-      py: 2, 
-      px: { xs: 2, md: 0 }, // Padding στα κινητά
-      maxWidth: 'lg', 
+      gap: 1.5, 
+      py: 1.5, 
+      px: { xs: 2, md: 0 },
+      maxWidth: 'xl', 
       mx: 'auto',
       mb: 2
     }}>
@@ -51,26 +58,22 @@ export default function PageHeader() {
       <Tooltip title="Επιστροφή">
         <IconButton 
           onClick={() => navigate(-1)} 
+          size="small"
           sx={{ 
-            bgcolor: 'white', 
-            border: '1px solid #eee', 
-            borderRadius: '12px',
-            width: 40, height: 40,
-            color: '#555',
-            transition: '0.3s',
-            '&:hover': { bgcolor: '#f5f5f5', transform: 'translateX(-3px)' }
+            color: '#64748b',
+            '&:hover': { color: '#1976d2' }
           }}
         >
-          <ArrowBackIosNewIcon sx={{ fontSize: 18 }} />
+          <ArrowBackIosNewIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Tooltip>
 
       {/* 2. BREADCRUMBS */}
       <Breadcrumbs 
-        separator={<NavigateNextIcon fontSize="small" sx={{ color: '#999' }} />} 
+        separator={<NavigateNextIcon fontSize="small" sx={{ color: '#cbd5e1' }} />} 
         aria-label="breadcrumb"
         sx={{ 
-            '& .MuiBreadcrumbs-li': { fontWeight: 500, fontSize: '0.95rem' }
+            '& .MuiBreadcrumbs-li': { fontWeight: 400, fontSize: '0.875rem' }
         }}
       >
         {/* Link για την Αρχική */}
@@ -78,9 +81,9 @@ export default function PageHeader() {
             component={RouterLink} 
             to="/" 
             underline="hover" 
-            sx={{ display: 'flex', alignItems: 'center', color: '#777' }}
+            sx={{ display: 'flex', alignItems: 'center', color: '#64748b', '&:hover': { color: '#1976d2' } }}
         >
-          <HomeIcon sx={{ mr: 0.5, fontSize: 20 }} /> Αρχική
+          <HomeIcon sx={{ mr: 0.5, fontSize: 18 }} /> Αρχική
         </Link>
 
         {/* Δυναμικά Links για τα υπόλοιπα */}
@@ -92,16 +95,28 @@ export default function PageHeader() {
           const name = routeNameMap[value] || value;
 
           return last ? (
-            <Typography key={to} color="primary" fontWeight="bold">
+            <Typography key={to} sx={{ color: '#1e293b', fontWeight: 500 }}>
               {name}
             </Typography>
           ) : (
-            <Link component={RouterLink} to={to} underline="hover" key={to} color="inherit">
+            <Link component={RouterLink} to={to} underline="hover" key={to} sx={{ color: '#64748b', '&:hover': { color: '#1976d2' } }}>
               {name}
             </Link>
           );
         })}
       </Breadcrumbs>
+
+      {/* 3. Logout button when authenticated */}
+      {user && (
+        <Button
+          variant="text"
+          size="small"
+          onClick={() => { logout(); navigate('/login'); }}
+          sx={{ ml: 'auto', color: '#64748b', '&:hover': { color: '#ef4444', bgcolor: 'transparent' } }}
+        >
+          Αποσύνδεση
+        </Button>
+      )}
 
     </Box>
   );

@@ -22,21 +22,21 @@ import PageHeader from './PageHeader';
 // --- THEME ---
 const theme = createTheme({
     palette: {
-        primary: { main: '#00695c' },
-        secondary: { main: '#FF7043' }, // Vivid Orange
-        text: { primary: '#1A2027', secondary: '#5E6C84' },
-        background: { default: '#F4F7FA' } // Πολύ απαλό γαλάζιο-γκρι για βάθος
+        primary: { main: '#1976d2' },
+        secondary: { main: '#ff6b6b' },
+        background: { default: '#f8fafc' },
+        text: { primary: '#1e293b', secondary: '#64748b' }
     },
     typography: {
         fontFamily: '"Inter", "Roboto", sans-serif',
-        button: { textTransform: 'none', fontWeight: 700 },
-        h5: { fontWeight: 800, letterSpacing: '-0.02em' },
-        h6: { fontWeight: 700, lineHeight: 1.4 }
+        button: { textTransform: 'none', fontWeight: 600 },
+        h5: { fontWeight: 700, letterSpacing: '-0.01em' },
+        h6: { fontWeight: 600, lineHeight: 1.4 }
     },
-    shape: { borderRadius: 24 }, // Μεγάλες καμπύλες
+    shape: { borderRadius: 12 },
     components: {
-        MuiTab: { styleOverrides: { root: { fontWeight: 700, fontSize: '1rem', minHeight: 56, marginRight: '16px' } } },
-        MuiCard: { styleOverrides: { root: { boxShadow: '0 12px 24px -10px rgba(0,0,0,0.08)' } } } // Soft shadow base
+        MuiTab: { styleOverrides: { root: { fontWeight: 600, fontSize: '0.95rem', minHeight: 48, textTransform: 'none' } } },
+        MuiCard: { styleOverrides: { root: { boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0' } } }
     }
 });
 
@@ -119,67 +119,86 @@ export const NEWS_DATA = [
 // 1. SPACIOUS NEWS CARD
 export const NewsCard = ({ item }) => {
     const navigate = useNavigate();
-    const catColor = CATEGORY_COLORS[item.category] || '#00695c';
 
     return (
         <Card
                 onClick={() => navigate(`/news/${item.id}`)}
                 sx={{
-                        height: '100%', borderRadius: '20px', border: 'none',
-                        bgcolor: 'white', overflow: 'visible',
-                        transition: 'all 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-                        '&:hover': { transform: 'translateY(-8px)', boxShadow: '0 18px 40px -10px rgba(0,0,0,0.12)' }
+                        height: '420px', 
+                        borderRadius: '12px', 
+                        bgcolor: 'white', 
+                        overflow: 'hidden',
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        '&:hover': { 
+                            transform: 'translateY(-4px)', 
+                            boxShadow: '0 8px 16px rgba(0,0,0,0.12)'
+                        }
                 }}
         >
-            <CardActionArea sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', borderRadius: '20px', overflow: 'hidden' }}>
+            <CardActionArea sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 
-                {/* Image */}
-                <Box sx={{ width: '100%', height: 180, overflow: 'hidden', position: 'relative' }}>
+                {/* Image - Fixed Height */}
+                <Box sx={{ width: '100%', height: '180px', overflow: 'hidden', position: 'relative', bgcolor: '#f0f0f0', flexShrink: 0 }}>
                         <Box 
                                 component="img" src={item.image} alt={item.title}
                                 sx={{ 
-                                        width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease',
-                                        '.MuiCardActionArea-root:hover &': { transform: 'scale(1.04)' } 
+                                        width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease',
+                                        '.MuiCardActionArea-root:hover &': { transform: 'scale(1.05)' } 
                                 }} 
                         />
-                        {/* Category Badge - Floating */}
+                        {/* Category Badge */}
                         <Chip 
                                 label={item.category} 
+                                size="small"
                                 sx={{ 
-                                        position: 'absolute', top: 14, right: 14, fontWeight: 800, letterSpacing: 0.4,
-                                        bgcolor: 'white', color: catColor, boxShadow: 2, height: 30, borderRadius: '8px', fontSize: '0.75rem'
+                                        position: 'absolute', top: 10, right: 10,
+                                        bgcolor: '#1976d2', color: 'white', fontWeight: 600, fontSize: '0.7rem'
                                 }} 
                         />
                 </Box>
                 
-                {/* Content */}
-                <CardContent sx={{ p: 3, width: '100%', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                {/* Content - Fixed Structure */}
+                <CardContent sx={{ p: '16px', width: '100%', height: '240px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         
-                        <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5, fontSize: '0.75rem', color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><AccessTimeIcon sx={{ fontSize: 14 }}/> {item.date}</Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><LocalOfferIcon sx={{ fontSize: 14 }}/> {item.readTime}</Box>
+                        {/* Meta Info */}
+                        <Box sx={{ display: 'flex', gap: 1.5, mb: 1, fontSize: '0.75rem', color: 'text.secondary', flexShrink: 0 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}><AccessTimeIcon sx={{ fontSize: 14 }}/>{item.date}</Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>📖 {item.readTime}</Box>
                         </Box>
                         
-                        <Typography variant="h5" sx={{ mb: 1.5, color: '#1A2027', lineHeight: 1.25, fontSize: '1.05rem' }}>
+                        {/* Title - Exactly 2 lines */}
+                        <Typography 
+                            variant="body2" 
+                            sx={{ 
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                lineHeight: 1.5,
+                                height: '48px',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flexShrink: 0
+                            }}
+                        >
                                 {item.title}
                         </Typography>
                         
-                        <Box sx={{ mt: 'auto', pt: 2, borderTop: '1px dashed #f5f5f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                <Typography variant="body2" fontWeight="700" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                                        By <span style={{ color: '#00695c' }}>{item.author}</span>
+                        {/* Footer - Fixed Position */}
+                        <Box sx={{ pt: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.65rem' }}>
+                                        <span style={{ color: '#1976d2', fontWeight: 600 }}>{item.author}</span>
                                 </Typography>
                                 
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#FF7043' }}>
-                                                <FavoriteBorderIcon fontSize="small" /> 
-                                                <Typography variant="caption" fontWeight="bold">{item.likes}</Typography>
-                                        </Box>
-                                        <IconButton size="small" sx={{ bgcolor: '#E0F2F1', color: '#00695c' }}>
-                                                <ArrowForwardRoundedIcon fontSize="small" />
-                                        </IconButton>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: 'text.secondary' }}>
+                                        <FavoriteBorderIcon sx={{ fontSize: 14 }} /> 
+                                        <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.65rem' }}>{item.likes}</Typography>
                                 </Box>
                         </Box>
-
                 </CardContent>
             </CardActionArea>
         </Card>
@@ -189,43 +208,35 @@ export const NewsCard = ({ item }) => {
 // 2. HERO SECTION
 const PlayfulHero = ({ onSearch }) => (
     <Box sx={{ 
-            mt: 2, mb: 10, borderRadius: { xs: 0, md: '0 0 60px 60px' }, overflow: 'hidden', position: 'relative',
-            background: 'linear-gradient(120deg, #004d40 0%, #00695c 100%)',
-            color: 'white', py: 12, px: 2, textAlign: 'center',
-            boxShadow: '0 20px 60px -20px rgba(0, 77, 64, 0.5)'
+            mb: 6, py: 6, px: 2,
+            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+            color: 'white', textAlign: 'center',
+            borderRadius: { xs: 0, md: '0 0 24px 24px' }
     }}>
-            {/* Decorative Circles */}
-            <Box sx={{ position: 'absolute', top: -100, left: -100, width: 400, height: 400, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.03)' }} />
-            <Box sx={{ position: 'absolute', bottom: -50, right: -50, width: 300, height: 300, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.03)' }} />
-
-            <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
-                    <Chip label="MAGAZINE" sx={{ bgcolor: 'secondary.main', color: 'white', fontWeight: '900', mb: 3, letterSpacing: 2 }} />
-                    <Typography variant="h2" sx={{ fontWeight: 900, mb: 2, letterSpacing: '-1px' }}>
-                            Blog & Ενημερώσεις
-                    </Typography>
-                    <Typography variant="h6" sx={{ opacity: 0.8, fontWeight: 400, mb: 6, maxWidth: 600, mx: 'auto', lineHeight: 1.6 }}>
-                            Ανακαλύψτε ιστορίες που εμπνέουν, συμβουλές υγείας και τα τελευταία νέα της κοινότητας.
-                    </Typography>
-                    
-                    {/* SEARCH BAR */}
-                    <Paper 
-                        elevation={10} 
-                        sx={{ 
-                                p: '8px 12px', display: 'flex', alignItems: 'center', width: '100%', maxWidth: 550, mx: 'auto', 
-                                borderRadius: '60px', bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)'
-                        }}
-                    >
-                        <IconButton sx={{ p: '12px' }}><SearchIcon color="primary" /></IconButton>
-                        <TextField 
-                                sx={{ ml: 1, flex: 1 }} 
-                                placeholder="Τι ψάχνετε σήμερα;" 
-                                variant="standard" 
-                                onChange={(e) => onSearch(e.target.value)} 
-                                InputProps={{ disableUnderline: true, sx: { fontSize: '1.1rem', fontWeight: 500 } }} 
-                        />
-                        <Button variant="contained" color="primary" sx={{ borderRadius: '50px', px: 4, py: 1.5 }}>Αναζήτηση</Button>
-                    </Paper>
-            </Container>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>Νέα & Ενημερώσεις</Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9, mb: 4 }}>Καλοδεχόρισμα στην κοινότητα της Care4Pets</Typography>
+            
+            <Box sx={{ maxWidth: 500, mx: 'auto', display: 'flex', gap: 1 }}>
+                <TextField
+                    fullWidth
+                    placeholder="Αναζήτηση άρθρων..."
+                    size="small"
+                    onChange={(e) => onSearch(e.target.value)}
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: 'white', opacity: 0.7 }} />,
+                    }}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            bgcolor: 'rgba(255,255,255,0.15)',
+                            color: 'white',
+                            borderRadius: 2,
+                            '& fieldset': { border: 'none' },
+                            '&:hover, &.Mui-focused': { bgcolor: 'rgba(255,255,255,0.25)' }
+                        },
+                        '& .MuiOutlinedInput-input::placeholder': { color: 'rgba(255,255,255,0.6)', opacity: 1 }
+                    }}
+                />
+            </Box>
     </Box>
 );
 
@@ -295,19 +306,18 @@ export default function News() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Box sx={{ minHeight: '100vh', bgcolor: '#F4F7FA', pb: 5 }}>
+            <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', pb: 8 }}>
                 
                 <Container maxWidth="xl" sx={{ pt: 1 }}>
                         <PageHeader />
                 </Container>
 
-                <PlayfulHero onSearch={setSearchTerm} />
-
-                <Container maxWidth="lg">
+                <Container maxWidth="xl">
+                        <PlayfulHero onSearch={setSearchTerm} />
                         
                         {/* CATEGORY TABS */}
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 8 }}>
-                                <Paper elevation={0} sx={{ borderRadius: '50px', p: 1, bgcolor: 'white', border: '1px solid #eee' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 6, overflowX: 'auto' }}>
+                                <Paper elevation={0} sx={{ borderRadius: '50px', p: 0.5, bgcolor: '#f0f0f0', border: 'none', display: 'inline-flex' }}>
                                         <Tabs 
                                                 value={activeTab} 
                                                 onChange={(e, v) => setActiveTab(v)} 
@@ -315,7 +325,7 @@ export default function News() {
                                                 scrollButtons="auto"
                                                 textColor="primary"
                                                 indicatorColor="primary"
-                                                sx={{ '& .MuiTabs-indicator': { height: 4, borderRadius: 2 } }}
+                                                sx={{ '& .MuiTabs-indicator': { height: 3, borderRadius: 2 } }}
                                         >
                                                 {CATEGORIES.map((cat, i) => <Tab key={i} label={cat} />)}
                                         </Tabs>
@@ -323,17 +333,16 @@ export default function News() {
                         </Box>
 
                         {/* RESULTS COUNT */}
-                        <Box sx={{ mb: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
-                                <Typography variant="h5" color="text.primary">
-                                        {filteredNews.length > 0 ? 'Προτεινόμενα Άρθρα' : 'Δεν βρέθηκαν άρθρα'}
+                        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600 }}>
+                                        {filteredNews.length > 0 ? `${filteredNews.length} άρθρα` : 'Δεν βρέθηκαν άρθρα'}
                                 </Typography>
-                                <Button startIcon={<FilterListIcon />} color="inherit">Ταξινόμηση</Button>
                         </Box>
 
-                        {/* GRID - two columns with consistent spacing */}
-                        <Grid container spacing={4} sx={{ alignItems: 'stretch' }}>
+                        {/* GRID */}
+                        <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
                                 {filteredNews.map(item => (
-                                        <Grid item xs={12} sm={6} md={6} key={item.id} sx={{ display: 'flex' }}>
+                                        <Grid item xs={12} sm={6} md={4} key={item.id} sx={{ display: 'flex' }}>
                                                 <NewsCard item={item} />
                                         </Grid>
                                 ))}
@@ -341,13 +350,12 @@ export default function News() {
 
                         {/* PAGINATION */}
                         {filteredNews.length > 0 && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-                                        <Pagination count={5} color="primary" size="large" shape="rounded" />
+                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+                                        <Pagination count={5} color="primary" shape="rounded" />
                                 </Box>
                         )}
 
                         <Newsletter />
-
                 </Container>
             </Box>
         </ThemeProvider>

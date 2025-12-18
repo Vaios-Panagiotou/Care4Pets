@@ -1,16 +1,15 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
-  Box, Container, Grid, Typography, Button, Paper, Avatar, TextField, IconButton, List, ListItem, ListItemText, ListItemIcon, Divider 
+  Box, Container, Grid, Typography, Button, Paper, Avatar, TextField, IconButton, Divider
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // Icons
 import EditIcon from '@mui/icons-material/Edit';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import EmailIcon from '@mui/icons-material/Email';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -46,7 +45,7 @@ const theme = createTheme({
 });
 
 // --- HELPER COMPONENT: FORM FIELD ---
-const ProfileField = ({ label, value, type = "text" }) => (
+const ProfileField = ({ label, value, type = "text", onChange, name, editable }) => (
   <Box sx={{ mb: 3 }}>
     <Typography variant="caption" fontWeight="bold" sx={{ color: '#666', mb: 1, display: 'block' }}>
       {label}
@@ -54,14 +53,12 @@ const ProfileField = ({ label, value, type = "text" }) => (
     <TextField
       fullWidth
       variant="filled"
-      defaultValue={value}
+      value={value ?? ''}
+      name={name}
+      onChange={onChange}
       type={type}
       InputProps={{
-        endAdornment: (
-          <IconButton size="small">
-            <EditIcon fontSize="small" sx={{ color: '#333' }} />
-          </IconButton>
-        ),
+        readOnly: !editable,
         disableUnderline: true
       }}
     />
@@ -70,6 +67,54 @@ const ProfileField = ({ label, value, type = "text" }) => (
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { user, logout, login } = useAuth();
+  const [editable, setEditable] = useState(false);
+  const [form, setForm] = useState(() => ({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    address: user?.address || '',
+    gender: user?.gender || '',
+    idNumber: user?.idNumber || ''
+  }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const greetingName = useMemo(() => user?.name || 'Χρήστης', [user]);
+  const avatarSrc = user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    setError('');
+    if (!user?.id) {
+      setError('Δεν βρέθηκε user id για ενημέρωση.');
+      return;
+    }
+    setSaving(true);
+    const updated = { ...user, ...form };
+    try {
+      const res = await fetch(`http://localhost:3001/users/${user.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updated)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const saved = await res.json();
+      // Update in-app session with latest server data
+      login(saved);
+      setEditable(false);
+    } catch (e) {
+      setError('Αποτυχία αποθήκευσης στο server. Βεβαιώσου ότι τρέχει το json-server.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -87,7 +132,7 @@ export default function Profile() {
 
         <Container maxWidth="lg">
           
-          <Typography variant="h5" sx={{ color: 'white', mb: 0.5 }}>Καλημέρα Gianni</Typography>
+          <Typography variant="h5" sx={{ color: 'white', mb: 0.5 }}>Καλημέρα {greetingName}</Typography>
           <Typography variant="caption" sx={{ color: '#bbb', mb: 4, display: 'block' }}>Τετάρτη, 19 Νοε 2025</Typography>
 
           <Grid container spacing={4}>
@@ -102,8 +147,8 @@ export default function Profile() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Box sx={{ position: 'relative' }}>
                             <Avatar 
-                                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80" 
-                                sx={{ width: 70, height: 70 }} 
+                              src={avatarSrc}
+                              sx={{ width: 70, height: 70 }} 
                             />
                             <Box sx={{ 
                                 position: 'absolute', bottom: 0, right: 0, 
@@ -113,8 +158,8 @@ export default function Profile() {
                             </Box>
                         </Box>
                         <Box>
-                            <Typography variant="h6">Giannis</Typography>
-                            <Typography variant="body2" color="text.secondary">gripgrip@gmail.com</Typography>
+                            <Typography variant="h6">{form.name || greetingName}</Typography>
+                            <Typography variant="body2" color="text.secondary">{form.email || user?.email || ''}</Typography>
                         </Box>
                     </Box>
 
@@ -128,22 +173,50 @@ export default function Profile() {
                         <Typography variant="body2" fontWeight="500">Οι αλλαγές αποθηκεύονται αυτόματα</Typography>
                     </Box>
 
-                    <Button variant="contained" sx={{ bgcolor: '#3B82F6', borderRadius: '8px', boxShadow: 'none' }}>
-                        Επεξεργασία
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {!editable ? (
+                        <Button variant="contained" sx={{ bgcolor: '#3B82F6', borderRadius: '8px', boxShadow: 'none' }} onClick={() => setEditable(true)} startIcon={<EditIcon />}>
+                          Επεξεργασία
+                        </Button>
+                      ) : (
+                        <>
+                          <Button variant="contained" sx={{ bgcolor: '#10B981', borderRadius: '8px', boxShadow: 'none' }} onClick={handleSave} disabled={saving}>
+                            {saving ? 'Αποθήκευση…' : 'Αποθήκευση'}
+                          </Button>
+                          <Button variant="outlined" onClick={() => { setEditable(false); setForm({
+                            name: user?.name || '',
+                            email: user?.email || '',
+                            phone: user?.phone || '',
+                            address: user?.address || '',
+                            gender: user?.gender || '',
+                            idNumber: user?.idNumber || ''
+                          }); }}>
+                            Άκυρο
+                          </Button>
+                        </>
+                      )}
+                      <IconButton color="error" onClick={() => { logout(); navigate('/login'); }}>
+                        <LogoutIcon />
+                      </IconButton>
+                    </Box>
+                    {error && (
+                      <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                        {error}
+                      </Typography>
+                    )}
                 </Box>
 
                 {/* FIELDS GRID */}
                 <Grid container spacing={4}>
                     <Grid item xs={12} md={6}>
-                        <ProfileField label="Ονοματεπώνυμο" value="Gianis Grip" />
-                        <ProfileField label="Φύλο" value="Woman" /> {/* Βάσει της εικόνας */}
-                        <ProfileField label="Αριθμός Ταυτότητας" value="AM3465" />
+                        <ProfileField label="Ονοματεπώνυμο" name="name" value={form.name} onChange={handleChange} editable={editable} />
+                        <ProfileField label="Φύλο" name="gender" value={form.gender} onChange={handleChange} editable={editable} />
+                        <ProfileField label="Αριθμός Ταυτότητας" name="idNumber" value={form.idNumber} onChange={handleChange} editable={editable} />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                        <ProfileField label="Κωδικός Πρόσβασης" value="*****" type="password" />
-                        <ProfileField label="Κινητό Τηλέφωνο" value="GR 6982045186" />
-                        <ProfileField label="Διεύθυνση" value="Ayiou dimitriou 54" />
+                        <ProfileField label="Κωδικός Πρόσβασης" value="*****" type="password" editable={false} />
+                        <ProfileField label="Κινητό Τηλέφωνο" name="phone" value={form.phone} onChange={handleChange} editable={editable} />
+                        <ProfileField label="Διεύθυνση" name="address" value={form.address} onChange={handleChange} editable={editable} />
                     </Grid>
                 </Grid>
 
@@ -159,11 +232,11 @@ export default function Profile() {
                                 <EmailIcon fontSize="small" />
                             </Box>
                             <Box>
-                                <Typography variant="body2" fontWeight="bold">gripgrip@gmail.com</Typography>
+                                <Typography variant="body2" fontWeight="bold">{form.email || user?.email || ''}</Typography>
                                 <Typography variant="caption" color="text.secondary">1 month ago</Typography>
                             </Box>
                         </Box>
-                        <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" onClick={() => setEditable(true)}><EditIcon fontSize="small" /></IconButton>
                     </Box>
 
                     <Button 
@@ -177,59 +250,19 @@ export default function Profile() {
               </Paper>
             </Grid>
 
-            {/* --- RIGHT COLUMN: SIDEBAR MENU --- */}
+            {/* --- RIGHT COLUMN: Minimal card with quick actions --- */}
             <Grid item xs={12} md={4}>
               <Paper sx={{ p: 4, borderRadius: '24px', bgcolor: 'white' }}>
-                
-                {/* Mini Profile */}
-                <Box sx={{ textAlign: 'center', mb: 4 }}>
-                    <Avatar 
-                        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80" 
-                        sx={{ width: 80, height: 80, mx: 'auto', mb: 2 }} 
-                    />
-                    <Typography variant="h6" fontSize="1rem">Giannis Grip</Typography>
-                    <Typography variant="caption" color="text.secondary">gripgrip@gmail.com</Typography>
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
+                  <Avatar src={avatarSrc} sx={{ width: 80, height: 80, mx: 'auto', mb: 1 }} />
+                  <Typography variant="h6" fontSize="1rem">{form.name || greetingName}</Typography>
+                  <Typography variant="caption" color="text.secondary">{form.email || user?.email || ''}</Typography>
                 </Box>
-
                 <Divider sx={{ mb: 2 }} />
-
-                {/* Menu List */}
-                <List component="nav">
-                    
-                    {/* Item 1: Profile (Active) */}
-                    <ListItem 
-                        button 
-                        selected 
-                        sx={{ 
-                            bgcolor: '#F3F4F6 !important', 
-                            borderRadius: '8px', 
-                            mb: 1 
-                        }}
-                    >
-                        <ListItemIcon><PersonOutlineIcon sx={{ color: '#333' }} /></ListItemIcon>
-                        <ListItemText primary="Το προφίλ μου" primaryTypographyProps={{ fontWeight: 'bold', fontSize: '0.9rem' }} />
-                        <KeyboardArrowRightIcon sx={{ color: '#6C63FF' }} />
-                    </ListItem>
-
-                    {/* Item 2: Settings */}
-                    <ListItem button sx={{ borderRadius: '8px', mb: 1 }}>
-                        <ListItemIcon><SettingsOutlinedIcon /></ListItemIcon>
-                        <ListItemText primary="Ρυθμίσεις" primaryTypographyProps={{ fontSize: '0.9rem' }} />
-                        <KeyboardArrowRightIcon sx={{ color: '#6C63FF' }} />
-                    </ListItem>
-
-                    {/* Item 3: Logout */}
-                    <ListItem 
-                        button 
-                        onClick={() => { localStorage.removeItem('user'); navigate('/login'); }}
-                        sx={{ borderRadius: '8px' }}
-                    >
-                        <ListItemIcon><LogoutIcon /></ListItemIcon>
-                        <ListItemText primary="Αποσύνδεση" primaryTypographyProps={{ fontSize: '0.9rem' }} />
-                    </ListItem>
-
-                </List>
-
+                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                  <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditable(true)}>Επεξεργασία</Button>
+                  <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={() => { logout(); navigate('/login'); }}>Αποσύνδεση</Button>
+                </Box>
               </Paper>
             </Grid>
 

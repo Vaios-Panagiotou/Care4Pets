@@ -1,280 +1,547 @@
-import React from 'react';
-import { 
-  Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, Divider 
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Box, Container, Grid, Typography, Button, Paper, Avatar, IconButton, TextField,
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton, Card, CardContent
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-
-// Icons
-import PetsIcon from '@mui/icons-material/Pets';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import EventIcon from '@mui/icons-material/Event'; // Αντί για Hourglass
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SearchIcon from '@mui/icons-material/Search';
+import { useAuth } from '../context/AuthContext';
+import PageHeader from './PageHeader';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MaleIcon from '@mui/icons-material/Male';
 import FemaleIcon from '@mui/icons-material/Female';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import InfoIcon from '@mui/icons-material/Info';
+import PetsIcon from '@mui/icons-material/Pets';
+import SearchIcon from '@mui/icons-material/Search';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import WarningIcon from '@mui/icons-material/Warning'; // Για τη δήλωση
-import AccessTimeIcon from '@mui/icons-material/AccessTime'; // Για το εκκρεμή ραντεβού
-
-// Import PageHeader
-import PageHeader from './PageHeader';
+import HistoryIcon from '@mui/icons-material/History';
 
 const theme = createTheme({
-  palette: {
-    primary: { main: '#333' }, // Σκούρο γκρι/μαύρο για κείμενα/κουμπιά
-    secondary: { main: '#FFA726' }, // Πορτοκαλί
-    error: { main: '#E53935' }, // Κόκκινο
-    success: { main: '#2E7D32' }, // Πράσινο
-    background: { default: '#f9f9f9' }
+  palette: { 
+    primary: { main: '#1976d2' },
+    secondary: { main: '#ff6b6b' },
+    background: { default: '#f8fafc' },
+    text: { primary: '#1e293b', secondary: '#64748b' }
   },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    button: { textTransform: 'none', fontWeight: 600 },
-    h6: { fontWeight: 700 }
-  },
-  shape: { borderRadius: 8 }
-});
-
-// --- MOCK DATA ---
-const MY_PETS = [
-  {
-    id: 1, name: 'Kouvelaj', breed: 'Golden Retriever', gender: 'male', age: '5 χρόνων', weight: '32 kg',
-    img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'
-  },
-  {
-    id: 2, name: 'Pantiana', breed: 'Περσική Γάτα', gender: 'female', age: '3 χρόνων', weight: '4 kg',
-    img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'
-  }
-];
-
-const APPOINTMENTS = [
-  { id: 1, date: 'Τρίτη, 17 Νοεμβρίου 2025 • 10:00', doctor: 'Δρ. Νίκος Παπαδόπουλος', details: 'Kouvelaj - Εμβολιασμός Λύσσας', location: 'Αθήνα, Κέντρο - Ακαδημίας 23', phone: '+30 210 1234567' },
-  { id: 2, date: 'Παρασκευή, 18 Νοεμβρίου 2025 • 14:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', details: 'Pantiana - Ετήσια Εξέταση', location: 'Καλλιθέα - Θησέως 45', phone: '+30 210 7654321' }
-];
-
-const CANCELLED = [
-  { id: 3, date: 'Τετάρτη, 26 Νοεμβρίου 2025 • 10:00', doctor: 'Δρ. Νίκος Παπαδόπουλος', details: 'Φωτεινή - Εμβολιασμός κατά ασθένειας', location: 'Αθήνα, Κέντρο - Ακαδημίας 23', phone: '+30 210 1234567' }
-];
-
-// --- COMPONENTS ---
-
-// 1. STAT CARD (Top Overlap)
-const StatCard = ({ title, count, icon }) => (
-  <Paper elevation={0} sx={{ 
-      p: 2, border: '1px solid #ddd', borderRadius: '8px', bgcolor: 'white', height: '100%',
-      display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '100px',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-  }}>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Typography variant="subtitle2" fontWeight="bold" sx={{ fontSize: '0.9rem', width: '80%' }}>{title}</Typography>
-        <Box sx={{ color: '#555' }}>{icon}</Box>
-    </Box>
-    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{count}</Typography>
+  shape: { borderRadius: 12 }
+});const QuickActionCard = ({ icon, title, onClick }) => (
+  <Paper sx={{ 
+    px: 2, py: 1.5, 
+    cursor: 'pointer', 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: 1.5,
+    minWidth: 180,
+    transition: 'all 0.2s',
+    bgcolor: 'white',
+    '&:hover': { bgcolor: '#e3f2fd', transform: 'translateY(-2px)', boxShadow: 3 } 
+  }} onClick={onClick}>
+    {icon}
+    <Typography variant="body2" fontWeight={600}>{title}</Typography>
   </Paper>
 );
 
-// 2. PET CARD (Left Column)
-const PetCard = ({ pet, navigate }) => (
-  <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #ddd', borderRadius: '8px', bgcolor: 'white' }}>
-    <Box sx={{ display: 'flex', gap: 2 }}>
-        <Avatar src={pet.img} variant="rounded" sx={{ width: 80, height: 80 }} />
-        <Box sx={{ flexGrow: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="h6" fontWeight="bold">{pet.name}</Typography>
-                {pet.gender === 'male' ? <MaleIcon fontSize="small" sx={{ color: '#FF9800' }}/> : <FemaleIcon fontSize="small" sx={{ color: '#FF9800' }}/>}
-            </Box>
-            <Typography variant="caption" display="block" color="text.secondary">🐶 {pet.breed}</Typography>
-            <Typography variant="caption" display="block" color="text.secondary">📍 {pet.age}</Typography>
-            <Typography variant="caption" display="block" color="text.secondary">⚖️ {pet.weight}</Typography>
-        </Box>
-    </Box>
-    {/* Buttons aligned right */}
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, mt: 2 }}>
-        <Button 
-            variant="contained" size="small" startIcon={<MenuBookIcon />} 
-            onClick={() => navigate(`/owner/health-book/${pet.id}`)}
-            sx={{ bgcolor: '#424242', fontSize: '0.7rem', textTransform: 'none', width: 'fit-content' }}
-        >
-            Προβολή Βιβλιαρίου Υγείας
-        </Button>
-        <Button 
-            variant="contained" size="small" startIcon={<InfoIcon />} 
-            onClick={() => navigate(`/owner/profile`)}
-            sx={{ bgcolor: '#424242', fontSize: '0.7rem', textTransform: 'none', width: 'fit-content' }}
-        >
-            Προβολή Στοιχείων
-        </Button>
+const AppointmentCard = ({ date, time, doctor, pet, location, phone, status }) => (
+  <Paper sx={{ p: 2, mb: 2, borderLeft: status === 'confirmed' ? '4px solid #10b981' : '4px solid #ef4444', bgcolor: 'white' }}>
+    <Typography variant="caption" sx={{ 
+      bgcolor: status === 'confirmed' ? '#d1fae5' : '#fee2e2',
+      color: status === 'confirmed' ? '#065f46' : '#991b1b',
+      px: 1, py: 0.5, borderRadius: 1, fontWeight: 600, fontSize: '0.7rem'
+    }}>
+      {status === 'confirmed' ? 'Επιβεβαιωμένο' : 'Ακυρωμένο'}
+    </Typography>
+    <Typography variant="body2" fontWeight={700} sx={{ mt: 1, color: 'text.primary' }}>{date} • {time}</Typography>
+    <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>📋 {doctor}</Typography>
+    <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>🐕 {pet}</Typography>
+    {location && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>
+      <LocationOnIcon sx={{ fontSize: 14 }} /> {location}
+    </Typography>}
+    {phone && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+      <PhoneIcon sx={{ fontSize: 14 }} /> {phone}
+    </Typography>}
+    <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+      <Button size="small" variant="outlined" sx={{ fontSize: '0.7rem' }}>Λεπτομέρειες</Button>
+      {status === 'confirmed' && <Button size="small" variant="contained" sx={{ fontSize: '0.7rem', bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}>Ακύρωση</Button>}
     </Box>
   </Paper>
 );
 
-// 3. APPOINTMENT CARD (Right Column)
-const AppointmentCard = ({ type, date, doctor, details, location, phone }) => (
-  <Paper elevation={0} sx={{ 
-      p: 2, mb: 2, border: '1px solid #ddd', borderRadius: '8px', bgcolor: 'white', 
-      borderLeft: type === 'cancelled' ? 'none' : '4px solid #4CAF50' 
-  }}>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-        <Typography variant="caption" sx={{ 
-            bgcolor: type === 'upcoming' ? '#E8F5E9' : '#FFEBEE', 
-            color: type === 'upcoming' ? '#2E7D32' : '#C62828', 
-            px: 1, borderRadius: 1, fontWeight: 'bold' 
-        }}>
-            {type === 'upcoming' ? 'Επιβεβαιωμένο' : 'Ακυρωμένο'}
-        </Typography>
-    </Box>
-    <Typography variant="subtitle1" fontWeight="bold" sx={{ textDecoration: type === 'cancelled' ? 'line-through' : 'none' }}>{date}</Typography>
-    <Box sx={{ mt: 1 }}>
-        <Typography variant="caption" display="block" fontWeight="bold">🏆 {doctor}</Typography>
-        <Typography variant="caption" display="block" color="text.secondary">🐕 {details}</Typography>
-        {location && <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}><LocationOnIcon fontSize="inherit" sx={{ verticalAlign: 'middle' }} /> {location}</Typography>}
-        {phone && <Typography variant="caption" display="block" color="text.secondary"><PhoneIcon fontSize="inherit" sx={{ verticalAlign: 'middle' }} /> {phone}</Typography>}
-    </Box>
+const CalendarWidget = () => {
+  const [currentMonth, setCurrentMonth] = React.useState(11); // December (0-indexed)
+  const [currentYear, setCurrentYear] = React.useState(2025);
+  const [selectedDay, setSelectedDay] = React.useState(14);
+  const [hoveredDay, setHoveredDay] = React.useState(null);
+
+  const days = ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'];
+  const monthNames = ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος', 
+                      'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
+  
+  const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+  
+  const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+  const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+  const prevMonthDays = getDaysInMonth(currentMonth - 1, currentYear);
+  
+  // Appointments by day (example data with details)
+  const appointments = {
+    17: { 
+      type: 'confirmed', 
+      count: 1,
+      details: [
+        { time: '10:00', doctor: 'Δρ. Νίκος Παπαδόπουλος', pet: 'Kouvelaj', reason: 'Εμβολιασμός', location: 'Αθήνα, Κέντρο - Ακαδημίας 23' }
+      ]
+    },
+    24: { 
+      type: 'confirmed', 
+      count: 2,
+      details: [
+        { time: '09:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Pantiana', reason: 'Τακτικός Έλεγχος', location: 'Καλλιθέα' },
+        { time: '14:00', doctor: 'Δρ. Γιάννης Γεωργίου', pet: 'Kouvelaj', reason: 'Επανεξέταση', location: 'Αθήνα, Κέντρο' }
+      ]
+    },
+    26: { 
+      type: 'pending', 
+      count: 1,
+      details: [
+        { time: '11:00', doctor: 'Δρ. Ελένη Παπαδάκη', pet: 'Pantiana', reason: 'Καθαρισμός Δοντιών', location: 'Γλυφάδα' }
+      ]
+    },
+    27: { 
+      type: 'pending', 
+      count: 1,
+      details: [
+        { time: '16:30', doctor: 'Δρ. Κώστας Αντωνίου', pet: 'Kouvelaj', reason: 'Εξέταση Αίματος', location: 'Νέα Σμύρνη' }
+      ]
+    },
+    28: { 
+      type: 'cancelled', 
+      count: 1,
+      details: [
+        { time: '14:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Pantiana', reason: 'Ετήσια Εξέταση', location: 'Καλλιθέα' }
+      ]
+    }
+  };
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  const handleDayClick = (day) => {
+    setSelectedDay(day);
+  };
+
+  const renderDay = (day, isCurrentMonth = true) => {
+    const appointment = isCurrentMonth ? appointments[day] : null;
+    let bg = 'transparent', color = '#1e293b', border = 'none';
     
-    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-        <Button size="small" variant="contained" sx={{ bgcolor: '#e0e0e0', color: '#333', fontSize: '0.7rem', boxShadow: 'none' }}>Λεπτομέρειες</Button>
-        {type === 'upcoming' && (
-            <Button size="small" variant="contained" color="error" sx={{ fontSize: '0.7rem', boxShadow: 'none' }}>Ακύρωση</Button>
+    if (appointment) {
+      if (appointment.type === 'confirmed') { bg = '#10b981'; color = 'white'; }
+      else if (appointment.type === 'pending') { bg = '#f59e0b'; color = 'white'; }
+      else if (appointment.type === 'cancelled') { bg = '#ef4444'; color = 'white'; }
+    }
+    
+    if (isCurrentMonth && day === selectedDay) {
+      border = '2px solid #1976d2';
+    }
+
+    const isToday = isCurrentMonth && day === 14 && currentMonth === 11 && currentYear === 2025;
+    
+    return (
+      <Box 
+        onClick={() => isCurrentMonth && handleDayClick(day)}
+        onMouseEnter={() => setHoveredDay(isCurrentMonth ? day : null)}
+        onMouseLeave={() => setHoveredDay(null)}
+        sx={{ 
+          width: 48, 
+          height: 48, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          bgcolor: bg, 
+          color: isCurrentMonth ? color : '#bdbdbd', 
+          borderRadius: '8px', 
+          fontSize: '0.95rem',
+          fontWeight: isToday ? 700 : 500,
+          cursor: isCurrentMonth ? 'pointer' : 'default',
+          border: border,
+          position: 'relative',
+          transition: 'all 0.2s ease',
+          boxShadow: hoveredDay === day && isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
+          transform: hoveredDay === day && isCurrentMonth ? 'scale(1.1)' : 'scale(1)',
+          '&:hover': { 
+            bgcolor: !appointment && isCurrentMonth ? '#e3f2fd' : bg,
+            boxShadow: isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+          }
+        }}
+      >
+        {day}
+        {appointment && isCurrentMonth && (
+          <Box sx={{ 
+            position: 'absolute', 
+            bottom: 4, 
+            right: 4, 
+            width: 6, 
+            height: 6, 
+            borderRadius: '50%', 
+            bgcolor: 'white',
+            border: `1px solid ${bg}`
+          }} />
         )}
-    </Box>
-  </Paper>
-);
-
-// 4. CALENDAR
-const CalendarWidget = () => (
-  <Paper elevation={0} sx={{ p: 2, border: '1px solid #ddd', borderRadius: '16px', bgcolor: 'white', mt: 4 }}>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 2 }}>
-        <IconButton size="small"><ChevronLeftIcon /></IconButton>
-        <Typography variant="subtitle1" fontWeight="bold">Νοέμβριος 2025</Typography>
-        <IconButton size="small"><ChevronRightIcon /></IconButton>
-    </Box>
-    <Grid container spacing={1} sx={{ textAlign: 'center' }}>
-        {['ΔΕ', 'ΤΡ', 'ΤΕ', 'ΠΕ', 'ΠΑ', 'ΣΑ', 'ΚΥ'].map(d => (<Grid item xs={1.7} key={d}><Typography variant="caption" color="text.secondary" fontSize="0.7rem">{d}</Typography></Grid>))}
-        {[...Array(30)].map((_, i) => {
-            const day = i + 1;
-            const isToday = day === 17;
-            const isSelected = day === 18;
-            const isOrange = day === 26 || day === 28;
-            
-            let bg = 'transparent';
-            let color = 'inherit';
-            if (isToday) { bg = '#00E676'; color = 'white'; }
-            else if (isSelected) { bg = '#00E676'; color = 'white'; }
-            else if (isOrange) { bg = '#FFA726'; color = 'white'; }
-            else if (day === 24) { bg = '#FF5252'; color = 'white'; }
-
-            return (<Grid item xs={1.7} key={day}><Box sx={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 'auto', bgcolor: bg, color: color, borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}>{day}</Box></Grid>)
-        })}
-    </Grid>
-  </Paper>
-);
-
-export default function MyPets() {
-  const navigate = useNavigate();
-
-  return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f9f9f9', pb: 8 }}>
-        
-        <Container maxWidth="xl" sx={{ pt: 1 }}>
-            <PageHeader />
-        </Container>
-
-        {/* HERO IMAGE with CURVE */}
-        <Box sx={{ 
-            position: 'relative', height: '350px', mb: 0,
-            backgroundImage: 'url(https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)',
-            backgroundSize: 'cover', backgroundPosition: 'center',
-            borderBottomLeftRadius: '50% 20%', borderBottomRightRadius: '50% 20%',
-            overflow: 'hidden'
-        }}>
-            <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', pb: 5 }}>
-                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.6)' }}>Κατοικίδια</Typography>
-            </Box>
-        </Box>
-
-        <Container maxWidth="xl">
-            
-            {/* 1. TOP STATS (Overlapping Hero) */}
-            <Grid container spacing={2} sx={{ mb: 6, mt: -10, position: 'relative', zIndex: 2 }}>
-                <Grid item xs={12} sm={6} md={3}><StatCard title="Τα Κατοικίδιά Μου" count="2" icon={<PetsIcon />} /></Grid>
-                <Grid item xs={12} sm={6} md={3}><StatCard title="Προσεχείς Εμβολιασμοί" count="1" icon={<MedicalServicesIcon />} /></Grid>
-                <Grid item xs={12} sm={6} md={3}><StatCard title="Εκκρεμή Ραντεβού" count="3" icon={<AccessTimeIcon />} /></Grid>
-                <Grid item xs={12} sm={6} md={3}><StatCard title="Ολοκληρωμένα Ραντεβού" count="5" icon={<CheckCircleIcon />} /></Grid>
-            </Grid>
-
-            {/* 2. QUICK ACTIONS */}
-            <Typography variant="h6" sx={{ mb: 2 }}>Γρήγορες Ενέργειες</Typography>
-            <Grid container spacing={3} sx={{ mb: 6 }}>
-                <Grid item xs={12} sm={4}>
-                    <Paper elevation={0} onClick={() => navigate('/owner/search')} sx={{ p: 3, border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', height: '100%', display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'white', '&:hover': { borderColor: '#999' } }}>
-                        <SearchIcon fontSize="large" sx={{ color: '#555' }} />
-                        <Typography variant="subtitle1" fontWeight="bold">Βρες Κτηνίατρο</Typography>
-                    </Paper>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <Paper elevation={0} onClick={() => navigate('/lost-pets')} sx={{ p: 3, border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', height: '100%', display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'white', '&:hover': { borderColor: '#999' } }}>
-                        <SearchIcon fontSize="large" sx={{ color: '#555' }} />
-                        <Typography variant="subtitle1" fontWeight="bold">Εύρεση Ζώου</Typography>
-                    </Paper>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <Paper elevation={0} sx={{ p: 3, border: '1px solid #ddd', borderRadius: '8px', bgcolor: 'white', height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <WarningIcon fontSize="large" sx={{ color: '#757575' }} />
-                            <Typography variant="subtitle1" fontWeight="bold">Δήλωση Απώλειας</Typography>
-                        </Box>
-                        <Button variant="contained" color="secondary" fullWidth onClick={() => navigate('/lost-pets')} sx={{ mt: 'auto', fontWeight: 'bold', color: '#333', borderRadius: '4px' }}>
-                            Προχώρησε δήλωσης
-                        </Button>
-                    </Paper>
-                </Grid>
-            </Grid>
-
-            {/* 3. MAIN GRID */}
-            <Grid container spacing={6}>
-                
-                {/* LEFT: PETS */}
-                <Grid item xs={12} md={7}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                        <Typography variant="h6">Τα Κατοικίδιά Μου</Typography>
-                        <IconButton size="small"><ArrowForwardIcon /></IconButton>
-                    </Box>
-                    {MY_PETS.map(pet => <PetCard key={pet.id} pet={pet} navigate={navigate} />)}
-                    
-                    <Button variant="contained" sx={{ bgcolor: '#333', borderRadius: '20px', mt: 1, textTransform: 'none' }}>
-                        Όλα τα κατοικίδια →
-                    </Button>
-                </Grid>
-
-                {/* RIGHT: APPOINTMENTS */}
-                <Grid item xs={12} md={5}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                        <Typography variant="h6">Επερχόμενα Ραντεβού</Typography>
-                        <Chip label="2" size="small" sx={{ fontWeight: 'bold', bgcolor: '#e0e0e0' }} />
-                    </Box>
-                    {APPOINTMENTS.map(app => <AppointmentCard key={app.id} type={app.type} {...app} />)}
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, mt: 5 }}>
-                        <Typography variant="h6">Ακυρωμένα</Typography>
-                        <Chip label="1" size="small" sx={{ fontWeight: 'bold', bgcolor: '#e0e0e0' }} />
-                    </Box>
-                    {CANCELLED.map(app => <AppointmentCard key={app.id} type={app.type} {...app} />)}
-
-                    <CalendarWidget />
-                </Grid>
-
-            </Grid>
-
-        </Container>
       </Box>
-    </ThemeProvider>
+    );
+  };
+
+  const calendar = [];
+  
+  // Previous month days
+  for (let i = firstDay === 0 ? 6 : firstDay - 1; i > 0; i--) {
+    calendar.push({ day: prevMonthDays - i + 1, isCurrentMonth: false });
+  }
+  
+  // Current month days
+  for (let i = 1; i <= daysInMonth; i++) {
+    calendar.push({ day: i, isCurrentMonth: true });
+  }
+  
+  // Next month days to fill the grid
+  const remainingDays = 42 - calendar.length;
+  for (let i = 1; i <= remainingDays; i++) {
+    calendar.push({ day: i, isCurrentMonth: false });
+  }
+  
+  return (
+    <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <IconButton onClick={handlePrevMonth} sx={{ 
+          bgcolor: '#f5f5f5', 
+          '&:hover': { bgcolor: '#e0e0e0' }
+        }}>
+          <ChevronLeftIcon />
+        </IconButton>
+        <Typography variant="h6" fontWeight={700}>{monthNames[currentMonth]} {currentYear}</Typography>
+        <IconButton onClick={handleNextMonth} sx={{ 
+          bgcolor: '#f5f5f5', 
+          '&:hover': { bgcolor: '#e0e0e0' }
+        }}>
+          <ChevronRightIcon />
+        </IconButton>
+      </Box>
+      
+      <Grid container spacing={1} sx={{ textAlign: 'center', mb: 2 }}>
+        {days.map(d => (
+          <Grid item xs={12/7} key={d}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>{d}</Typography>
+          </Grid>
+        ))}
+      </Grid>
+      
+      <Grid container spacing={1} sx={{ textAlign: 'center' }}>
+        {calendar.map((item, idx) => (
+          <Grid item xs={12/7} key={idx}>
+            {renderDay(item.day, item.isCurrentMonth)}
+          </Grid>
+        ))}
+      </Grid>
+
+      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#10b981', borderRadius: '4px' }} />
+          <Typography variant="caption">Επιβεβαιωμένα Ραντεβού</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#f59e0b', borderRadius: '4px' }} />
+          <Typography variant="caption">Σε Αναμονή</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#ef4444', borderRadius: '4px' }} />
+          <Typography variant="caption">Ακυρωμένα</Typography>
+        </Box>
+      </Box>
+
+      {selectedDay && (
+        <Box sx={{ mt: 3 }}>
+          <Box sx={{ p: 2, bgcolor: '#dbeafe', borderRadius: 2, border: '1px solid #93c5fd', mb: 2 }}>
+            <Typography variant="body2" fontWeight={600} color="primary">
+              {selectedDay} {monthNames[currentMonth]} {currentYear}
+            </Typography>
+            {appointments[selectedDay] ? (
+              <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.primary' }}>
+                {appointments[selectedDay].count} ραντεβού
+              </Typography>
+            ) : (
+              <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
+                Δεν υπάρχουν ραντεβού
+              </Typography>
+            )}
+          </Box>
+          
+          {appointments[selectedDay] && appointments[selectedDay].details && (
+            <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
+              {appointments[selectedDay].details.map((apt, idx) => {
+                const statusColors = {
+                  confirmed: { bg: '#d1fae5', border: '#10b981', text: '#065f46', badge: 'Επιβεβαιωμένο' },
+                  pending: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', badge: 'Σε Αναμονή' },
+                  cancelled: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', badge: 'Ακυρωμένο' }
+                };
+                const colors = statusColors[appointments[selectedDay].type];
+                
+                return (
+                  <Paper key={idx} sx={{ p: 1.5, mb: 1.5, bgcolor: colors.bg, border: `1px solid ${colors.border}` }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="caption" sx={{ 
+                        bgcolor: 'white', 
+                        color: colors.text, 
+                        px: 1, 
+                        py: 0.3, 
+                        borderRadius: 1, 
+                        fontWeight: 600,
+                        fontSize: '0.65rem'
+                      }}>
+                        {colors.badge}
+                      </Typography>
+                      <Typography variant="caption" fontWeight={700} sx={{ color: colors.text }}>
+                        {apt.time}
+                      </Typography>
+                    </Box>
+                    
+                    <Typography variant="caption" display="block" fontWeight={600} sx={{ color: 'text.primary', mb: 0.5 }}>
+                      🐕 {apt.pet}
+                    </Typography>
+                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', mb: 0.3 }}>
+                      📋 {apt.doctor}
+                    </Typography>
+                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', mb: 0.3 }}>
+                      💊 {apt.reason}
+                    </Typography>
+                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <LocationOnIcon sx={{ fontSize: 12 }} /> {apt.location}
+                    </Typography>
+                  </Paper>
+                );
+              })}
+            </Box>
+          )}
+        </Box>
+      )}
+    </Paper>
   );
+};
+
+const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
+  <Paper sx={{ p: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+      <Avatar src={pet.img} sx={{ width: 60, height: 60 }} />
+      <Box sx={{ flex: 1 }}>
+        <Typography variant="subtitle1" fontWeight={700}>{pet.name}</Typography>
+        <Typography variant="caption" color="text.secondary">{pet.breed}</Typography>
+        <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+          <Typography variant="caption">• {pet.age || 'N/A'}</Typography>
+          <Typography variant="caption">• {pet.weight || 'N/A'}</Typography>
+        </Box>
+      </Box>
+      <IconButton size="small" onClick={() => onEdit(pet)}><EditIcon fontSize="small" /></IconButton>
+      <IconButton size="small" color="error" onClick={() => onDelete(pet.id)}><DeleteOutlineIcon fontSize="small" /></IconButton>
+    </Box>
+    <Box sx={{ display: 'flex', gap: 1 }}>
+      <Button size="small" variant="outlined" fullWidth onClick={() => navigate(`/owner/health-book/${pet.id}`)}>
+        Βιβλιάριο Υγείας
+      </Button>
+      <Button size="small" variant="contained" fullWidth>
+        Λεπτομέρειες
+      </Button>
+    </Box>
+  </Paper>
+);export default function MyPets() {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const [pets, setPets] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [editing, setEditing] = useState(null);
+    const [form, setForm] = useState({ name: '', breed: '', gender: 'male', age: '', weight: '', img: '' });
+
+    // Mock appointments
+    const appointments = [
+        { id: 1, date: 'Τρίτη, 17 Νοεμβρίου 2025', time: '10:00', doctor: 'Δρ. Νίκος Παπαδόπουλος', pet: 'Kouvelaj - Εμβολιασμός', location: 'Αθήνα, Κέντρο - Ακαδημίας 23', phone: '+30 210 1234567', status: 'confirmed' },
+        { id: 2, date: 'Τετάρτη, 28 Νοεμβρίου 2025', time: '14:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Pantiana - Ετήσια Εξέταση', location: 'Καλλιθέα', phone: '+30 210 7654321', status: 'cancelled' }
+    ];
+
+    useEffect(() => {
+        const fetchPets = async () => {
+            setError('');
+            if (!user?.id) { setLoading(false); return; }
+            try {
+                const res = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
+                const data = await res.json();
+                setPets(data || []);
+            } catch (e) {
+                setError('Σφάλμα φόρτωσης κατοικιδίων. Βεβαιώσου ότι τρέχει το json-server.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPets();
+    }, [user]);
+
+    const openAdd = () => { setEditing('new'); setForm({ name: '', breed: '', gender: 'male', age: '', weight: '', img: '' }); setDialogOpen(true); };
+    const openEdit = (pet) => { setEditing(pet.id); setForm({ name: pet.name || '', breed: pet.breed || '', gender: (pet.gender || 'male'), age: pet.age || '', weight: pet.weight || '', img: pet.img || '' }); setDialogOpen(true); };
+    const closeDialog = () => { setDialogOpen(false); setEditing(null); };
+
+    const savePet = async () => {
+        setError('');
+        const payload = { ...form, ownerId: user.id };
+        try {
+            if (editing === 'new') {
+                const res = await fetch('http://localhost:3001/pets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const created = await res.json();
+                setPets(prev => [created, ...prev]);
+            } else {
+                const res = await fetch(`http://localhost:3001/pets/${editing}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const updated = await res.json();
+                setPets(prev => prev.map(p => p.id === updated.id ? updated : p));
+            }
+            closeDialog();
+        } catch (e) { setError('Αποτυχία αποθήκευσης κατοικιδίου.'); }
+    };
+
+    const deletePet = async (id) => {
+        try { await fetch(`http://localhost:3001/pets/${id}`, { method: 'DELETE' }); setPets(prev => prev.filter(p => p.id !== id)); }
+        catch { setError('Αποτυχία διαγραφής.'); }
+    };
+
+    return (
+        <ThemeProvider theme={theme}>
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+                {/* Hero Section */}
+                <Box sx={{ 
+                    position: 'relative', height: 300,
+                    backgroundImage: 'url(https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=1600&q=80)',
+                    backgroundSize: 'cover', backgroundPosition: 'center',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.4)' }} />
+                    <Typography variant="h3" sx={{ color: 'white', fontWeight: 800, zIndex: 1, textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>Κατοικίδια</Typography>
+                </Box>
+
+                <Container maxWidth="xl" sx={{ mt: -8, position: 'relative', zIndex: 2, pb: 6 }}>
+                    <PageHeader />
+                    
+                    {/* Pet Cards Section */}
+                    <Paper sx={{ p: 3, mb: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h6" fontWeight={700}>Τα Κατοικίδιά Μου</Typography>
+                            <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}>Προσθήκη</Button>
+                        </Box>
+                        <Grid container spacing={2}>
+                            {pets.map(pet => (
+                                <Grid item xs={12} sm={6} md={4} key={pet.id}>
+                                    <PetCard pet={pet} navigate={navigate} onEdit={openEdit} onDelete={deletePet} />
+                                </Grid>
+                            ))}
+                            {pets.length === 0 && !loading && (
+                                <Grid item xs={12}>
+                                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: 4 }}>
+                                        Δεν υπάρχουν κατοικίδια. Πάτησε "Προσθήκη" για να προσθέσεις το πρώτο σου.
+                                    </Typography>
+                                </Grid>
+                            )}
+                        </Grid>
+                    </Paper>
+
+                    {/* Quick Actions */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                        <Typography variant="h6" fontWeight={700}>Γρήγορες Ενέργειες</Typography>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <QuickActionCard 
+                                icon={<SearchIcon sx={{ fontSize: 24, color: '#757575' }} />}
+                                title="Βρες Κτηνίατρο"
+                                onClick={() => navigate('/owner/search')}
+                            />
+                            <QuickActionCard 
+                                icon={<CalendarTodayIcon sx={{ fontSize: 24, color: '#757575' }} />}
+                                title="Εύρεση Ζώου"
+                                onClick={() => navigate('/lost-pets')}
+                            />
+                            <QuickActionCard 
+                                icon={<NotificationsIcon sx={{ fontSize: 24, color: '#757575' }} />}
+                                title="Δήλωση Απώλειας"
+                                onClick={() => navigate('/lost-pets')}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Main Grid: Appointments & Calendar */}
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={8}>
+                            <Box sx={{ display: 'flex', gap: 3 }}>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Επερχόμενα Ραντεβού</Typography>
+                                    {appointments.filter(a => a.status === 'confirmed').map(app => (
+                                        <AppointmentCard key={app.id} {...app} />
+                                    ))}
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Ακυρωμένα</Typography>
+                                    {appointments.filter(a => a.status === 'cancelled').map(app => (
+                                        <AppointmentCard key={app.id} {...app} />
+                                    ))}
+                                </Box>
+                            </Box>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Ημερολόγιο</Typography>
+                            <CalendarWidget />
+                        </Grid>
+                    </Grid>
+
+                    {/* History Section */}
+                    <Paper sx={{ p: 3, mt: 4 }}>
+                        <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Πλήρες ιστορικό χρόνου κατοικιδίων</Typography>
+                        <Button variant="outlined" size="small">Δες τα όλα</Button>
+                    </Paper>
+                </Container>
+
+                {/* Add/Edit Dialog */}
+                <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
+                    <DialogTitle>{editing === 'new' ? 'Προσθήκη Κατοικιδίου' : 'Επεξεργασία Κατοικιδίου'}</DialogTitle>
+                    <DialogContent dividers>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}><TextField label="Όνομα" fullWidth value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Grid>
+                            <Grid item xs={12} sm={6}><TextField label="Φυλή" fullWidth value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })} /></Grid>
+                            <Grid item xs={12} sm={6}><TextField label="Φύλο (male/female)" fullWidth value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} /></Grid>
+                            <Grid item xs={12} sm={6}><TextField label="Ηλικία" fullWidth value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} /></Grid>
+                            <Grid item xs={12} sm={6}><TextField label="Βάρος" fullWidth value={form.weight} onChange={(e) => setForm({ ...form, weight: e.target.value })} /></Grid>
+                            <Grid item xs={12}><TextField label="Εικόνα (URL)" fullWidth value={form.img} onChange={(e) => setForm({ ...form, img: e.target.value })} /></Grid>
+                        </Grid>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={closeDialog}>Άκυρο</Button>
+                        <Button variant="contained" onClick={savePet}>Αποθήκευση</Button>
+                    </DialogActions>
+                </Dialog>
+            </Box>
+        </ThemeProvider>
+    );
 }
