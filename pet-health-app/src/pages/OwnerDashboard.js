@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Accordion, 
   AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, 
-  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton 
+  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton, Tooltip 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 // Icons
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -15,16 +16,13 @@ import SearchIcon from '@mui/icons-material/Search';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import InstagramIcon from '@mui/icons-material/Instagram';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import YouTubeIcon from '@mui/icons-material/YouTube';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // <--- ΝΕΟ IMPORT
 
 // Import PageHeader
 import PageHeader from './PageHeader'; 
+import Footer from '../components/Footer';
 
 // --- THEME ---
 const theme = createTheme({
@@ -122,7 +120,7 @@ const Navbar = () => {
 
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             {/* Search Icon */}
-            <IconButton sx={{ color: 'text.secondary' }}><SearchIcon /></IconButton>
+            <IconButton onClick={() => navigate('/owner/search')} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}><SearchIcon /></IconButton>
             
             {/* --- ΝΕΟ ΚΟΥΜΠΙ ΠΡΟΦΙΛ --- */}
             <IconButton 
@@ -144,119 +142,209 @@ const Navbar = () => {
 };
 
 // --- FOOTER ---
-const Footer = () => (
-  <Box sx={{ bgcolor: '#1a2327', color: '#b0bec5', py: 8, mt: 'auto' }}>
-    <Container>
-      <Grid container spacing={5}>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <PetsIcon sx={{ color: 'secondary.main', mr: 1 }} />
-            <Typography variant="h6" color="white">Care4Pets</Typography>
-          </Box>
-          <Typography variant="body2">Η πλατφόρμα φροντίδας κατοικιδίων.</Typography>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" color="white">Επικοινωνία</Typography>
-          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}><PhoneIcon fontSize="small"/> 210-1234567</Box>
-          <Box sx={{ display: 'flex', gap: 1 }}><EmailIcon fontSize="small"/> support@care4pets.gr</Box>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" color="white">Social</Typography>
-          <Box sx={{ '& > svg': { mr: 2, cursor: 'pointer', color: 'white' } }}>
-            <FacebookIcon /><InstagramIcon /><TwitterIcon /><YouTubeIcon />
-          </Box>
-        </Grid>
-      </Grid>
-    </Container>
-  </Box>
-);
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f4f6f8', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
         
-        {/* --- PAGE HEADER --- */}
-        <Container maxWidth="xl">
+        {/* PAGE HEADER */}
+        <Container maxWidth="xl" sx={{ pt: 2 }}>
             <PageHeader />
         </Container>
 
-        {/* HERO */}
+        {/* FULL WIDTH HERO */}
         <Box sx={{ 
-          position: 'relative', height: '300px', bgcolor: '#344055',
-          backgroundImage: 'url(https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)', 
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          borderBottomLeftRadius: '60px', borderBottomRightRadius: '60px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 5
+          position: 'relative', 
+          height: '400px', 
+          width: '100%',
+          bgcolor: '#1e293b',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80)',
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center'
         }}>
-           <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.5)', borderRadius: '0 0 60px 60px' }} />
-           <Container sx={{ position: 'relative', zIndex: 1, textAlign: 'center', color: 'white' }}>
-              <Typography variant="h3" fontWeight="800" sx={{ textShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>
-                Καλωσήρθατε, Ιδιοκτήτη
-              </Typography>
-           </Container>
+          <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.5)' }} />
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', color: 'white' }}>
+            <Typography variant="h2" fontWeight="800" sx={{ textShadow: '0 4px 20px rgba(0,0,0,0.8)' }}>
+              Καλωσήρθατε, Ιδιοκτήτη
+            </Typography>
+            <Typography variant="h6" sx={{ mt: 2, opacity: 0.95 }}>
+              Διαχειριστείτε τα κατοικίδιά σας με ευκολία
+            </Typography>
+          </Box>
         </Box>
 
-        {/* QUICK ACTIONS */}
-        <Container maxWidth="lg" sx={{ mt: -10, mb: 6, position: 'relative', zIndex: 2 }}>
-          <Grid container spacing={3} justifyContent="center">
-            {[
-              { label: 'Τα Κατοικίδια', icon: <PetsIcon fontSize="large" />, color: '#00ACC1', path: '/owner/pets' },
-              { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#00ACC1', path: '/owner/history' },
-              { label: 'Εύρεση Ιατρού', icon: <SearchIcon fontSize="large" />, color: '#00ACC1', path: '/owner/search' }
-            ].map((action) => (
-              <Grid item xs={12} sm={4} key={action.label}>
+        {/* MAIN LAYOUT WITH SIDEBAR */}
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+          {/* REUSABLE SIDEBAR */}
+          <DashboardSidebar />
+
+          {/* MAIN CONTENT AREA */}
+          <Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
+            {/* QUICK ACTIONS */}
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                mb: 4, 
+                fontWeight: 700, 
+                color: '#1e293b',
+                textAlign: 'center',
+                letterSpacing: '-0.5px'
+              }}
+            >
+              Γρήγορες Ενέργειες
+            </Typography>
+            <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
+              {[
+                { label: 'Τα Κατοικίδια', icon: <PetsIcon fontSize="large" />, color: '#1976d2', path: '/owner/pets' },
+                { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#1976d2', path: '/owner/history' },
+                { label: 'Εύρεση Ιατρού', icon: <SearchIcon fontSize="large" />, color: '#1976d2', path: '/owner/search' }
+              ].map((action) => (
+                <Grid item xs={12} sm={4} key={action.label}>
+                  <Paper 
+                    elevation={0}
+                    onClick={() => navigate(action.path)} 
+                    sx={{ 
+                      p: 3, 
+                      textAlign: 'center', 
+                      borderRadius: 4, 
+                      cursor: 'pointer',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', 
+                      bgcolor: action.color, 
+                      color: 'white',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': { 
+                        transform: 'translateY(-8px) scale(1.02)', 
+                        boxShadow: '0 12px 24px rgba(25,118,210,0.4)',
+                        '& .icon-container': {
+                          transform: 'rotate(360deg) scale(1.1)'
+                        }
+                      },
+                      '&:active': {
+                        transform: 'translateY(-4px) scale(0.98)'
+                      }
+                    }}
+                  >
+                    <Box 
+                      className="icon-container"
+                      sx={{ 
+                        bgcolor: 'rgba(255,255,255,0.2)', 
+                        width: 56, 
+                        height: 56, 
+                        borderRadius: '50%', 
+                        display: 'flex',
+                        transition: 'all 0.5s ease', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      mx: 'auto', 
+                      mb: 2 
+                    }}>
+                      {action.icon}
+                    </Box>
+                    <Typography variant="h6" fontWeight="600">{action.label}</Typography>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* INFO CARDS */}
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                mb: 4, 
+                fontWeight: 700, 
+                color: '#1e293b',
+                textAlign: 'center',
+                letterSpacing: '-0.5px'
+              }}
+            >
+              Πρόσφατη Δραστηριότητα
+            </Typography>
+            <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
+              <Grid item xs={12} sm={6}>
                 <Paper 
-                  elevation={6} 
-                  onClick={() => navigate(action.path)}
+                  elevation={0} 
                   sx={{ 
-                    p: 3, textAlign: 'center', borderRadius: '20px', cursor: 'pointer',
-                    transition: '0.3s', bgcolor: action.color, color: 'white',
-                    '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 15px 30px rgba(0,172,193,0.4)' }
+                    p: 3, 
+                    borderRadius: 4, 
+                    bgcolor: '#f0f7ff',
+                    border: '2px solid #1976d2',
+                    cursor: 'pointer',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': { 
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 12px 24px rgba(25,118,210,0.3)',
+                      bgcolor: '#e3f2fd'
+                    }
                   }}
                 >
-                  <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 60, height: 60, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-                    {action.icon}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ fontSize: '32px' }}>📅</Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                      Επόμενα Ραντεβού
+                    </Typography>
                   </Box>
-                  <Typography variant="h6" fontWeight="bold">{action.label}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Δεν υπάρχουν προγραμματισμένα ραντεβού
+                  </Typography>
                 </Paper>
               </Grid>
-            ))}
-          </Grid>
-        </Container>
-
-        {/* ACCORDIONS */}
-        <Container maxWidth="md" sx={{ mb: 10, flexGrow: 1 }}>
-          <Typography variant="h5" align="center" fontWeight="bold" color="text.secondary" gutterBottom sx={{ mb: 4 }}>
-            Υπηρεσίες & Πληροφορίες
-          </Typography>
-          {OWNER_INFO.map((section) => (
-            <Accordion key={section.id} sx={{ mb: 2, borderRadius: '16px !important', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ bgcolor: '#e0f2f1', p: 1, borderRadius: '12px' }}>{section.icon}</Box>
-                  <Typography variant="h6" fontWeight="600" color="text.primary">{section.title}</Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ bgcolor: '#fafafa', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', p: 3 }}>
-                <List dense>
-                  {section.items.map((item, index) => (
-                    <ListItemButton key={index} onClick={() => navigate(item.path)}>
-                      <ListItemIcon><ArrowForwardIcon fontSize="small" color="secondary" /></ListItemIcon>
-                      <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '15px', fontWeight: 500 }} />
-                    </ListItemButton>
-                  ))}
-                </List>
-                <Button variant="outlined" size="small" onClick={() => navigate(section.path)} sx={{ mt: 2, ml: 2, borderRadius: '20px' }}>
-                    Μετάβαση
-                </Button>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Container>
+              <Grid item xs={12} sm={6}>
+                <Paper 
+                  elevation={0} 
+                  onClick={() => navigate('/owner/pets')}
+                  sx={{ 
+                    p: 3, 
+                    borderRadius: 4, 
+                    bgcolor: '#f0fdf4',
+                    border: '2px solid #1976d2',
+                    cursor: 'pointer',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': { 
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 12px 24px rgba(25,118,210,0.3)',
+                      bgcolor: '#e3f2fd',
+                      borderColor: '#1976d2'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ fontSize: '32px' }}>🐾</Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                      Τα Κατοικίδιά μου
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Προβολή όλων των κατοικιδίων σας
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    onClick={() => navigate('/owner/pets')}
+                    sx={{ 
+                      borderRadius: 2,
+                      bgcolor: '#1976d2',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      '&:hover': {
+                        bgcolor: '#1565c0'
+                      }
+                    }}
+                  >
+                    Μετάβαση →
+                  </Button>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
 
         <Footer />
       </Box>

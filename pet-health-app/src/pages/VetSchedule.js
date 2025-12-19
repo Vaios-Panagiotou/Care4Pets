@@ -19,6 +19,7 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 
 // Import PageHeader
 import PageHeader from './PageHeader';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 const theme = createTheme({
   palette: {
@@ -170,23 +171,27 @@ export default function VetSchedule() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa', pb: 10 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa', pb: 10, display: 'flex', flexDirection: 'column' }}>
         
         <Container maxWidth="xl" sx={{ pt: 2 }}>
             <PageHeader />
         </Container>
 
-        {/* HERO TITLE AREA */}
-        <Box sx={{ bgcolor: '#263238', py: 4, mb: -4, pb: 8, color: 'white' }}>
-            <Container maxWidth="lg">
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                        <Typography variant="h4" fontWeight="bold">Πρόγραμμα</Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.7 }}>Διαχείριση ραντεβού και αιτημάτων.</Typography>
-                    </Box>
-                    <Button variant="contained" color="secondary" startIcon={<AccessTimeIcon />} sx={{ fontWeight: 'bold', borderRadius: '8px' }}>
-                        Νέο Ραντεβού
-                    </Button>
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+          <DashboardSidebar />
+          
+          <Box sx={{ flex: 1, overflowY: 'auto' }}>
+            {/* HERO TITLE AREA */}
+            <Box sx={{ bgcolor: '#263238', py: 4, mb: -4, pb: 8, color: 'white', mr: -2 }}>
+                <Container maxWidth="lg">
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box>
+                            <Typography variant="h4" fontWeight="bold">Πρόγραμμα</Typography>
+                            <Typography variant="body2" sx={{ opacity: 0.7 }}>Διαχείριση ραντεβού και αιτημάτων.</Typography>
+                        </Box>
+                        <Button variant="contained" color="secondary" startIcon={<AccessTimeIcon />} sx={{ fontWeight: 'bold', borderRadius: '8px' }}>
+                            Νέο Ραντεβού
+                        </Button>
                 </Box>
             </Container>
         </Box>
@@ -241,7 +246,8 @@ export default function VetSchedule() {
 
             </Grid>
         </Container>
-
+          </Box>
+        </Box>
       </Box>
     </ThemeProvider>
   );

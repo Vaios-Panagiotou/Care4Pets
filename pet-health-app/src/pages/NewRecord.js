@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { 
   Box, Container, Grid, Typography, TextField, Button, Paper, 
   MenuItem, Select, InputLabel, FormControl, Avatar, IconButton 
@@ -15,7 +15,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 // Import PageHeader
 import PageHeader from './PageHeader';
+import DashboardSidebar from '../components/DashboardSidebar';
 
+// Create theme outside component to prevent recreation on every render
 const theme = createTheme({
   palette: {
     primary: { main: '#1976d2' },
@@ -30,50 +32,83 @@ const theme = createTheme({
   shape: { borderRadius: 12 },
   components: {
     MuiTextField: {
+      defaultProps: {
+        size: 'small'
+      },
       styleOverrides: {
-        root: { marginBottom: '16px', bgcolor: 'white' }
+        root: { 
+          '& .MuiInputBase-root': {
+            backgroundColor: 'white'
+          }
+        }
       }
     }
   }
 });
 
-export default function NewRecord() {
+const NewRecord = () => {
   const navigate = useNavigate();
+  const scrollContainerRef = useRef(null);
   const [image, setImage] = useState(null);
 
-  const handleImageChange = (e) => {
+  // Prevent key events inside the form from bubbling to global listeners
+  const stopKeyPropagation = useCallback((e) => {
+    // Stop bubbling and capturing to neutralize any global handlers
+    e.stopPropagation();
+    if (e.nativeEvent && typeof e.nativeEvent.stopImmediatePropagation === 'function') {
+      e.nativeEvent.stopImmediatePropagation();
+    }
+  }, []);
+
+  const handleImageChange = useCallback((e) => {
     if (e.target.files && e.target.files[0]) {
       setImage(URL.createObjectURL(e.target.files[0]));
     }
-  };
+  }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     alert('Η καταγραφή αποθηκεύτηκε επιτυχώς!');
     navigate('/vet');
-  };
+  }, [navigate]);
+  
+  const handleCancel = useCallback(() => {
+    navigate('/vet');
+  }, [navigate]);
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 8 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 8, display: 'flex', flexDirection: 'column' }}>
         
         <Container maxWidth="xl" sx={{ pt: 2 }}>
             <PageHeader />
         </Container>
 
-        {/* HERO HEADER */}
-        <Box sx={{ bgcolor: '#1976d2', py: 5, mb: 8, color: 'white', textAlign: 'center' }}>
-            <Container maxWidth="md">
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Νέα Καταγραφή Ασθενούς</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Συμπληρώστε τα στοιχεία του ζώου και του ιδιοκτήτη
-                </Typography>
-            </Container>
-        </Box>
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+          <DashboardSidebar />
+          
+          <Box 
+            ref={scrollContainerRef}
+            sx={{ 
+              flex: 1, 
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              WebkitOverflowScrolling: 'touch',
+              willChange: 'transform'
+            }}>
+            {/* HERO HEADER */}
+            <Box sx={{ bgcolor: '#1976d2', py: 5, mb: 8, color: 'white', textAlign: 'center', mr: -2 }}>
+                <Container maxWidth="md">
+                    <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Νέα Καταγραφή Ασθενούς</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        Συμπληρώστε τα στοιχεία του ζώου και του ιδιοκτήτη
+                    </Typography>
+                </Container>
+            </Box>
 
-        <Container maxWidth="md">
+            <Container maxWidth="md">
           <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: 'white', border: '1px solid #e2e8f0' }}>
-            <Box component="form" onSubmit={handleSubmit}>
+            <Box component="form" onSubmit={handleSubmit} onKeyDown={stopKeyPropagation} onKeyDownCapture={stopKeyPropagation} onKeyUp={stopKeyPropagation} onKeyUpCapture={stopKeyPropagation} onKeyPress={stopKeyPropagation} onKeyPressCapture={stopKeyPropagation} noValidate autoComplete="off">
                 {/* PET INFORMATION SECTION */}
                 <Box sx={{ mb: 6 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '2px solid #e2e8f0' }}>
@@ -91,7 +126,20 @@ export default function NewRecord() {
                     </Box>
 
                     {/* Pet Fields */}
-                    <TextField fullWidth required label="Όνομα Ζώου" variant="outlined" size="small" sx={{ mb: 2 }} />
+                    <TextField 
+                      fullWidth 
+                      required 
+                      label="Όνομα Ζώου" 
+                      variant="outlined" 
+                      size="small" 
+                      sx={{ mb: 2 }} 
+                      onKeyDown={stopKeyPropagation}
+                      onKeyDownCapture={stopKeyPropagation}
+                      onKeyUp={stopKeyPropagation}
+                      onKeyUpCapture={stopKeyPropagation}
+                      onKeyPress={stopKeyPropagation}
+                      onKeyPressCapture={stopKeyPropagation}
+                    />
                     
                     <FormControl fullWidth size="small" sx={{ bgcolor: 'white', mb: 2 }}>
                         <InputLabel>Είδος</InputLabel>
@@ -144,7 +192,7 @@ export default function NewRecord() {
                     <Button 
                         variant="outlined" 
                         startIcon={<ArrowBackIcon />}
-                        onClick={() => navigate('/vet')}
+                        onClick={handleCancel}
                         sx={{ px: 4 }}
                     >
                         Ακύρωση
@@ -161,8 +209,12 @@ export default function NewRecord() {
                 </Box>
             </Box>
           </Paper>
-        </Container>
+            </Container>
+          </Box>
+        </Box>
       </Box>
     </ThemeProvider>
   );
-}
+};
+
+export default React.memo(NewRecord);

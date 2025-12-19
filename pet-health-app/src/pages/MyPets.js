@@ -6,6 +6,7 @@ import {
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import DashboardSidebar from '../components/DashboardSidebar';
 import PageHeader from './PageHeader';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -16,8 +17,6 @@ import PetsIcon from '@mui/icons-material/Pets';
 import SearchIcon from '@mui/icons-material/Search';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import HistoryIcon from '@mui/icons-material/History';
@@ -232,20 +231,8 @@ const CalendarWidget = () => {
   
   return (
     <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <IconButton onClick={handlePrevMonth} sx={{ 
-          bgcolor: '#f5f5f5', 
-          '&:hover': { bgcolor: '#e0e0e0' }
-        }}>
-          <ChevronLeftIcon />
-        </IconButton>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6" fontWeight={700}>{monthNames[currentMonth]} {currentYear}</Typography>
-        <IconButton onClick={handleNextMonth} sx={{ 
-          bgcolor: '#f5f5f5', 
-          '&:hover': { bgcolor: '#e0e0e0' }
-        }}>
-          <ChevronRightIcon />
-        </IconButton>
       </Box>
       
       <Grid container spacing={1} sx={{ textAlign: 'center', mb: 2 }}>
@@ -433,7 +420,14 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
 
     return (
         <ThemeProvider theme={theme}>
-            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
+                {/* Page Header */}
+                <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e2e8f0', px: 2 }}>
+                    <Container maxWidth="xl">
+                        <PageHeader />
+                    </Container>
+                </Box>
+                
                 {/* Hero Section */}
                 <Box sx={{ 
                     position: 'relative', height: 300,
@@ -445,11 +439,16 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                     <Typography variant="h3" sx={{ color: 'white', fontWeight: 800, zIndex: 1, textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>Κατοικίδια</Typography>
                 </Box>
 
-                <Container maxWidth="xl" sx={{ mt: -8, position: 'relative', zIndex: 2, pb: 6 }}>
-                    <PageHeader />
-                    
-                    {/* Pet Cards Section */}
-                    <Paper sx={{ p: 3, mb: 3 }}>
+                {/* Main Layout with Sidebar */}
+                <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+                    {/* Sidebar */}
+                    <DashboardSidebar />
+
+                    {/* Content */}
+                    <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 2, pb: 6, overflowY: 'auto' }}>
+                        
+                        {/* Pet Cards Section */}
+                        <Paper sx={{ p: 3, mb: 3 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                             <Typography variant="h6" fontWeight={700}>Τα Κατοικίδιά Μου</Typography>
                             <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}>Προσθήκη</Button>
@@ -470,8 +469,8 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                         </Grid>
                     </Paper>
 
-                    {/* Quick Actions */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                        {/* Quick Actions */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                         <Typography variant="h6" fontWeight={700}>Γρήγορες Ενέργειες</Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
                             <QuickActionCard 
@@ -521,27 +520,28 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                         <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Πλήρες ιστορικό χρόνου κατοικιδίων</Typography>
                         <Button variant="outlined" size="small">Δες τα όλα</Button>
                     </Paper>
-                </Container>
 
-                {/* Add/Edit Dialog */}
-                <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
-                    <DialogTitle>{editing === 'new' ? 'Προσθήκη Κατοικιδίου' : 'Επεξεργασία Κατοικιδίου'}</DialogTitle>
-                    <DialogContent dividers>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}><TextField label="Όνομα" fullWidth value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Grid>
-                            <Grid item xs={12} sm={6}><TextField label="Φυλή" fullWidth value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })} /></Grid>
-                            <Grid item xs={12} sm={6}><TextField label="Φύλο (male/female)" fullWidth value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} /></Grid>
-                            <Grid item xs={12} sm={6}><TextField label="Ηλικία" fullWidth value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} /></Grid>
-                            <Grid item xs={12} sm={6}><TextField label="Βάρος" fullWidth value={form.weight} onChange={(e) => setForm({ ...form, weight: e.target.value })} /></Grid>
-                            <Grid item xs={12}><TextField label="Εικόνα (URL)" fullWidth value={form.img} onChange={(e) => setForm({ ...form, img: e.target.value })} /></Grid>
-                        </Grid>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={closeDialog}>Άκυρο</Button>
-                        <Button variant="contained" onClick={savePet}>Αποθήκευση</Button>
-                    </DialogActions>
-                </Dialog>
+                    {/* Add/Edit Dialog */}
+                    <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
+                        <DialogTitle>{editing === 'new' ? 'Προσθήκη Κατοικιδίου' : 'Επεξεργασία Κατοικιδίου'}</DialogTitle>
+                        <DialogContent dividers>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} sm={6}><TextField label="Όνομα" fullWidth value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Grid>
+                                <Grid item xs={12} sm={6}><TextField label="Φυλή" fullWidth value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })} /></Grid>
+                                <Grid item xs={12} sm={6}><TextField label="Φύλο (male/female)" fullWidth value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} /></Grid>
+                                <Grid item xs={12} sm={6}><TextField label="Ηλικία" fullWidth value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} /></Grid>
+                                <Grid item xs={12} sm={6}><TextField label="Βάρος" fullWidth value={form.weight} onChange={(e) => setForm({ ...form, weight: e.target.value })} /></Grid>
+                                <Grid item xs={12}><TextField label="Εικόνα (URL)" fullWidth value={form.img} onChange={(e) => setForm({ ...form, img: e.target.value })} /></Grid>
+                            </Grid>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={closeDialog}>Άκυρο</Button>
+                            <Button variant="contained" onClick={savePet}>Αποθήκευση</Button>
+                        </DialogActions>
+                    </Dialog>
+                </Container>
             </Box>
+        </Box>
         </ThemeProvider>
     );
 }

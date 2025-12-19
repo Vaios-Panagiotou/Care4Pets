@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   AppBar, Toolbar, Typography, Button, Box, Container, Grid, 
-  Paper, Card, CardContent, IconButton, Menu, MenuItem 
+  Paper, Card, CardContent, IconButton, Menu, MenuItem, TextField, InputAdornment,
+  Autocomplete, Popper, ListItemText, ListItemIcon
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom'; // IMPORT useNavigate
@@ -10,17 +11,44 @@ import { useNavigate } from 'react-router-dom'; // IMPORT useNavigate
 import SearchIcon from '@mui/icons-material/Search';
 import PetsIcon from '@mui/icons-material/Pets';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import YouTubeIcon from '@mui/icons-material/YouTube';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import InstagramIcon from '@mui/icons-material/Instagram';
-import TwitterIcon from '@mui/icons-material/Twitter';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import ArticleIcon from '@mui/icons-material/Article';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import PageviewIcon from '@mui/icons-material/Pageview';
 
 // IMPORT NEWS COMPONENT
 import { NewsCard, NEWS_DATA } from './News';
+
+// --- SEARCH DATA ---
+const SEARCH_DATA = [
+  // Pages
+  { type: 'page', title: 'Τα Κατοικίδιά μου', path: '/owner/pets', icon: <PetsIcon /> },
+  { type: 'page', title: 'Ιστορικό & Ραντεβού', path: '/owner/history', icon: <MedicalServicesIcon /> },
+  { type: 'page', title: 'Εύρεση Κτηνίατρου', path: '/owner/search', icon: <SearchIcon /> },
+  { type: 'page', title: 'Προφίλ', path: '/owner/profile', icon: <PetsIcon /> },
+  { type: 'page', title: 'Επικοινωνία', path: '/contact', icon: <PhoneIcon /> },
+  { type: 'page', title: 'Χαμένα Κατοικίδια', path: '/lost-pets', icon: <PageviewIcon /> },
+  { type: 'page', title: 'Νέα & Ενημέρωση', path: '/news', icon: <ArticleIcon /> },
+  // Vets
+  { type: 'vet', title: 'Δρ. Ιωάννης Σμυρνής - Παθολογία', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος παθολογία αθήνα' },
+  { type: 'vet', title: 'Δρ. Ελένη Καρρά - Καρδιολογία', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος καρδιολογία' },
+  { type: 'vet', title: 'Δρ. Γιώργος Παπαδόπουλος - Ορθοπεδική', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος ορθοπεδική θεσσαλονίκη' },
+  { type: 'vet', title: 'Δρ. Μαρία Δημητρίου - Δερματολογία', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος δερματολογία' },
+];
+
+// Add news to search data
+NEWS_DATA.forEach(news => {
+  SEARCH_DATA.push({
+    type: 'news',
+    title: news.title,
+    path: `/news/${news.id}`,
+    icon: <ArticleIcon />,
+    keywords: `${news.category} ${news.title}`
+  });
+});
 
 // --- DATA CONFIGURATION ---
 const STEPS = [
@@ -70,10 +98,20 @@ const Navbar = () => {
   const [anchorElGenika, setAnchorElGenika] = useState(null);
   const [anchorElVet, setAnchorElVet] = useState(null);
   const [anchorElOwner, setAnchorElOwner] = useState(null);
+  const [searchValue, setSearchValue] = useState(null);
+  const [inputValue, setInputValue] = useState('');
   const navigate = useNavigate(); // Hook inside component
 
   const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
   const handleCloseMenu = (setAnchor) => setAnchor(null);
+
+  const handleSearchSelect = (event, value) => {
+    if (value && value.path) {
+      navigate(value.path);
+      setInputValue('');
+      setSearchValue(null);
+    }
+  };
 
   const navButtonStyle = { fontSize: '16px', color: '#546e7a', '&:hover': { color: '#00695c', backgroundColor: 'transparent' } };
 
@@ -125,8 +163,66 @@ const Navbar = () => {
           </Box>
 
           {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <IconButton sx={{ color: 'text.secondary' }}><SearchIcon /></IconButton>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Autocomplete
+              freeSolo
+              options={SEARCH_DATA}
+              value={searchValue}
+              inputValue={inputValue}
+              onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
+              onChange={handleSearchSelect}
+              getOptionLabel={(option) => typeof option === 'string' ? option : option.title}
+              filterOptions={(options, { inputValue }) => {
+                const filtered = options.filter(option => {
+                  const searchText = inputValue.toLowerCase();
+                  return (
+                    option.title.toLowerCase().includes(searchText) ||
+                    (option.keywords && option.keywords.toLowerCase().includes(searchText))
+                  );
+                });
+                return filtered.slice(0, 8); // Limit to 8 suggestions
+              }}
+              sx={{ width: 280 }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Αναζήτηση..."
+                  size="small"
+                  sx={{
+                    bgcolor: '#f5f5f5',
+                    borderRadius: '20px',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '20px',
+                      paddingRight: '8px !important'
+                    }
+                  }}
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" sx={{ color: 'text.secondary', ml: 1 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+              renderOption={(props, option) => (
+                <Box component="li" {...props} sx={{ display: 'flex', gap: 1.5, alignItems: 'center', py: 1 }}>
+                  <Box sx={{ color: 'primary.main', display: 'flex', alignItems: 'center' }}>
+                    {option.icon}
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {option.title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {option.type === 'page' ? 'Σελίδα' : option.type === 'vet' ? 'Κτηνίατρος' : 'Άρθρο'}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              PopperComponent={(props) => <Popper {...props} sx={{ '& .MuiAutocomplete-listbox': { maxHeight: '400px' } }} />}
+            />
             <Button variant="outlined" color="primary" onClick={() => navigate('/register')} sx={{ borderRadius: '20px', px: 3 }}>Εγγραφή</Button>
             <Button variant="contained" color="secondary" onClick={() => navigate('/login')} sx={{ borderRadius: '20px', px: 3, color: 'black' }}>Σύνδεση</Button>
           </Box>
@@ -212,41 +308,105 @@ const LostPetBanner = () => (
 );
 
 const StepsSection = () => (
-  <Box sx={{ py: 10, bgcolor: 'background.default' }}>
+  <Box sx={{ py: 10, bgcolor: 'linear-gradient(180deg, #f8fbfd 0%, #f4f7fb 100%)' }}>
     <Container>
-      <Typography variant="h4" align="center" gutterBottom fontWeight="bold" color="primary">
+      <Typography variant="h4" align="center" gutterBottom fontWeight="bold" color="primary" sx={{ letterSpacing: '-0.5px' }}>
         Πώς λειτουργεί;
       </Typography>
-      <Typography variant="subtitle1" align="center" color="text.secondary" sx={{ mb: 8 }}>
+      <Typography variant="subtitle1" align="center" color="text.secondary" sx={{ mb: 6 }}>
         Τρία απλά βήματα για την ασφάλεια του φίλου σας
       </Typography>
 
-      <Grid container spacing={4} alignItems="stretch" justifyContent="center">
-        {STEPS.map((step) => (
-          <Grid item xs={12} md={4} key={step.id} sx={{ display: 'flex' }}>
-            <Card sx={{ 
-              width: '100%', borderRadius: '16px', textAlign: 'center', p: 3, pt: 5, 
-              position: 'relative', overflow: 'visible', mt: { xs: 4, md: 0 },
-              boxShadow: 3, transition: 'box-shadow 0.3s ease', '&:hover': { boxShadow: 6 }
-            }}>
-              <Box sx={{ 
-                position: 'absolute', top: -30, left: '50%', transform: 'translateX(-50%)',
-                bgcolor: 'white', border: '4px solid #f4f6f8', borderRadius: '50%', 
-                p: 2, boxShadow: 2, width: 70, height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: { xs: 'wrap', lg: 'nowrap' },
+          justifyContent: 'center',
+          alignItems: 'stretch',
+          gap: { xs: 3, md: 4 },
+          position: 'relative'
+        }}
+      >
+        {STEPS.map((step, index) => (
+          <Box key={step.id} sx={{ position: 'relative' }}>
+            <Card
+              sx={{
+                width: { xs: '100%', sm: 320, md: 330, lg: 360 },
+                minHeight: 260,
+                borderRadius: '18px',
+                textAlign: 'center',
+                p: 3,
+                pt: 7,
+                position: 'relative',
+                overflow: 'visible',
+                boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                bgcolor: 'white',
+                '&:hover': {
+                  transform: 'translateY(-6px)',
+                  boxShadow: '0 16px 36px rgba(15,23,42,0.12)'
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: 20,
+                  right: 20,
+                  top: 78,
+                  height: 2,
+                  bgcolor: '#d8e2ec'
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -36,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  bgcolor: 'white',
+                  border: '4px solid #e5edf5',
+                  borderRadius: '50%',
+                  p: 2,
+                  boxShadow: '0 10px 24px rgba(0,0,0,0.08)',
+                  width: 76,
+                  height: 76,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
                 {step.icon}
               </Box>
-              <CardContent sx={{ mt: 2 }}>
-                <Typography variant="h2" color="rgba(0,0,0,0.05)" fontWeight="900" sx={{ position: 'absolute', top: 10, right: 20 }}>
+              <CardContent sx={{ mt: 1 }}>
+                <Typography
+                  variant="h2"
+                  color="rgba(0,0,0,0.04)"
+                  fontWeight="900"
+                  sx={{ position: 'absolute', top: 12, right: 18, userSelect: 'none' }}
+                >
                   {step.id}
                 </Typography>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>{step.title}</Typography>
-                <Typography color="text.secondary">{step.desc}</Typography>
+                <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#0f172a' }}>
+                  {step.title}
+                </Typography>
+                <Typography color="text.secondary" sx={{ px: 1 }}>
+                  {step.desc}
+                </Typography>
               </CardContent>
             </Card>
-          </Grid>
+
+            {/* Connector line between cards on desktop */}
+            {index < STEPS.length - 1 && (
+              <Box
+                sx={{
+                  display: 'none' // hide external connector lines
+                }}
+              />
+            )}
+          </Box>
         ))}
-      </Grid>
+      </Box>
     </Container>
   </Box>
 );
@@ -289,35 +449,6 @@ const NewsSection = () => {
     );
 };
 
-const Footer = () => (
-  <Box sx={{ bgcolor: '#1a2327', color: '#b0bec5', py: 8 }}>
-    <Container>
-      <Grid container spacing={5}>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <PetsIcon sx={{ color: 'secondary.main', mr: 1 }} />
-            <Typography variant="h6" color="white">Care4Pets</Typography>
-          </Box>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Η νούμερο 1 πλατφόρμα στην Ελλάδα για την υγεία και την ασφάλεια των κατοικιδίων.
-          </Typography>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" color="white" gutterBottom>Επικοινωνία</Typography>
-          <Box sx={{ display: 'flex', gap: 1, mb: 1 }}><PhoneIcon fontSize="small" /> 210-1234567</Box>
-          <Box sx={{ display: 'flex', gap: 1 }}><EmailIcon fontSize="small" /> support@care4pets.gr</Box>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" color="white" gutterBottom>Social Media</Typography>
-          <Box sx={{ '& > svg': { mr: 2, cursor: 'pointer', transition: 'color 0.2s', '&:hover': { color: 'white' } } }}>
-            <FacebookIcon /><InstagramIcon /><TwitterIcon /><YouTubeIcon />
-          </Box>
-        </Grid>
-      </Grid>
-    </Container>
-  </Box>
-);
-
 // --- MAIN COMPONENT ---
 export default function Home() {
   return (
@@ -328,7 +459,6 @@ export default function Home() {
         <LostPetBanner />
         <StepsSection />
         <NewsSection /> {/* Added the News Section here */}
-        <Footer />
       </Box>
     </ThemeProvider>
   );

@@ -17,6 +17,7 @@ import EuroIcon from '@mui/icons-material/Euro';
 
 // Import PageHeader
 import PageHeader from './PageHeader';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 const theme = createTheme({
   palette: {
@@ -95,23 +96,27 @@ export default function VetClinic() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 10 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 10, display: 'flex', flexDirection: 'column' }}>
         
         <Container maxWidth="xl" sx={{ pt: 2 }}>
             <PageHeader />
         </Container>
 
-        {/* HERO HEADER */}
-        <Box sx={{ bgcolor: '#1976d2', py: 5, mb: 5, color: 'white' }}>
-            <Container maxWidth="lg">
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Το Ιατρείο μου</Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>Διαχείριση προφίλ, ωραρίου και υπηρεσιών</Typography>
-                    </Box>
-                    <Button 
-                        variant="contained" 
-                        color={isEditing ? "success" : "primary"} 
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+          <DashboardSidebar />
+          
+          <Box sx={{ flex: 1, overflowY: 'auto' }}>
+            {/* HERO HEADER */}
+            <Box sx={{ bgcolor: '#1976d2', py: 5, mb: 5, color: 'white', mr: -2 }}>
+                <Container maxWidth="lg">
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box>
+                            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Το Ιατρείο μου</Typography>
+                            <Typography variant="body2" sx={{ opacity: 0.9 }}>Διαχείριση προφίλ, ωραρίου και υπηρεσιών</Typography>
+                        </Box>
+                        <Button 
+                            variant="contained" 
+                            color={isEditing ? "success" : "primary"} 
                         startIcon={isEditing ? <SaveIcon /> : <EditIcon />} 
                         onClick={() => isEditing ? handleSave() : setIsEditing(true)}
                         sx={{ bgcolor: isEditing ? '#10b981' : 'white', color: isEditing ? 'white' : '#1976d2', fontWeight: 'bold' }}
@@ -260,7 +265,8 @@ export default function VetClinic() {
 
             </Grid>
         </Container>
-
+          </Box>
+        </Box>
       </Box>
     </ThemeProvider>
   );

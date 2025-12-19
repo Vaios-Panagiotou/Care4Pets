@@ -51,6 +51,8 @@ const CATEGORY_COLORS = {
     'Εκπαίδευση': '#8E24AA'
 };
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80';
+
 export const NEWS_DATA = [
     {
         id: 1,
@@ -119,86 +121,94 @@ export const NEWS_DATA = [
 // 1. SPACIOUS NEWS CARD
 export const NewsCard = ({ item }) => {
     const navigate = useNavigate();
+    const [imgSrc, setImgSrc] = useState(item.image || FALLBACK_IMAGE);
 
     return (
         <Card
-                onClick={() => navigate(`/news/${item.id}`)}
-                sx={{
-                        height: '420px', 
-                        borderRadius: '12px', 
-                        bgcolor: 'white', 
-                        overflow: 'hidden',
-                        transition: 'all 0.2s ease',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        '&:hover': { 
-                            transform: 'translateY(-4px)', 
-                            boxShadow: '0 8px 16px rgba(0,0,0,0.12)'
-                        }
-                }}
+            onClick={() => navigate(`/news/${item.id}`)}
+            sx={{
+                height: 440,
+                borderRadius: '14px',
+                bgcolor: 'white',
+                overflow: 'hidden',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.12)'
+                }
+            }}
         >
             <CardActionArea sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                
-                {/* Image - Fixed Height */}
-                <Box sx={{ width: '100%', height: '180px', overflow: 'hidden', position: 'relative', bgcolor: '#f0f0f0', flexShrink: 0 }}>
-                        <Box 
-                                component="img" src={item.image} alt={item.title}
-                                sx={{ 
-                                        width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease',
-                                        '.MuiCardActionArea-root:hover &': { transform: 'scale(1.05)' } 
-                                }} 
-                        />
-                        {/* Category Badge */}
-                        <Chip 
-                                label={item.category} 
-                                size="small"
-                                sx={{ 
-                                        position: 'absolute', top: 10, right: 10,
-                                        bgcolor: '#1976d2', color: 'white', fontWeight: 600, fontSize: '0.7rem'
-                                }} 
-                        />
+
+                {/* Image - Fixed Height with fallback */}
+                <Box sx={{ width: '100%', height: 210, overflow: 'hidden', position: 'relative', bgcolor: '#f5f7fa', flexShrink: 0 }}>
+                    <Box
+                        component="img"
+                        src={imgSrc}
+                        alt={item.title}
+                        loading="lazy"
+                        onError={() => setImgSrc(FALLBACK_IMAGE)}
+                        sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease',
+                            '.MuiCardActionArea-root:hover &': { transform: 'scale(1.05)' }
+                        }}
+                    />
+                    {/* Category Badge */}
+                    <Chip
+                        label={item.category}
+                        size="small"
+                        sx={{
+                            position: 'absolute', top: 10, right: 10,
+                            bgcolor: CATEGORY_COLORS[item.category] || '#1976d2', color: 'white', fontWeight: 600, fontSize: '0.7rem'
+                        }}
+                    />
                 </Box>
-                
+
                 {/* Content - Fixed Structure */}
-                <CardContent sx={{ p: '16px', width: '100%', height: '240px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        
-                        {/* Meta Info */}
-                        <Box sx={{ display: 'flex', gap: 1.5, mb: 1, fontSize: '0.75rem', color: 'text.secondary', flexShrink: 0 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}><AccessTimeIcon sx={{ fontSize: 14 }}/>{item.date}</Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>📖 {item.readTime}</Box>
-                        </Box>
-                        
-                        {/* Title - Exactly 2 lines */}
-                        <Typography 
-                            variant="body2" 
-                            sx={{ 
-                                fontWeight: 600,
-                                color: 'text.primary',
-                                lineHeight: 1.5,
-                                height: '48px',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                flexShrink: 0
-                            }}
-                        >
-                                {item.title}
+                <CardContent sx={{ p: '16px', width: '100%', height: '230px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+
+                    {/* Meta Info */}
+                    <Box sx={{ display: 'flex', gap: 1.5, mb: 1, fontSize: '0.8rem', color: 'text.secondary', flexShrink: 0 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><AccessTimeIcon sx={{ fontSize: 15 }}/>{item.date}</Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>📖 {item.readTime}</Box>
+                    </Box>
+
+                    {/* Title - Exactly 2 lines */}
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            fontWeight: 700,
+                            color: 'text.primary',
+                            lineHeight: 1.4,
+                            height: '48px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            flexShrink: 0
+                        }}
+                    >
+                        {item.title}
+                    </Typography>
+
+                    {/* Footer - Fixed Position */}
+                    <Box sx={{ pt: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem' }}>
+                            <span style={{ color: '#1976d2' }}>{item.author}</span>
                         </Typography>
-                        
-                        {/* Footer - Fixed Position */}
-                        <Box sx={{ pt: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.65rem' }}>
-                                        <span style={{ color: '#1976d2', fontWeight: 600 }}>{item.author}</span>
-                                </Typography>
-                                
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: 'text.secondary' }}>
-                                        <FavoriteBorderIcon sx={{ fontSize: 14 }} /> 
-                                        <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.65rem' }}>{item.likes}</Typography>
-                                </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: 'text.secondary' }}>
+                            <FavoriteBorderIcon sx={{ fontSize: 15 }} />
+                            <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{item.likes}</Typography>
                         </Box>
+                    </Box>
                 </CardContent>
             </CardActionArea>
         </Card>

@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 // Icons
 import HistoryIcon from '@mui/icons-material/History';
@@ -102,7 +103,7 @@ export default function History() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f9f9f9', pb: 8 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f9f9f9', pb: 8, display: 'flex', flexDirection: 'column' }}>
         
         <Container maxWidth="xl" sx={{ pt: 2 }}>
             <PageHeader />
@@ -119,7 +120,13 @@ export default function History() {
             </Container>
         </Box>
 
-        <Container maxWidth="lg">
+        {/* Main Layout with Sidebar */}
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+            {/* Sidebar */}
+            <DashboardSidebar />
+
+            {/* Content */}
+            <Container maxWidth="lg" sx={{ overflowY: 'auto', py: 4 }}>
             
             {/* TABS */}
             <Paper sx={{ mb: 4, borderRadius: '12px', overflow: 'hidden' }}>
@@ -195,7 +202,8 @@ export default function History() {
                 </Box>
             )}
 
-        </Container>
+            </Container>
+        </Box>
       </Box>
     </ThemeProvider>
   );

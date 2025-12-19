@@ -5,6 +5,7 @@ import {
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 // Icons
 import EditIcon from '@mui/icons-material/Edit';
@@ -119,18 +120,22 @@ export default function Profile() {
   return (
     <ThemeProvider theme={theme}>
       {/* Dark Background Wrapper */}
-      <Box sx={{ minHeight: '100vh', bgcolor: '#2c2c2c', pb: 8, pt: 2 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#2c2c2c', pb: 8, pt: 2, display: 'flex', flexDirection: 'column' }}>
         
         {/* White Header Area (Logo placeholder) */}
         <Container maxWidth="xl" sx={{ mb: 4 }}>
-             {/* Εδώ βάζουμε το PageHeader αλλά με custom style για να ταιριάζει στο dark theme αν θες, 
-                 ή απλά το αφήνουμε ως έχει. Στο σχέδιο δεν φαίνεται header, αλλά είναι καλό για UX */}
              <Paper sx={{ p: 1, borderRadius: '12px', bgcolor: 'white' }}>
                 <PageHeader />
              </Paper>
         </Container>
 
-        <Container maxWidth="lg">
+        {/* Main Layout with Sidebar */}
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+            {/* Sidebar */}
+            <DashboardSidebar />
+
+            {/* Content */}
+            <Container maxWidth="lg" sx={{ overflowY: 'auto' }}>
           
           <Typography variant="h5" sx={{ color: 'white', mb: 0.5 }}>Καλημέρα {greetingName}</Typography>
           <Typography variant="caption" sx={{ color: '#bbb', mb: 4, display: 'block' }}>Τετάρτη, 19 Νοε 2025</Typography>
@@ -265,9 +270,9 @@ export default function Profile() {
                 </Box>
               </Paper>
             </Grid>
-
           </Grid>
-        </Container>
+            </Container>
+        </Box>
       </Box>
     </ThemeProvider>
   );

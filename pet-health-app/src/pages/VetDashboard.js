@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Accordion, 
   AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, 
-  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton 
+  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton, Tooltip 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 // Icons
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -17,16 +18,13 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import SearchIcon from '@mui/icons-material/Search';
 import PetsIcon from '@mui/icons-material/Pets';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import InstagramIcon from '@mui/icons-material/Instagram';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import YouTubeIcon from '@mui/icons-material/YouTube';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // IMPORT
 
 // Import PageHeader
 import PageHeader from './PageHeader'; 
+import Footer from '../components/Footer';
 
 const theme = createTheme({
   palette: {
@@ -41,15 +39,14 @@ const theme = createTheme({
   shape: { borderRadius: 16 }
 });
 
-// NAVBAR
 const Navbar = () => {
   const [anchorElGenika, setAnchorElGenika] = useState(null);
   const [anchorElVet, setAnchorElVet] = useState(null);
   const [anchorElOwner, setAnchorElOwner] = useState(null);
+  const navigate = useNavigate();
 
   const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
   const handleCloseMenu = (setAnchor) => setAnchor(null);
-  const navigate = useNavigate();
 
   const navButtonStyle = { fontSize: '16px', color: '#546e7a', '&:hover': { color: '#00695c', backgroundColor: 'transparent' } };
 
@@ -63,42 +60,39 @@ const Navbar = () => {
             </Box>
             <Typography variant="h5" color="primary">Care4Pets</Typography>
           </Box>
+
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             <Box>
-                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
-                <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
-                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση</MenuItem>
-                </Menu>
+              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
+              <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
+                <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση</MenuItem>
+              </Menu>
             </Box>
             <Box>
-                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
-                <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
-                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Υπηρεσίες</MenuItem>
-                </Menu>
+              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
+              <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
+                <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Υπηρεσίες</MenuItem>
+              </Menu>
             </Box>
             <Box>
-                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
-                <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
-                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Dashboard</MenuItem>
-                </Menu>
+              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
+              <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
+                <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Dashboard</MenuItem>
+              </Menu>
             </Box>
             <Button onClick={() => navigate('/contact')} sx={navButtonStyle}>Επικοινωνία</Button>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <IconButton sx={{ color: 'text.secondary' }}><SearchIcon /></IconButton>
-            
-            {/* --- ΚΟΥΜΠΙ ΠΡΟΦΙΛ --- */}
+            <IconButton onClick={() => navigate('/owner/search')} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}><SearchIcon /></IconButton>
             <IconButton 
-                onClick={() => navigate('/vet/profile')}
-                sx={{ color: 'primary.main', bgcolor: '#e0f2f1', '&:hover': { bgcolor: '#b2dfdb' } }}
+              onClick={() => navigate('/vet/profile')}
+              sx={{ color: 'primary.main', bgcolor: '#e0f2f1', '&:hover': { bgcolor: '#b2dfdb' } }}
             >
-                <AccountCircleIcon fontSize="large" />
+              <AccountCircleIcon fontSize="large" />
             </IconButton>
-            {/* ------------------- */}
-
             <Button variant="outlined" color="primary" onClick={() => { localStorage.removeItem('user'); navigate('/login'); }} sx={{ ml: 1 }}>
-                Αποσύνδεση
+              Αποσύνδεση
             </Button>
           </Box>
         </Toolbar>
@@ -106,27 +100,6 @@ const Navbar = () => {
     </AppBar>
   );
 };
-
-const Footer = () => (
-  <Box sx={{ bgcolor: '#1a2327', color: '#b0bec5', py: 8, mt: 'auto' }}>
-    <Container>
-      <Grid container spacing={5}>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <PetsIcon sx={{ color: 'secondary.main', mr: 1 }} />
-            <Typography variant="h6" color="white">Care4Pets</Typography>
-          </Box>
-          <Typography variant="body2">Η πλατφόρμα φροντίδας κατοικιδίων.</Typography>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" color="white">Επικοινωνία</Typography>
-          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}><PhoneIcon fontSize="small"/> 210-1234567</Box>
-          <Box sx={{ display: 'flex', gap: 1 }}><EmailIcon fontSize="small"/> support@care4pets.gr</Box>
-        </Grid>
-      </Grid>
-    </Container>
-  </Box>
-);
 
 const VET_INFO = [
   {
@@ -157,7 +130,7 @@ export default function VetDashboard() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f4f6f8', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
         
         {/* --- PAGE HEADER --- */}
@@ -165,75 +138,190 @@ export default function VetDashboard() {
             <PageHeader />
         </Container>
 
-        {/* HERO */}
+        {/* FULL WIDTH HERO */}
         <Box sx={{ 
-          position: 'relative', height: '300px', bgcolor: '#263238',
-          backgroundImage: 'url(https://images.unsplash.com/photo-1628009368231-760335298025?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)',
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          borderBottomLeftRadius: '60px', borderBottomRightRadius: '60px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 5
+          position: 'relative', 
+          height: '400px', 
+          width: '100%',
+          bgcolor: '#263238',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1628009368231-760335298025?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80)',
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center'
         }}>
-           <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.6)', borderRadius: '0 0 60px 60px' }} />
-           <Container sx={{ position: 'relative', zIndex: 1, textAlign: 'center', color: 'white' }}>
-              <Typography variant="h3" fontWeight="800" sx={{ textShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>
-                Καλωσήρθατε, Γιατρέ
-              </Typography>
-           </Container>
+          <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.6)' }} />
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', color: 'white' }}>
+            <Typography variant="h2" fontWeight="800" sx={{ textShadow: '0 4px 20px rgba(0,0,0,0.8)' }}>
+              Καλωσήρθατε, Γιατρέ
+            </Typography>
+          </Box>
         </Box>
 
-        {/* QUICK ACTIONS */}
-        <Container maxWidth="lg" sx={{ mt: -10, mb: 6, position: 'relative', zIndex: 2 }}>
-          <Grid container spacing={3} justifyContent="center">
-            {[
-              { label: 'Νέα Καταγραφή', icon: <VaccinesIcon fontSize="large" />, color: '#00897B', path: '/vet/new-record' },
-              { label: 'Ραντεβού', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B', path: '/vet/schedule' },
-              { label: 'Το Ιατρείο', icon: <AssignmentIndIcon fontSize="large" />, color: '#00897B', path: '/vet/clinic' }
-            ].map((action) => (
-              <Grid item xs={12} sm={4} key={action.label}>
-                <Paper elevation={6} onClick={() => navigate(action.path)} sx={{ 
-                    p: 3, textAlign: 'center', borderRadius: '20px', cursor: 'pointer',
-                    transition: '0.3s', bgcolor: action.color, color: 'white',
-                    '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 15px 30px rgba(0,137,123,0.4)' }
-                  }}>
-                  <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 60, height: 60, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-                    {action.icon}
+        {/* MAIN LAYOUT: SIDEBAR + CONTENT */}
+        <Box sx={{ display: 'flex', flexGrow: 1, p: 2, gap: 2 }}>
+          {/* REUSABLE SIDEBAR */}
+          <DashboardSidebar />
+
+          {/* MAIN CONTENT */}
+          <Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
+            {/* QUICK ACTIONS */}
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                mb: 4, 
+                fontWeight: 700, 
+                color: '#1e293b',
+                textAlign: 'center',
+                letterSpacing: '-0.5px'
+              }}
+            >
+              Γρήγορες Ενέργειες
+            </Typography>
+            <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
+              {[
+                { label: 'Νέα Καταγραφή', icon: <VaccinesIcon fontSize="large" />, color: '#00897B', path: '/vet/new-record' },
+                { label: 'Ραντεβού', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B', path: '/vet/schedule' },
+                { label: 'Το Ιατρείο', icon: <AssignmentIndIcon fontSize="large" />, color: '#00897B', path: '/vet/clinic' }
+              ].map((action) => (
+                <Grid item xs={12} sm={4} key={action.label}>
+                  <Paper elevation={0} onClick={() => navigate(action.path)} sx={{ 
+                      p: 3, textAlign: 'center', borderRadius: 4, cursor: 'pointer',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', bgcolor: action.color, color: 'white',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': { 
+                        transform: 'translateY(-8px) scale(1.02)', 
+                        boxShadow: '0 12px 24px rgba(0,137,123,0.4)',
+                        '& .icon-container': {
+                          transform: 'rotate(360deg) scale(1.1)'
+                        }
+                      },
+                      '&:active': {
+                        transform: 'translateY(-4px) scale(0.98)'
+                      }
+                    }}>
+                    <Box 
+                      className="icon-container"
+                      sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 60, height: 60, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2, transition: 'all 0.5s ease' }}>
+                      {action.icon}
+                    </Box>
+                    <Typography variant="h6" fontWeight="bold">{action.label}</Typography>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* INFO CARDS */}
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                mb: 4, 
+                fontWeight: 700, 
+                color: '#1e293b',
+                textAlign: 'center',
+                letterSpacing: '-0.5px'
+              }}
+            >
+              Δραστηριότητα Ιατρείου
+            </Typography>
+            <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
+              <Grid item xs={12} sm={6}>
+                <Paper 
+                  elevation={0} 
+                  onClick={() => navigate('/vet/schedule')}
+                  sx={{ 
+                    p: 3, 
+                    borderRadius: 4, 
+                    bgcolor: '#f0f9f8',
+                    border: '2px solid #00897B',
+                    cursor: 'pointer',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': { 
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 12px 24px rgba(0,137,123,0.3)',
+                      bgcolor: '#e0f2f1'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ fontSize: '32px' }}>📅</Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#00897B' }}>
+                      Σημερινά Ραντεβού
+                    </Typography>
                   </Box>
-                  <Typography variant="h6" fontWeight="bold">{action.label}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Δείτε τα προγραμματισμένα ραντεβού σας για σήμερα
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    size="small" 
+                    onClick={() => navigate('/vet/schedule')}
+                    sx={{ 
+                      borderRadius: 2,
+                      bgcolor: '#00897B',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      '&:hover': {
+                        bgcolor: '#00695c'
+                      }
+                    }}
+                  >
+                    Προβολή
+                  </Button>
                 </Paper>
               </Grid>
-            ))}
-          </Grid>
-        </Container>
-
-        {/* INFO */}
-        <Container maxWidth="md" sx={{ mb: 10, flexGrow: 1 }}>
-          <Typography variant="h5" align="center" fontWeight="bold" color="text.secondary" gutterBottom sx={{ mb: 4 }}>
-            Εργαλεία Διαχείρισης
-          </Typography>
-          {VET_INFO.map((section) => (
-            <Accordion key={section.id} sx={{ mb: 2, borderRadius: '16px !important', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ bgcolor: '#e0f2f1', p: 1, borderRadius: '12px' }}>{section.icon}</Box>
-                  <Typography variant="h6" fontWeight="600" color="text.primary">{section.title}</Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ bgcolor: '#fafafa', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', p: 3 }}>
-                <List dense>
-                  {section.items.map((item, index) => (
-                    <ListItemButton key={index} onClick={() => navigate(item.path)}>
-                      <ListItemIcon><ArrowForwardIcon fontSize="small" color="primary" /></ListItemIcon>
-                      <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '15px', fontWeight: 500 }} />
-                    </ListItemButton>
-                  ))}
-                </List>
-                <Button variant="contained" size="small" onClick={() => navigate(section.path)} sx={{ mt: 2, ml: 2, borderRadius: '20px', bgcolor: '#00897B' }}>Άνοιγμα</Button>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Container>
-
-        <Footer />
+              <Grid item xs={12} sm={6}>
+                <Paper 
+                  elevation={0} 
+                  onClick={() => navigate('/vet/clinic')}
+                  sx={{ 
+                    p: 3, 
+                    borderRadius: 4, 
+                    bgcolor: '#f0f9f8',
+                    border: '2px solid #00897B',
+                    cursor: 'pointer',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': { 
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 12px 24px rgba(0,137,123,0.3)',
+                      bgcolor: '#e0f2f1'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ fontSize: '32px' }}>🏥</Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#00897B' }}>
+                      Το Ιατρείο μου
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Διαχείριση πληροφοριών ιατρείου
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    size="small" 
+                    onClick={() => navigate('/vet/clinic')}
+                    sx={{ 
+                      borderRadius: 2,
+                      bgcolor: '#00897B',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      '&:hover': {
+                        bgcolor: '#00695c'
+                      }
+                    }}
+                  >
+                    Προβολή
+                  </Button>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
       </Box>
     </ThemeProvider>
   );

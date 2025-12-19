@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, 
   Divider, Pagination, TextField, Radio, RadioGroup, FormControlLabel, FormControl,
-  Dialog, DialogContent, Checkbox, Alert
+  Dialog, DialogContent, Checkbox, Alert, Tooltip
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+import { keyframes } from '@mui/system';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // Icons
 import StarIcon from '@mui/icons-material/Star';
@@ -26,6 +28,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 // Import Header
 import PageHeader from './PageHeader';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 const theme = createTheme({
   palette: {
@@ -56,10 +59,31 @@ const ALL_VETS = [
 const STEPS = ['Επιλογή Κτηνιάτρου', 'Επιλογή Ώρας/Μέρας', 'Σύνδεση', 'Επιλογή Κατοικιδίου', 'Προεπισκόπηση'];
 const TIME_SLOTS = ['09:00', '10:00', '11:30', '13:00', '17:00', '18:30', '19:45'];
 
+const pulseRing = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(0,105,92,0.25); }
+  70% { box-shadow: 0 0 0 12px rgba(0,105,92,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,105,92,0); }
+`;
+
+const floatCard = keyframes`
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+`;
+
 export default function VetSearch() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const queryParam = searchParams.get('q') || '';
+  const { user } = useAuth();
+  const [hasPets, setHasPets] = useState(true);
+  const userLabel = user?.name || user?.fullName || user?.email || 'τον λογαριασμό σας';
+  
   const [activeStep, setActiveStep] = useState(0);
   const [openSuccess, setOpenSuccess] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(queryParam);
+  const [calendarDate, setCalendarDate] = useState(() => new Date());
+  const todayRef = useMemo(() => new Date(), []);
   
   // Selection State
   const [selectedVet, setSelectedVet] = useState(null);
@@ -74,28 +98,93 @@ export default function VetSearch() {
   // Pagination State
   const [page, setPage] = useState(1);
   const vetsPerPage = 3;
-  const pageCount = Math.ceil(ALL_VETS.length / vetsPerPage);
+
+  useEffect(() => {
+    let result = true;
+    const stored = localStorage.getItem('pets');
+    if (stored) {
+      try {
+        const arr = JSON.parse(stored);
+        if (Array.isArray(arr)) {
+          if (arr.length === 0) result = false;
+          else result = true;
+        }
+      } catch (e) {}
+    }
+    if (user?.pets && Array.isArray(user.pets)) {
+      if (user.pets.length === 0) result = false;
+      if (user.pets.length > 0) result = true;
+    }
+    setHasPets(result);
+  }, [user]);
   
+  // Filter vets based on search query
+  const filteredVets = useMemo(() => {
+    if (!searchQuery.trim()) return ALL_VETS;
+    return ALL_VETS.filter(vet => 
+      vet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vet.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vet.address.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+  
+  const pageCount = Math.ceil(filteredVets.length / vetsPerPage);
   const handlePageChange = (event, value) => setPage(value);
-  const displayedVets = ALL_VETS.slice((page - 1) * vetsPerPage, page * vetsPerPage);
+  const displayedVets = filteredVets.slice((page - 1) * vetsPerPage, page * vetsPerPage);
+
+  // --- ACCESS GUARDS ---
+  if (!user) {
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+          <Container maxWidth="xl" sx={{ pt: 2 }}>
+            <PageHeader />
+          </Container>
+          <Container maxWidth="md" sx={{ py: 8 }}>
+            <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
+              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Συνδεθείτε για να συνεχίσετε</Typography>
+              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+                Για να κλείσετε ραντεβού με κτηνίατρο πρέπει πρώτα να συνδεθείτε στον λογαριασμό σας.
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Button variant="contained" size="large" onClick={() => navigate('/login')} sx={{ px: 4, borderRadius: 3 }}>Σύνδεση</Button>
+                <Button variant="outlined" size="large" onClick={() => navigate('/register')} sx={{ px: 4, borderRadius: 3 }}>Εγγραφή</Button>
+              </Box>
+            </Paper>
+          </Container>
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
+  if (hasPets === false) {
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+          <Container maxWidth="xl" sx={{ pt: 2 }}>
+            <PageHeader />
+          </Container>
+          <Container maxWidth="md" sx={{ py: 8 }}>
+            <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
+              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Προσθέστε ένα κατοικίδιο</Typography>
+              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+                Για να αναζητήσετε κτηνίατρο, προσθέστε πρώτα το κατοικίδιό σας ώστε να γνωρίζουμε για ποιον κάνουμε κράτηση.
+              </Typography>
+              <Button variant="contained" size="large" onClick={() => navigate('/owner/pets')} sx={{ px: 4, borderRadius: 3 }}>Μετάβαση στα Κατοικίδια</Button>
+            </Paper>
+          </Container>
+        </Box>
+      </ThemeProvider>
+    );
+  }
 
   // --- LOGIC ---
 
   const handleNext = () => {
-    // Validations
     if (activeStep === 0 && !selectedVet) { alert("Παρακαλώ επιλέξτε έναν κτηνίατρο."); return; }
     if (activeStep === 1 && (!selectedDate || !selectedTime)) { alert("Παρακαλώ επιλέξτε ημερομηνία ΚΑΙ ώρα."); return; }
-    
-    // Στο βήμα 2 (Login), ο έλεγχος γίνεται στο handleSubmitLogin, όχι εδώ.
-    if (activeStep === 2) {
-       // Αν είναι ήδη στο βήμα Login, περιμένουμε να πατήσει το κουμπί "Σύνδεση" μέσα στη φόρμα.
-       // Αλλά αν πατήσει "Επόμενο" κάτω δεξιά, του λέμε να συνδεθεί.
-       alert("Παρακαλώ συνδεθείτε για να συνεχίσετε.");
-       return; 
-    }
-
+    if (activeStep === 2) { alert("Παρακαλώ συνδεθείτε για να συνεχίσετε."); return; }
     if (activeStep === 3 && !selectedPet) { setSelectedPet({ name: 'Kouvelaj', type: 'Golden Retriever', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80' }); }
-
     if (activeStep < STEPS.length - 1) {
         setActiveStep((prev) => prev + 1);
     } else {
@@ -107,17 +196,15 @@ export default function VetSearch() {
     if (activeStep > 0) setActiveStep((prev) => prev - 1);
   };
 
-  // --- LOGIN LOGIC ---
   const handleLoginSubmit = async () => {
     setLoginError('');
     try {
         const response = await fetch(`http://localhost:3001/users?email=${loginData.email}&password=${loginData.password}`);
         const users = await response.json();
-
         if (users.length > 0) {
             const user = users[0];
-            localStorage.setItem('user', JSON.stringify(user)); // Αποθήκευση χρήστη
-            setActiveStep((prev) => prev + 1); // Πάμε στο επόμενο βήμα
+            localStorage.setItem('user', JSON.stringify(user));
+            setActiveStep((prev) => prev + 1);
         } else {
             setLoginError('Λάθος email ή κωδικός.');
         }
@@ -127,35 +214,108 @@ export default function VetSearch() {
     }
   };
 
+  // --- ACCESS GUARDS ---
+  if (!user) {
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+          <Container maxWidth="xl" sx={{ pt: 2 }}>
+            <PageHeader />
+          </Container>
+          <Container maxWidth="md" sx={{ py: 8 }}>
+            <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
+              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Συνδεθείτε για να συνεχίσετε</Typography>
+              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+                Για να κλείσετε ραντεβού με κτηνίατρο πρέπει πρώτα να συνδεθείτε στον λογαριασμό σας.
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Button variant="contained" size="large" onClick={() => navigate('/login')} sx={{ px: 4, borderRadius: 3 }}>Σύνδεση</Button>
+                <Button variant="outlined" size="large" onClick={() => navigate('/register')} sx={{ px: 4, borderRadius: 3 }}>Εγγραφή</Button>
+              </Box>
+            </Paper>
+          </Container>
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
+  if (hasPets === false) {
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+          <Container maxWidth="xl" sx={{ pt: 2 }}>
+            <PageHeader />
+          </Container>
+          <Container maxWidth="md" sx={{ py: 8 }}>
+            <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
+              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Προσθέστε ένα κατοικίδιο</Typography>
+              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+                Για να αναζητήσετε κτηνίατρο, προσθέστε πρώτα το κατοικίδιό σας ώστε να γνωρίζουμε για ποιον κάνουμε κράτηση.
+              </Typography>
+              <Button variant="contained" size="large" onClick={() => navigate('/owner/pets')} sx={{ px: 4, borderRadius: 3 }}>Μετάβαση στα Κατοικίδια</Button>
+            </Paper>
+          </Container>
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
   // --- SUB-COMPONENTS ---
 
   const StepVetList = () => (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h6">Πύλη Κτηνιατρων <Chip label={ALL_VETS.length} size="small" color="primary" variant="outlined" sx={{ ml: 1 }} /></Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
+          <TextField 
+            placeholder="Αναζήτηση κτηνιάτρου..." 
+            size="small"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            sx={{ flex: 1, minWidth: 240, maxWidth: 320, bgcolor: 'white', borderRadius: 2, boxShadow: '0 6px 18px rgba(15,23,42,0.06)' }}
+          />
+          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            Αποτελέσματα
+            <Chip label={filteredVets.length} size="small" color="primary" variant="outlined" />
+          </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button variant="outlined" endIcon={<FilterListIcon />} size="small" sx={{ color: '#333', borderColor: '#ccc' }}>Filter</Button>
-              <Box sx={{ border: '1px solid #ccc', borderRadius: 1, display: 'flex' }}>
-                  <IconButton size="small"><ViewListIcon /></IconButton>
-                  <IconButton size="small"><GridViewIcon /></IconButton>
+              <Button variant="outlined" endIcon={<FilterListIcon />} size="small" sx={{ color: '#333', borderColor: '#ccc', borderRadius: 2, '&:hover': { borderColor: '#00695c', color: '#00695c' } }}>Filter</Button>
+              <Box sx={{ border: '1px solid #ccc', borderRadius: 2, display: 'flex', overflow: 'hidden' }}>
+                  <IconButton size="small" sx={{ '&:hover': { bgcolor: '#f5f5f5' } }}><ViewListIcon /></IconButton>
+                  <IconButton size="small" sx={{ '&:hover': { bgcolor: '#f5f5f5' } }}><GridViewIcon /></IconButton>
               </Box>
           </Box>
       </Box>
-      {displayedVets.map(vet => (
+      {displayedVets.length === 0 ? (
+        <Paper sx={{ p: 4, textAlign: 'center', bgcolor: '#f5f5f5' }}>
+          <Typography variant="body1" color="text.secondary">
+            Δεν βρέθηκαν κτηνίατροι που ταιριάζουν με την αναζήτησή σας.
+          </Typography>
+        </Paper>
+      ) : (
+        displayedVets.map(vet => (
           <Paper 
             key={vet.id} 
-            elevation={selectedVet?.id === vet.id ? 4 : 0} 
+            elevation={selectedVet?.id === vet.id ? 8 : 1} 
             onClick={() => setSelectedVet(vet)}
             sx={{ 
-                p: 2, mb: 3, border: selectedVet?.id === vet.id ? '2px solid #00695c' : '1px solid #eee', 
-                borderRadius: '12px', display: 'flex', gap: 3, cursor: 'pointer',
+                position: 'relative',
+                p: 2.5, mb: 3, border: selectedVet?.id === vet.id ? '2px solid #00695c' : '1px solid #eee', 
+                borderRadius: '14px', display: 'flex', gap: 3, cursor: 'pointer',
                 bgcolor: selectedVet?.id === vet.id ? '#e0f2f1' : 'white',
-                transition: '0.2s', '&:hover': { borderColor: '#00695c' }
+                transition: 'all 0.25s ease',
+                '&:hover': { borderColor: '#00695c', transform: 'translateY(-6px) scale(1.01)', boxShadow: '0 14px 32px rgba(0,0,0,0.1)' },
+                '&::after': {
+                  content: '""', position: 'absolute', inset: 0, borderRadius: '14px', pointerEvents: 'none',
+                  background: 'linear-gradient(120deg, rgba(0,105,92,0.08), rgba(255,167,38,0.06))', opacity: 0, transition: 'opacity 0.25s ease'
+                },
+                '&:hover::after': { opacity: 1 }
             }}
           >
-              <Avatar src={vet.img} variant="rounded" sx={{ width: 100, height: 100, borderRadius: '8px' }} />
-              <Box sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" sx={{ color: '#0277bd', mb: 1 }}>{vet.name}</Typography>
+                 <Avatar src={vet.img} variant="rounded" sx={{ width: 100, height: 100, borderRadius: '8px' }} />
+                 <Box sx={{ flexGrow: 1 }}>
+                   <Typography variant="h6" sx={{ color: '#0277bd', mb: 1 }}>{vet.name}</Typography>
                   <Typography variant="caption" display="block" color="text.secondary"><LocationOnIcon fontSize="inherit"/> {vet.address}</Typography>
                   <Typography variant="caption" display="block" color="text.secondary"><MedicalServicesIcon fontSize="inherit"/> {vet.specialty}</Typography>
                   <Typography variant="caption" display="block" color="text.primary" fontWeight="bold"><CalendarMonthIcon fontSize="inherit"/> {vet.availability}</Typography>
@@ -171,88 +331,131 @@ export default function VetSearch() {
                   </Box>
               </Box>
           </Paper>
-      ))}
+        ))
+      )}
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><Pagination count={pageCount} page={page} onChange={handlePageChange} color="primary" shape="rounded" /></Box>
     </Box>
   );
 
   const StepCalendar = () => (
-    <Box sx={{ maxWidth: '1000px', mx: 'auto' }}>
+    <Box sx={{ maxWidth: '1100px', mx: 'auto' }}>
       <Typography variant="h5" fontWeight="bold" align="center" gutterBottom sx={{ mt: -2 }}>Ώρα και Μέρα</Typography>
-      <Divider sx={{ width: 60, height: 4, bgcolor: '#333', mx: 'auto', mb: 6, borderRadius: 2 }} />
+      <Divider sx={{ width: 60, height: 4, bgcolor: '#333', mx: 'auto', mb: 4, borderRadius: 2 }} />
 
-      {/* Increased spacing to separate calendar from options */}
-      <Grid container spacing={6}> 
+      <Paper elevation={0} sx={{ p: 2.5, mb: 4, borderRadius: 3, border: '1px solid #e0e0e0', bgcolor: '#f8fafc', display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+        <Chip label="Βήμα 2" color="primary" variant="outlined" />
+        <Typography fontWeight={700}>Διαλέξτε μέρα, πράξη και ώρα</Typography>
+        <Typography variant="body2" color="text.secondary">Η επιλογή σας κλειδώνει στο επόμενο βήμα.</Typography>
+        <Chip
+          label={`${selectedDate || 'Ημερομηνία;'} · ${selectedTime || 'Ώρα;'}`}
+          color={(selectedDate && selectedTime) ? 'success' : 'default'}
+          sx={{ ml: { xs: 0, md: 'auto' }, fontWeight: 'bold' }}
+        />
+      </Paper>
+
+      <Grid container spacing={4}>
         <Grid item xs={12} md={7}>
-            <Paper elevation={0} sx={{ p: 4, border: '1px solid #e0e0e0', borderRadius: '24px', height: '100%' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-                    <IconButton size="small" sx={{ border: '1px solid #eee' }}><ChevronLeftIcon /></IconButton>
-                    <Typography variant="h6" fontWeight="bold">Νοέμβριος 2025</Typography>
-                    <IconButton size="small" sx={{ border: '1px solid #eee' }}><ChevronRightIcon /></IconButton>
-                </Box>
-                <Grid container spacing={2}>
-                    {['Κυ','Δε','Τρ','Τε','Πε','Πα','Σα'].map(d => <Grid item xs={1.7} key={d} sx={{ textAlign: 'center' }}><Typography variant="caption" color="text.secondary" fontWeight="bold">{d}</Typography></Grid>)}
+          {/** assume current date ~ 6 for highlighting available days; disable past days visually */}
+          {/** todayDay used only for UI cue, not real-time logic */}
+          {(() => { const todayDay = 6; return null; })()}
+          <Paper elevation={0} sx={{ p: 4, border: '1px solid #e0e0e0', borderRadius: '24px', height: '100%', boxShadow: '0 10px 26px rgba(0,0,0,0.04)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
+              <IconButton size="small" sx={{ border: '1px solid #eee', bgcolor: 'white' }}><ChevronLeftIcon /></IconButton>
+              <Typography variant="h6" fontWeight="bold">Νοέμβριος 2025</Typography>
+              <IconButton size="small" sx={{ border: '1px solid #eee', bgcolor: 'white' }}><ChevronRightIcon /></IconButton>
+            </Box>
+
+            <Grid container spacing={2}>
+              {['Κυ','Δε','Τρ','Τε','Πε','Πα','Σα'].map(d => (
+                <Grid item xs={1.7} key={d} sx={{ textAlign: 'center' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight="bold">{d}</Typography>
                 </Grid>
-                <Grid container spacing={2} sx={{ mt: 1 }}>
-                    {[...Array(30)].map((_, i) => {
-                        const day = i + 1;
-                        const isSelected = selectedDate === `Noe ${day}`;
-                        return (
-                            <Grid item xs={1.7} key={i}>
-                                <Box 
-                                  onClick={() => setSelectedDate(`Noe ${day}`)}
-                                  sx={{ 
-                                    width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', 
-                                    borderRadius: '50%', cursor: 'pointer', transition: '0.2s',
-                                    bgcolor: isSelected ? '#263238' : 'transparent', 
-                                    color: isSelected ? 'white' : 'inherit',
-                                    fontWeight: isSelected ? 'bold' : 'normal',
-                                    '&:hover': { bgcolor: isSelected ? '#263238' : '#f5f5f5' }
-                                }}>{day}</Box>
-                            </Grid>
-                        )
-                    })}
-                </Grid>
-            </Paper>
+              ))}
+            </Grid>
+
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              {[...Array(30)].map((_, i) => {
+                const day = i + 1;
+                const todayDay = 6;
+                const isDisabled = day < todayDay;
+                const isSelected = selectedDate === `Noe ${day}`;
+                return (
+                  <Grid item xs={1.7} key={i}>
+                    <Tooltip title={isDisabled ? 'Μη διαθέσιμη ημέρα' : ''} disableHoverListener={!isDisabled}>
+                      <Box
+                        onClick={() => !isDisabled && setSelectedDate(`Noe ${day}`)}
+                        sx={{
+                          width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto',
+                          borderRadius: '50%', cursor: isDisabled ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease',
+                          bgcolor: isSelected ? '#00695c' : 'transparent',
+                          color: isDisabled ? '#cbd5e1' : (isSelected ? 'white' : '#111'),
+                          fontWeight: isSelected ? 'bold' : 'normal',
+                          border: isSelected ? 'none' : '1px solid #eceff1',
+                          opacity: isDisabled ? 0.5 : 1,
+                          '&:hover': { bgcolor: isDisabled ? 'transparent' : (isSelected ? '#00695c' : '#f5f5f5'), transform: isDisabled ? 'none' : 'translateY(-2px)' }
+                        }}
+                      >{day}</Box>
+                    </Tooltip>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Paper>
         </Grid>
 
         <Grid item xs={12} md={5}>
-            <Paper elevation={0} sx={{ p: 4, border: '1px solid #e0e0e0', borderRadius: '24px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Επιλογή Πράξης</Typography>
-                <FormControl component="fieldset" sx={{ mb: 4 }}>
-                    <RadioGroup defaultValue="medical">
-                        <FormControlLabel value="exam" control={<Radio color="primary" />} label="Καταγραφή Ζώου" />
-                        <FormControlLabel value="medical" control={<Radio color="primary" />} label="Ιατρική πράξη" />
-                    </RadioGroup>
-                </FormControl>
-                <Divider sx={{ mb: 3 }} />
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}><AccessTimeIcon fontSize="small"/> Διαθέσιμες Ώρες</Typography>
-                <Grid container spacing={1}>
-                    {TIME_SLOTS.map((time) => (
-                        <Grid item xs={4} key={time}>
-                            <Chip 
-                                label={time} 
-                                onClick={() => setSelectedTime(time)}
-                                variant={selectedTime === time ? "filled" : "outlined"}
-                                color="primary"
-                                sx={{ 
-                                    width: '100%', fontWeight: 'bold', cursor: 'pointer',
-                                    bgcolor: selectedTime === time ? '#00695c' : 'transparent',
-                                    color: selectedTime === time ? 'white' : '#333',
-                                    borderColor: '#ddd'
-                                }} 
-                            />
-                        </Grid>
-                    ))}
-                </Grid>
-                {selectedDate && selectedTime && (
-                    <Box sx={{ mt: 'auto', pt: 3 }}>
-                        <Typography variant="body2" align="center" sx={{ bgcolor: '#e0f2f1', p: 1, borderRadius: 2, color: '#00695c', fontWeight: 'bold' }}>
-                            Επιλογή: {selectedDate} στις {selectedTime}
-                        </Typography>
-                    </Box>
-                )}
+          <Paper elevation={0} sx={{ p: 4, border: '1px solid #e0e0e0', borderRadius: '24px', height: '100%', display: 'flex', flexDirection: 'column', gap: 3, boxShadow: '0 10px 26px rgba(0,0,0,0.04)' }}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Επιλογή Πράξης</Typography>
+              <FormControl component="fieldset">
+                <RadioGroup defaultValue="medical">
+                  <FormControlLabel value="exam" control={<Radio color="primary" />} label="Καταγραφή Ζώου" />
+                  <FormControlLabel value="medical" control={<Radio color="primary" />} label="Ιατρική πράξη" />
+                </RadioGroup>
+              </FormControl>
+            </Box>
+
+            <Divider />
+
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}><AccessTimeIcon fontSize="small"/> Διαθέσιμες Ώρες</Typography>
+              <Grid container spacing={1.5}>
+                {TIME_SLOTS.map((time) => {
+                  const picked = selectedTime === time;
+                  return (
+                    <Grid item xs={4} key={time}>
+                      <Button
+                        fullWidth
+                        variant={picked ? 'contained' : 'outlined'}
+                        color={picked ? 'success' : 'primary'}
+                        onClick={() => setSelectedTime(time)}
+                        sx={{
+                          borderRadius: 6,
+                          fontWeight: 'bold',
+                          bgcolor: picked ? '#00695c' : 'white',
+                          color: picked ? 'white' : '#111',
+                          borderColor: picked ? '#00695c' : '#e0e0e0',
+                          boxShadow: picked ? '0 10px 22px rgba(0,105,92,0.25)' : 'none',
+                          transition: 'all 0.18s ease',
+                          '&:hover': { bgcolor: picked ? '#005448' : '#f6f8fa', transform: 'translateY(-1px)' }
+                        }}
+                      >
+                        {time}
+                      </Button>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Box>
+
+            <Paper elevation={0} sx={{ mt: 'auto', p: 2.5, borderRadius: 2, border: '1px dashed #b0bec5', bgcolor: '#f1f8e9' }}>
+              <Typography variant="body2" fontWeight="bold">Σύνοψη επιλογής</Typography>
+              <Typography variant="body2" color="text.secondary">{selectedDate || 'Ημερομηνία;'} • {selectedTime || 'Ώρα;'}</Typography>
+              {(!selectedDate || !selectedTime) && (
+                <Typography variant="caption" color="error.main">Επιλέξτε και ημερομηνία και ώρα για να συνεχίσετε.</Typography>
+              )}
             </Paper>
+          </Paper>
         </Grid>
       </Grid>
     </Box>
@@ -347,7 +550,7 @@ export default function VetSearch() {
 
       <Typography variant="h5" fontWeight="bold">Ώρα και Μέρα</Typography>
       <Paper elevation={0} sx={{ p: 2, maxWidth: 500, mx: 'auto', mt: 2, mb: 4, border: '1px solid #eee', bgcolor: '#E3F2FD' }}>
-          <Typography color="primary" fontWeight="bold">📅 {selectedDate ? `${selectedDate} 2025` : "Τετάρτη, 20 Νοεμβρίου 2025"} • {selectedTime || "10:00 ΠΜ"}</Typography>
+          <Typography color="primary" fontWeight="bold">📅 {selectedDate || "Τετάρτη, 20 Νοεμβρίου 2025"} • {selectedTime || "10:00 ΠΜ"}</Typography>
       </Paper>
 
       <Typography variant="h5" fontWeight="bold">Στοιχεία Κατοικιδίου</Typography>
@@ -360,20 +563,32 @@ export default function VetSearch() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#fbfbfb', pb: 10 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#fbfbfb', pb: 10, display: 'flex', flexDirection: 'column' }}>
         
         <Container maxWidth="xl" sx={{ pt: 1 }}><PageHeader /></Container>
 
-        <Box sx={{ 
-            height: '300px', position: 'relative', mb: 5, bgcolor: '#333',
-            backgroundImage: 'url(https://images.unsplash.com/photo-1628009368231-760335298025?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)',
-            backgroundSize: 'cover', backgroundPosition: 'center',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-            <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.5)' }} />
-            <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', position: 'relative', zIndex: 1 }}>
-                Ραντεβού με Κτηνίατρο
-            </Typography>
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+          <DashboardSidebar />
+          
+          <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <Paper elevation={0} sx={{ mb: 2, mx: 2, p: 2.5, borderRadius: 3, border: '1px dashed #b0bec5', bgcolor: '#f1f8e9', display: 'flex', alignItems: 'center', gap: 2, animation: `${floatCard} 7s ease-in-out infinite` }}>
+                <CheckCircleIcon color="success" />
+                <Box>
+                  <Typography fontWeight={700} color="text.primary">Σύνδεση ελέγχθηκε</Typography>
+                  <Typography variant="body2" color="text.secondary">Είστε συνδεδεμένος ως {userLabel}. Μπορείτε να συνεχίσετε με ασφάλεια.</Typography>
+                </Box>
+                <Chip label="Connected" color="success" variant="outlined" sx={{ ml: 'auto', fontWeight: 'bold' }} />
+              </Paper>
+            <Box sx={{ 
+                height: '300px', position: 'relative', mb: 5, bgcolor: '#333',
+                backgroundImage: 'url(https://images.unsplash.com/photo-1628009368231-760335298025?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)',
+                backgroundSize: 'cover', backgroundPosition: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+                <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.5)' }} />
+                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', position: 'relative', zIndex: 1 }}>
+                    Ραντεβού με Κτηνίατρο
+                </Typography>
             
             <Box sx={{ position: 'absolute', bottom: -25, width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <Paper elevation={3} sx={{ px: 4, py: 1.5, borderRadius: '50px', display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -383,8 +598,9 @@ export default function VetSearch() {
                                 width: 30, height: 30, borderRadius: '50%', 
                                 border: index === activeStep ? '2px solid #3B82F6' : '1px solid #ccc',
                                 color: index === activeStep ? '#3B82F6' : (index < activeStep ? '#4CAF50' : '#999'),
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.8rem',
-                                bgcolor: index === activeStep ? '#E3F2FD' : 'white'
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.8rem',
+                              bgcolor: index === activeStep ? '#E3F2FD' : 'white',
+                              animation: index === activeStep ? `${pulseRing} 2.2s ease-in-out infinite` : 'none'
                             }}>
                                 {index < activeStep ? '✓' : index + 1}
                             </Box>
@@ -396,9 +612,9 @@ export default function VetSearch() {
                     ))}
                 </Paper>
             </Box>
-        </Box>
+            </Box>
 
-        <Container maxWidth="md" sx={{ mt: 8 }}>
+            <Container maxWidth="md" sx={{ mt: 8 }}>
             
             {activeStep === 0 && <StepVetList />}
             {activeStep === 1 && <StepCalendar />}
@@ -427,7 +643,7 @@ export default function VetSearch() {
                 </Box>
             )}
 
-        </Container>
+            </Container>
 
         <Dialog open={openSuccess} onClose={() => navigate('/owner')} PaperProps={{ sx: { borderRadius: '20px', p: 4, textAlign: 'center' } }}>
             <DialogContent>
@@ -441,7 +657,8 @@ export default function VetSearch() {
                 </Button>
             </DialogContent>
         </Dialog>
-
+          </Box>
+        </Box>
       </Box>
     </ThemeProvider>
   );

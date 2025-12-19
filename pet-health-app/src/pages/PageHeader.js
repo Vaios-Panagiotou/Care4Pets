@@ -46,12 +46,17 @@ export default function PageHeader() {
     <Box sx={{ 
       display: 'flex', 
       alignItems: 'center', 
-      gap: 1.5, 
-      py: 1.5, 
-      px: { xs: 2, md: 0 },
+      gap: 1, 
+      py: 1, 
+      px: { xs: 2, md: 3 },
       maxWidth: 'xl', 
       mx: 'auto',
-      mb: 2
+      mb: 1.5,
+      bgcolor: 'rgba(255,255,255,0.92)', // ensure contrast on any background
+      border: '1px solid #e2e8f0',
+      boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+      backdropFilter: 'blur(8px)',
+      borderRadius: 2
     }}>
       
       {/* 1. ΚΟΥΜΠΙ ΠΙΣΩ (MINIMAL) */}
@@ -60,30 +65,52 @@ export default function PageHeader() {
           onClick={() => navigate(-1)} 
           size="small"
           sx={{ 
-            color: '#64748b',
-            '&:hover': { color: '#1976d2' }
+            color: '#94a3b8',
+            '&:hover': { 
+              color: '#1976d2',
+              bgcolor: 'rgba(25, 118, 210, 0.05)'
+            },
+            transition: 'all 0.2s ease'
           }}
         >
           <ArrowBackIosNewIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Tooltip>
 
-      {/* 2. BREADCRUMBS */}
+      {/* 2. BREADCRUMBS - DISCRETE & ELEGANT */}
       <Breadcrumbs 
-        separator={<NavigateNextIcon fontSize="small" sx={{ color: '#cbd5e1' }} />} 
+        separator={<Typography sx={{ color: '#475569', mx: '2px', fontSize: '0.75rem' }}>•</Typography>} 
         aria-label="breadcrumb"
         sx={{ 
-            '& .MuiBreadcrumbs-li': { fontWeight: 400, fontSize: '0.875rem' }
+          '& .MuiBreadcrumbs-li': { 
+            fontWeight: 400, 
+            fontSize: '0.8rem',
+            '&:last-child': { 
+              fontWeight: 600 
+            }
+          },
+          '& .MuiBreadcrumbs-separator': {
+            mx: 0.5
+          }
         }}
       >
         {/* Link για την Αρχική */}
         <Link 
             component={RouterLink} 
             to="/" 
-            underline="hover" 
-            sx={{ display: 'flex', alignItems: 'center', color: '#64748b', '&:hover': { color: '#1976d2' } }}
+            underline="none" 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              color: '#0f172a',
+              fontWeight: 600,
+              transition: 'all 0.2s ease',
+              '&:hover': { 
+                color: '#1d4ed8'
+              }
+            }}
         >
-          <HomeIcon sx={{ mr: 0.5, fontSize: 18 }} /> Αρχική
+          <HomeIcon sx={{ mr: 0.3, fontSize: 16 }} /> Αρχική
         </Link>
 
         {/* Δυναμικά Links για τα υπόλοιπα */}
@@ -95,11 +122,31 @@ export default function PageHeader() {
           const name = routeNameMap[value] || value;
 
           return last ? (
-            <Typography key={to} sx={{ color: '#1e293b', fontWeight: 500 }}>
+            <Typography 
+              key={to} 
+              sx={{ 
+                color: '#0f172a', 
+                fontWeight: 600,
+                fontSize: '0.8rem'
+              }}
+            >
               {name}
             </Typography>
           ) : (
-            <Link component={RouterLink} to={to} underline="hover" key={to} sx={{ color: '#64748b', '&:hover': { color: '#1976d2' } }}>
+            <Link 
+              component={RouterLink} 
+              to={to} 
+              underline="none" 
+              key={to} 
+              sx={{ 
+                color: '#0f172a',
+                fontWeight: 600,
+                transition: 'all 0.2s ease',
+                '&:hover': { 
+                  color: '#1d4ed8'
+                }
+              }}
+            >
               {name}
             </Link>
           );
@@ -112,7 +159,18 @@ export default function PageHeader() {
           variant="text"
           size="small"
           onClick={() => { logout(); navigate('/login'); }}
-          sx={{ ml: 'auto', color: '#64748b', '&:hover': { color: '#ef4444', bgcolor: 'transparent' } }}
+          sx={{ 
+            ml: 'auto', 
+            color: '#64748b', 
+            fontSize: '0.8rem',
+            fontWeight: 500,
+            textTransform: 'none',
+            '&:hover': { 
+              color: '#ef4444',
+              bgcolor: 'rgba(239, 68, 68, 0.05)'
+            },
+            transition: 'all 0.2s ease'
+          }}
         >
           Αποσύνδεση
         </Button>

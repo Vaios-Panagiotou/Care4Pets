@@ -16,24 +16,29 @@ import NewRecord from "./pages/NewRecord"; // IMPORT
 import VetSchedule from "./pages/VetSchedule"; // IMPORT
 import VetClinic from "./pages/VetClinic"; // IMPORT
 import News from "./pages/News"; // IMPORT
-import RequireAuth from "./components/RequireAuth"; // Προστασία διαδρομών
+import NewsDetail from "./pages/NewsDetail"; // IMPORT
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Footer from "./components/Footer";
+
+function PrivateRoute({ children, role }) {
+  const { user } = useAuth();
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (role && user.role !== role) {
+    // Redirect based on role mismatch
+    return <Navigate to={user.role === 'owner' ? '/owner' : '/vet'} replace />;
+  }
+  return children;
+}
 
 function App() {
-  const PrivateRoute = ({ children, role }) => {
-    const { user } = useAuth();
-    if (!user) {
-      return <Navigate to="/login" replace />;
-    }
-    if (role && user.role !== role) {
-      // Redirect based on role mismatch
-      return <Navigate to={user.role === 'owner' ? '/owner' : '/vet'} replace />;
-    }
-    return children;
-  };
-
   return (
-    <BrowserRouter>
-      <Routes>
+    <AuthProvider>
+      <BrowserRouter>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Routes>
         {/* Δημόσιες Σελίδες */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -47,57 +52,57 @@ function App() {
         <Route
           path="/owner"
           element={
-            <RequireAuth>
+            <PrivateRoute role="owner">
               <OwnerDashboard />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/owner/pets"
           element={
-            <RequireAuth>
+            <PrivateRoute role="owner">
               <MyPets />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/owner/profile"
           element={
-            <RequireAuth>
+            <PrivateRoute role="owner">
               <Profile />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/owner/health-book/:id"
           element={
-            <RequireAuth>
+            <PrivateRoute role="owner">
               <PetHealthBook />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/owner/search"
           element={
-            <RequireAuth>
+            <PrivateRoute role="owner">
               <VetSearch />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/owner/history"
           element={
-            <RequireAuth>
+            <PrivateRoute role="owner">
               <History />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/owner/book"
           element={
-            <RequireAuth>
+            <PrivateRoute role="owner">
               <PlaceholderPage title="Κλείσιμο Ραντεβού" />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
 
@@ -105,45 +110,57 @@ function App() {
         <Route
           path="/vet"
           element={
-            <RequireAuth>
+            <PrivateRoute role="vet">
               <VetDashboard />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/vet/new-record"
           element={
-            <RequireAuth>
+            <PrivateRoute role="vet">
               <NewRecord />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/vet/schedule"
           element={
-            <RequireAuth>
+            <PrivateRoute role="vet">
               <VetSchedule />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
         <Route
           path="/vet/profile"
           element={
-            <RequireAuth>
+            <PrivateRoute role="vet">
               <VetClinic />
-            </RequireAuth>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/vet/clinic"
+          element={
+            <PrivateRoute role="vet">
+              <VetClinic />
+            </PrivateRoute>
           }
         />
         <Route
           path="/vet/patients"
           element={
-            <RequireAuth>
+            <PrivateRoute role="vet">
               <PlaceholderPage title="Διαχείριση Ασθενών" />
-            </RequireAuth>
+            </PrivateRoute>
           }
         />
       </Routes>
+      </div>
+      <Footer />
+      </div>
     </BrowserRouter>
+    </AuthProvider>
   );
 }
 
