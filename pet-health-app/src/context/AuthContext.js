@@ -1,20 +1,17 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 
 const AuthContext = createContext({ user: null, login: () => {}, logout: () => {} });
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
+  // Initialize synchronously from localStorage to avoid redirect flicker
+  const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem('user');
-      if (stored) {
-        setUser(JSON.parse(stored));
-      }
+      return stored ? JSON.parse(stored) : null;
     } catch (_) {
-      // ignore
+      return null;
     }
-  }, []);
+  });
 
   const login = (userData) => {
     setUser(userData);

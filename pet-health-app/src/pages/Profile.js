@@ -87,6 +87,13 @@ export default function Profile() {
     idNumber: user?.idNumber || ''
   }));
 
+  // Βασική επικύρωση email (π.χ. name@example.com)
+  const isValidEmail = (email) => {
+    if (!email || typeof email !== 'string') return false;
+    const trimmed = email.trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  };
+
   const greetingName = useMemo(() => user?.name || 'Χρήστης', [user]);
   const avatarSrc = user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
 
@@ -97,12 +104,17 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user?.id) return;
+    // Ελέγχουμε ότι το email έχει σωστή μορφή
+    if (form.email && !isValidEmail(form.email)) {
+      setError('Μη έγκυρο email. Παρακαλώ εισάγετε μορφή name@example.com.');
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`http://localhost:3001/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...user, ...form })
+        body: JSON.stringify({ ...user, ...form, email: (form.email || '').trim() })
       });
       if (!res.ok) throw new Error();
       const saved = await res.json();
@@ -154,6 +166,7 @@ export default function Profile() {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <ProfileField label="Κωδικός Πρόσβασης" value="••••••" type="password" editable={false} icon={LockIcon} />
+                  <ProfileField label="Email" name="email" value={form.email} onChange={handleChange} editable={editable} type="email" icon={EmailIcon} />
                   <ProfileField label="Κινητό Τηλέφωνο" name="phone" value={form.phone} onChange={handleChange} editable={editable} icon={PhoneIcon} />
                   <ProfileField label="Διεύθυνση" name="address" value={form.address} onChange={handleChange} editable={editable} icon={HomeIcon} />
                 </Grid>
