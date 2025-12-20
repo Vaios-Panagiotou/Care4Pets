@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { 
-  Box, Container, Grid, Typography, Button, Paper, Accordion, 
-  AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, 
-  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton, Tooltip 
+import React from 'react';
+import {
+  Box, Container, Grid, Typography, Button, Paper, Accordion,
+  AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -15,15 +15,12 @@ import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import SearchIcon from '@mui/icons-material/Search';
 import PetsIcon from '@mui/icons-material/Pets';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // IMPORT
 
 // Import PageHeader
-import PageHeader from './PageHeader'; 
+import PageHeader from './PageHeader';
 import Footer from '../components/Footer';
 
 const theme = createTheme({
@@ -33,73 +30,11 @@ const theme = createTheme({
     background: { default: '#f8f9fa' }
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    button: { textTransform: 'none', fontWeight: 600 },
+    fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
+    button: { textTransform: 'none', fontWeight: 600 }
   },
   shape: { borderRadius: 16 }
 });
-
-const Navbar = () => {
-  const [anchorElGenika, setAnchorElGenika] = useState(null);
-  const [anchorElVet, setAnchorElVet] = useState(null);
-  const [anchorElOwner, setAnchorElOwner] = useState(null);
-  const navigate = useNavigate();
-
-  const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
-  const handleCloseMenu = (setAnchor) => setAnchor(null);
-
-  const navButtonStyle = { fontSize: '16px', color: '#546e7a', '&:hover': { color: '#00695c', backgroundColor: 'transparent' } };
-
-  return (
-    <AppBar position="sticky" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
-      <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ height: 80 }}>
-          <Box component="a" href="/" sx={{ display: 'flex', alignItems: 'center', flexGrow: 0, mr: 4, textDecoration: 'none', cursor: 'pointer' }}>
-            <Box sx={{ bgcolor: 'primary.main', borderRadius: '12px', p: 1, mr: 1.5, display: 'flex' }}>
-              <PetsIcon sx={{ color: 'white', fontSize: 30 }} />
-            </Box>
-            <Typography variant="h5" color="primary">Care4Pets</Typography>
-          </Box>
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
-            <Box>
-              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
-              <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση</MenuItem>
-              </Menu>
-            </Box>
-            <Box>
-              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
-              <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Υπηρεσίες</MenuItem>
-              </Menu>
-            </Box>
-            <Box>
-              <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
-              <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Dashboard</MenuItem>
-              </Menu>
-            </Box>
-            <Button onClick={() => navigate('/contact')} sx={navButtonStyle}>Επικοινωνία</Button>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <IconButton onClick={() => navigate('/owner/search')} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}><SearchIcon /></IconButton>
-            <IconButton 
-              onClick={() => navigate('/vet/profile')}
-              sx={{ color: 'primary.main', bgcolor: '#e0f2f1', '&:hover': { bgcolor: '#b2dfdb' } }}
-            >
-              <AccountCircleIcon fontSize="large" />
-            </IconButton>
-            <Button variant="outlined" color="primary" onClick={() => { localStorage.removeItem('user'); navigate('/login'); }} sx={{ ml: 1 }}>
-              Αποσύνδεση
-            </Button>
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
-  );
-};
 
 const VET_INFO = [
   {
@@ -131,7 +66,7 @@ export default function VetDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
-        <Navbar />
+        {/* Global Navbar is rendered in App.js */}
         
         {/* --- PAGE HEADER --- */}
         <Container maxWidth="xl">

@@ -31,6 +31,14 @@
       "password": "123",
       "afm": "",
       "role": "owner"
+    },
+    {
+      "id": "1766242819617",
+      "fullname": "giorgos",
+      "email": "kati@gmail.com",
+      "password": "123",
+      "afm": "12334",
+      "role": "vet"
     }
   ],
   "pets": [
