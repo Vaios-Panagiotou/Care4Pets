@@ -345,8 +345,6 @@ export default function OwnerDashboard() {
             </Grid>
           </Box>
         </Box>
-
-        <Footer />
       </Box>
     </ThemeProvider>
   );
