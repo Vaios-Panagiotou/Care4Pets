@@ -22,7 +22,7 @@ const OWNER_NAV = [
 ];
 
 const VET_NAV = [
-  { id: 'patients', label: 'Διαχείριση Ασθενών', icon: MedicalInformationIcon, path: '/vet/patients' },
+  { id: 'history', label: 'Ιστορικό', icon: HistoryIcon, path: '/vet/history' },
   { id: 'schedule', label: 'Πρόγραμμα', icon: EventAvailableIcon, path: '/vet/schedule' },
   { id: 'clinic', label: 'Το Ιατρείο', icon: MedicalServicesIcon, path: '/vet/clinic' },
 ];

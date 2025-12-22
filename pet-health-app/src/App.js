@@ -16,6 +16,7 @@ import History from "./pages/History"; // <--- IMPORT
 import NewRecord from "./pages/NewRecord"; // IMPORT
 import VetSchedule from "./pages/VetSchedule"; // IMPORT
 import VetClinic from "./pages/VetClinic"; // IMPORT
+import VetHistory from "./pages/VetHistory"; // IMPORT
 import News from "./pages/News"; // IMPORT
 import NewsDetail from "./pages/NewsDetail"; // IMPORT
 import TermsOfService from "./pages/TermsOfService";
@@ -213,6 +214,14 @@ function App() {
           element={
             <PrivateRoute role="vet">
               <PlaceholderPage title="Διαχείριση Ασθενών" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/vet/history"
+          element={
+            <PrivateRoute role="vet">
+              <VetHistory />
             </PrivateRoute>
           }
         />

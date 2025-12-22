@@ -14,6 +14,7 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
+import HistoryIcon from '@mui/icons-material/History';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PetsIcon from '@mui/icons-material/Pets';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -116,6 +117,7 @@ export default function VetDashboard() {
             </Typography>
             <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
               {[
+                { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#00897B', path: '/vet/history' },
                 { label: 'Νέα Καταγραφή', icon: <VaccinesIcon fontSize="large" />, color: '#00897B', path: '/vet/new-record' },
                 { label: 'Ραντεβού', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B', path: '/vet/schedule' },
                 { label: 'Το Ιατρείο', icon: <AssignmentIndIcon fontSize="large" />, color: '#00897B', path: '/vet/clinic' }
