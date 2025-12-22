@@ -15,6 +15,30 @@
       "password": "123456",
       "afm": "12345678",
       "role": "vet"
+    },
+    {
+      "id": "1766231574654",
+      "fullname": "George",
+      "email": "makamaam",
+      "password": "123",
+      "afm": "",
+      "role": "owner"
+    },
+    {
+      "id": "1766231867974",
+      "fullname": "reatfwer",
+      "email": "gergreg@efwef.com",
+      "password": "123",
+      "afm": "",
+      "role": "owner"
+    },
+    {
+      "id": "1766242819617",
+      "fullname": "giorgos",
+      "email": "kati@gmail.com",
+      "password": "123",
+      "afm": "12334",
+      "role": "vet"
     }
   ],
   "pets": [

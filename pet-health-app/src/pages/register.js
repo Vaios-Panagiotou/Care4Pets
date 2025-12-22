@@ -25,6 +25,14 @@ export default function Register() {
 
   const [error, setError] = useState('');
 
+  // Απλή αλλά αξιόπιστη επικύρωση email (π.χ. name@example.com)
+  const isValidEmail = (email) => {
+    if (!email || typeof email !== 'string') return false;
+    const trimmed = email.trim();
+    // Βασικός έλεγχος: κάτι@κάτι.κάτι
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  };
+
   const handleRoleChange = (event, newRole) => {
     if (newRole !== null) setRole(newRole);
   };
@@ -37,13 +45,21 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password || !formData.fullname) {
+    const emailTrimmed = (formData.email || '').trim();
+
+    if (!emailTrimmed || !formData.password || !formData.fullname) {
         setError("Παρακαλώ συμπληρώστε όλα τα βασικά πεδία.");
         return;
     }
 
+    if (!isValidEmail(emailTrimmed)) {
+      setError("Παρακαλώ εισάγετε έγκυρο email (π.χ. name@example.com).");
+      return;
+    }
+
     const newUser = {
-        ...formData,
+      ...formData,
+      email: emailTrimmed,
         role: role, // Αποθηκεύουμε αν είναι 'owner' ή 'vet'
         id: Date.now().toString() // Μοναδικό ID
     };

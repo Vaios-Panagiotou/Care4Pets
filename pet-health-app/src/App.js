@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Alert, Box, Button, Container, Typography } from "@mui/material";
 import Home from "./pages/home";
 import Login from "./pages/login";
@@ -20,6 +20,8 @@ import News from "./pages/News"; // IMPORT
 import NewsDetail from "./pages/NewsDetail"; // IMPORT
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 function PrivateRoute({ children, role }) {
   const { user, logout } = useAuth();
@@ -69,10 +71,25 @@ function PrivateRoute({ children, role }) {
 }
 
 function App() {
+  const theme = createTheme({
+    palette: {
+      primary: { main: '#00695c' },
+      secondary: { main: '#ffb74d' },
+      background: { default: '#f4f6f8', paper: '#ffffff' },
+      text: { primary: '#263238', secondary: '#546e7a' }
+    },
+    typography: {
+      fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
+      h5: { fontWeight: 600 },
+      button: { textTransform: 'none', fontWeight: 600 }
+    }
+  });
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ThemeProvider theme={theme}>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <NavWrapper />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Routes>
         {/* Δημόσιες Σελίδες */}
@@ -195,8 +212,24 @@ function App() {
       </div>
       <Footer />
       </div>
+      </ThemeProvider>
     </BrowserRouter>
     </AuthProvider>
+  );
+}
+
+// Conditionally render Navbar based on current route
+function NavWrapper() {
+  const location = useLocation();
+  const hidePaths = ['/login', '/register'];
+  const hide = hidePaths.includes(location.pathname);
+  if (hide) return null;
+  return (
+    <>
+      <Navbar />
+      {/* Spacer so content doesn't go under fixed navbar */}
+      <div style={{ height: 80 }}></div>
+    </>
   );
 }
 

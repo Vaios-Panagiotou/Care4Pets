@@ -94,19 +94,6 @@ export default function DashboardSidebar() {
               }}
             >
               <Icon sx={{ fontSize: '19px' }} />
-              {/* Active indicator dot */}
-              {active && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    width: '4px',
-                    height: '4px',
-                    borderRadius: '50%',
-                    bgcolor: user?.role === 'vet' ? '#00897B' : '#1976d2',
-                    bottom: '2px',
-                  }}
-                />
-              )}
             </Box>
           </Tooltip>
         );

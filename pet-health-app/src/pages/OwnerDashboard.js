@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Accordion, 
   AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, 
-  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton, Tooltip, Avatar, Skeleton 
+  ListItemText, IconButton, ListItemButton, Tooltip, Avatar, Skeleton 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,6 @@ import HistoryIcon from '@mui/icons-material/History';
 import SearchIcon from '@mui/icons-material/Search';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -76,73 +75,7 @@ const OWNER_INFO = [
   }
 ];
 
-// --- NAVBAR ---
-const Navbar = () => {
-  const [anchorElGenika, setAnchorElGenika] = useState(null);
-  const [anchorElVet, setAnchorElVet] = useState(null);
-  const [anchorElOwner, setAnchorElOwner] = useState(null);
-
-  const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
-  const handleCloseMenu = (setAnchor) => setAnchor(null);
-  const navigate = useNavigate();
-
-  const navButtonStyle = { fontSize: '16px', color: '#546e7a', '&:hover': { color: '#00695c', backgroundColor: 'transparent' } };
-
-  return (
-    <AppBar position="sticky" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
-      <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ height: 80 }}>
-          <Box component="a" href="/" sx={{ display: 'flex', alignItems: 'center', flexGrow: 0, mr: 4, textDecoration: 'none', cursor: 'pointer' }}>
-            <Box sx={{ bgcolor: 'primary.main', borderRadius: '12px', p: 1, mr: 1.5, display: 'flex' }}>
-              <PetsIcon sx={{ color: 'white', fontSize: 30 }} />
-            </Box>
-            <Typography variant="h5" color="primary">Care4Pets</Typography>
-          </Box>
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
-            <Box>
-                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
-                <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
-                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση</MenuItem>
-                </Menu>
-            </Box>
-            <Box>
-                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
-                <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
-                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Υπηρεσίες</MenuItem>
-                </Menu>
-            </Box>
-            <Box>
-                <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
-                <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
-                    <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Dashboard</MenuItem>
-                </Menu>
-            </Box>
-            <Button onClick={() => navigate('/contact')} sx={navButtonStyle}>Επικοινωνία</Button>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {/* Search Icon */}
-            <IconButton onClick={() => navigate('/owner/search')} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}><SearchIcon /></IconButton>
-            
-            {/* --- ΝΕΟ ΚΟΥΜΠΙ ΠΡΟΦΙΛ --- */}
-            <IconButton 
-                onClick={() => navigate('/owner/profile')}
-                sx={{ color: 'primary.main', bgcolor: '#e0f2f1', '&:hover': { bgcolor: '#b2dfdb' } }}
-            >
-                <AccountCircleIcon fontSize="large" />
-            </IconButton>
-            {/* ------------------------- */}
-
-            <Button variant="outlined" color="primary" onClick={() => { localStorage.removeItem('user'); navigate('/login'); }} sx={{ ml: 1 }}>
-                Αποσύνδεση
-            </Button>
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
-  );
-};
+// (Navbar removed; global navbar from App.js is used)
 
 // --- FOOTER ---
 
@@ -179,7 +112,7 @@ export default function OwnerDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
-        <Navbar />
+        {/* Global Navbar is rendered in App.js */}
         
         {/* PAGE HEADER */}
         <Container maxWidth="xl" sx={{ pt: 2 }}>

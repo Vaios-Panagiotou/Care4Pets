@@ -563,8 +563,8 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
     return (
         <ThemeProvider theme={theme}>
             <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
-                {/* Page Header */}
-                <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e2e8f0', px: 2 }}>
+                {/* Page Header - stick to top */}
+                <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e2e8f0', px: 2, position: 'sticky', top: 0, zIndex: 1200 }}>
                     <Container maxWidth="xl">
                         <PageHeader />
                     </Container>

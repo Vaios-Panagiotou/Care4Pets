@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { 
-  AppBar, Toolbar, Typography, Button, Box, Container, Grid, 
-  Paper, Card, CardContent, IconButton, Menu, MenuItem, TextField, InputAdornment,
-  Autocomplete, Popper, ListItemText, ListItemIcon
+  Typography, Button, Box, Container, Grid,
+  Paper, Card, CardContent
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom'; // IMPORT useNavigate
+import { useNavigate } from 'react-router-dom';
 
 // --- ICONS IMPORTS ---
 import SearchIcon from '@mui/icons-material/Search';
@@ -22,33 +21,7 @@ import PageviewIcon from '@mui/icons-material/Pageview';
 // IMPORT NEWS COMPONENT
 import { NewsCard, NEWS_DATA } from './News';
 
-// --- SEARCH DATA ---
-const SEARCH_DATA = [
-  // Pages
-  { type: 'page', title: 'Τα Κατοικίδιά μου', path: '/owner/pets', icon: <PetsIcon /> },
-  { type: 'page', title: 'Ιστορικό & Ραντεβού', path: '/owner/history', icon: <MedicalServicesIcon /> },
-  { type: 'page', title: 'Εύρεση Κτηνίατρου', path: '/owner/search', icon: <SearchIcon /> },
-  { type: 'page', title: 'Προφίλ', path: '/owner/profile', icon: <PetsIcon /> },
-  { type: 'page', title: 'Επικοινωνία', path: '/contact', icon: <PhoneIcon /> },
-  { type: 'page', title: 'Χαμένα Κατοικίδια', path: '/lost-pets', icon: <PageviewIcon /> },
-  { type: 'page', title: 'Νέα & Ενημέρωση', path: '/news', icon: <ArticleIcon /> },
-  // Vets
-  { type: 'vet', title: 'Δρ. Ιωάννης Σμυρνής - Παθολογία', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος παθολογία αθήνα' },
-  { type: 'vet', title: 'Δρ. Ελένη Καρρά - Καρδιολογία', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος καρδιολογία' },
-  { type: 'vet', title: 'Δρ. Γιώργος Παπαδόπουλος - Ορθοπεδική', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος ορθοπεδική θεσσαλονίκη' },
-  { type: 'vet', title: 'Δρ. Μαρία Δημητρίου - Δερματολογία', path: '/owner/search', icon: <LocalHospitalIcon />, keywords: 'κτηνίατρος δερματολογία' },
-];
-
-// Add news to search data
-NEWS_DATA.forEach(news => {
-  SEARCH_DATA.push({
-    type: 'news',
-    title: news.title,
-    path: `/news/${news.id}`,
-    icon: <ArticleIcon />,
-    keywords: `${news.category} ${news.title}`
-  });
-});
+// (Global navbar now provides search functionality)
 
 // --- DATA CONFIGURATION ---
 const STEPS = [
@@ -452,7 +425,6 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Navbar />
         <HeroSection />
         <LostPetBanner />
         <StepsSection />
