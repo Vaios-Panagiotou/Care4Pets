@@ -18,6 +18,10 @@ import VetSchedule from "./pages/VetSchedule"; // IMPORT
 import VetClinic from "./pages/VetClinic"; // IMPORT
 import News from "./pages/News"; // IMPORT
 import NewsDetail from "./pages/NewsDetail"; // IMPORT
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiesPolicy from "./pages/CookiesPolicy";
+import GDPR from "./pages/GDPR";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
@@ -100,6 +104,10 @@ function App() {
         <Route path="/lost-pets" element={<LostPets />} />
         <Route path="/news" element={<News />} />
         <Route path="/news/:id" element={<NewsDetail />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/cookies" element={<CookiesPolicy />} />
+        <Route path="/gdpr" element={<GDPR />} />
 
         {/* Σελίδες Συνδεδεμένων Χρηστών (Owner) */}
         <Route

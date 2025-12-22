@@ -50,10 +50,10 @@ export default function Footer() {
               Νομικά
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
-              <Link href="#" sx={{ color: '#b0bec5', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>Όροι Χρήσης</Link>
-              <Link href="#" sx={{ color: '#b0bec5', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>Πολιτική Απορρήτου</Link>
-              <Link href="#" sx={{ color: '#b0bec5', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>Cookies</Link>
-              <Link href="#" sx={{ color: '#b0bec5', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>GDPR</Link>
+              <Link onClick={() => navigate('/terms')} sx={{ color: '#b0bec5', cursor: 'pointer', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>Όροι Χρήσης</Link>
+              <Link onClick={() => navigate('/privacy')} sx={{ color: '#b0bec5', cursor: 'pointer', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>Πολιτική Απορρήτου</Link>
+              <Link onClick={() => navigate('/cookies')} sx={{ color: '#b0bec5', cursor: 'pointer', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>Cookies</Link>
+              <Link onClick={() => navigate('/gdpr')} sx={{ color: '#b0bec5', cursor: 'pointer', textDecoration: 'none', fontSize: '0.875rem', '&:hover': { color: 'white' } }}>GDPR</Link>
             </Box>
           </Grid>
 
