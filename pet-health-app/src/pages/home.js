@@ -145,7 +145,7 @@ const Navbar = () => {
             <Box>
               <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
               <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Σχετικά με Κτηνίατρο</MenuItem>
+                <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/login'); }}>Σύνδεση ως Κτηνίατρος</MenuItem>
               </Menu>
             </Box>
 
@@ -153,9 +153,7 @@ const Navbar = () => {
             <Box>
               <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
               <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/pets'); }}>Το Κατοικίδιό μου</MenuItem>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/history'); }}>Ιστορικό</MenuItem>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/search'); }}>Ραντεβού με Κτηνίατρο</MenuItem>
+                <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/login'); }}>Σύνδεση ως Ιδιοκτήτης</MenuItem>
               </Menu>
             </Box>
 

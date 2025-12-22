@@ -42,6 +42,10 @@ export default function PageHeader() {
   // Αν είμαστε στην Αρχική, δεν δείχνουμε τίποτα
   if (pathnames.length === 0) return null;
 
+  // Σελίδες όπου δεν πρέπει να εμφανίζεται το κουμπί αποσύνδεσης (δημόσιες σελίδες)
+  const publicPages = ['/login', '/register', '/contact', '/lost-pets', '/news'];
+  const isPublicPage = publicPages.some(page => location.pathname.startsWith(page));
+
   return (
     <Box sx={{ 
       display: 'flex', 
@@ -120,13 +124,16 @@ export default function PageHeader() {
           
           // Μετάφραση ή χρήση του αγγλικού αν δεν υπάρχει στο λεξικό
           const name = routeNameMap[value] || value;
+          
+          // Μην κάνουμε τα "owner" και "vet" clickable - είναι μόνο role indicators
+          const isRoleIndicator = value === 'owner' || value === 'vet';
 
-          return last ? (
+          return last || isRoleIndicator ? (
             <Typography 
               key={to} 
               sx={{ 
-                color: '#0f172a', 
-                fontWeight: 600,
+                color: isRoleIndicator ? '#64748b' : '#0f172a', 
+                fontWeight: last ? 600 : 500,
                 fontSize: '0.8rem'
               }}
             >
@@ -153,8 +160,8 @@ export default function PageHeader() {
         })}
       </Breadcrumbs>
 
-      {/* 3. Logout button when authenticated */}
-      {user && (
+      {/* 3. Logout button when authenticated AND not on public pages */}
+      {user && !isPublicPage && (
         <Button
           variant="text"
           size="small"

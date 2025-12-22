@@ -336,25 +336,167 @@ const CalendarWidget = () => {
 };
 
 const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
-  <Paper sx={{ p: 2 }}>
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-      <Avatar src={pet.img} sx={{ width: 60, height: 60 }} />
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="subtitle1" fontWeight={700}>{pet.name}</Typography>
-        <Typography variant="caption" color="text.secondary">{pet.breed}</Typography>
-        <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-          <Typography variant="caption">• {pet.age || 'N/A'}</Typography>
-          <Typography variant="caption">• {pet.weight || 'N/A'}</Typography>
+  <Paper 
+    elevation={0}
+    sx={{ 
+      p: 3,
+      borderRadius: 3,
+      border: '1px solid #e0e0e0',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      position: 'relative',
+      overflow: 'hidden',
+      '&:hover': {
+        transform: 'translateY(-4px)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+        borderColor: '#1976d2'
+      }
+    }}
+  >
+    {/* Decorative gradient bar */}
+    <Box sx={{ 
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 4,
+      background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)'
+    }} />
+
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
+      <Avatar 
+        src={pet.img} 
+        sx={{ 
+          width: 80, 
+          height: 80,
+          border: '3px solid #e3f2fd',
+          boxShadow: '0 4px 12px rgba(25,118,210,0.15)'
+        }}
+      >
+        {!pet.img && <PetsIcon sx={{ fontSize: 40, color: '#1976d2' }} />}
+      </Avatar>
+      
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography 
+          variant="h6" 
+          fontWeight={700}
+          sx={{ 
+            color: '#1e293b',
+            mb: 0.5,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {pet.name}
+        </Typography>
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ 
+            mb: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {pet.breed}
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          {pet.gender && (
+            <Chip 
+              icon={pet.gender === 'male' ? <MaleIcon /> : <FemaleIcon />}
+              label={pet.gender === 'male' ? 'Αρσενικό' : 'Θηλυκό'}
+              size="small"
+              sx={{ 
+                bgcolor: pet.gender === 'male' ? '#e3f2fd' : '#fce4ec',
+                color: pet.gender === 'male' ? '#1976d2' : '#d81b60',
+                fontWeight: 600,
+                fontSize: '0.7rem'
+              }}
+            />
+          )}
+          {pet.age && (
+            <Chip 
+              icon={<CalendarTodayIcon sx={{ fontSize: 14 }} />}
+              label={pet.age}
+              size="small"
+              variant="outlined"
+              sx={{ fontWeight: 600, fontSize: '0.7rem' }}
+            />
+          )}
+          {pet.weight && (
+            <Chip 
+              label={pet.weight}
+              size="small"
+              variant="outlined"
+              sx={{ fontWeight: 600, fontSize: '0.7rem' }}
+            />
+          )}
         </Box>
       </Box>
-      <IconButton size="small" onClick={() => onEdit(pet)}><EditIcon fontSize="small" /></IconButton>
-      <IconButton size="small" color="error" onClick={() => onDelete(pet.id)}><DeleteOutlineIcon fontSize="small" /></IconButton>
+
+      <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <IconButton 
+          size="small" 
+          onClick={() => onEdit(pet)}
+          sx={{ 
+            bgcolor: '#f5f5f5',
+            '&:hover': { bgcolor: '#e3f2fd', color: '#1976d2' }
+          }}
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton 
+          size="small" 
+          color="error" 
+          onClick={() => onDelete(pet.id)}
+          sx={{ 
+            bgcolor: '#f5f5f5',
+            '&:hover': { bgcolor: '#ffebee' }
+          }}
+        >
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
+      </Box>
     </Box>
-    <Box sx={{ display: 'flex', gap: 1 }}>
-      <Button size="small" variant="outlined" fullWidth onClick={() => navigate(`/owner/health-book/${pet.id}`)}>
+
+    <Box sx={{ display: 'flex', gap: 1.5 }}>
+      <Button 
+        size="medium"
+        variant="outlined" 
+        fullWidth 
+        onClick={() => navigate(`/owner/health-book/${pet.id}`)}
+        sx={{ 
+          textTransform: 'none',
+          fontWeight: 600,
+          borderRadius: 2,
+          py: 1,
+          borderWidth: 2,
+          '&:hover': {
+            borderWidth: 2,
+            bgcolor: '#e3f2fd'
+          }
+        }}
+      >
         Βιβλιάριο Υγείας
       </Button>
-      <Button size="small" variant="contained" fullWidth>
+      <Button 
+        size="medium"
+        variant="contained" 
+        fullWidth
+        sx={{ 
+          textTransform: 'none',
+          fontWeight: 600,
+          borderRadius: 2,
+          py: 1,
+          bgcolor: '#1976d2',
+          boxShadow: '0 2px 8px rgba(25,118,210,0.25)',
+          '&:hover': {
+            bgcolor: '#1565c0',
+            boxShadow: '0 4px 12px rgba(25,118,210,0.35)'
+          }
+        }}
+      >
         Λεπτομέρειες
       </Button>
     </Box>
@@ -447,27 +589,111 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                     {/* Content */}
                     <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 2, pb: 6, overflowY: 'auto' }}>
                         
-                        {/* Pet Cards Section */}
-                        <Paper sx={{ p: 3, mb: 3 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="h6" fontWeight={700}>Τα Κατοικίδιά Μου</Typography>
-                            <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}>Προσθήκη</Button>
-                        </Box>
-                        <Grid container spacing={2}>
-                            {pets.map(pet => (
+                        {/* Pet Cards Section with Enhanced Header */}
+                        <Box sx={{ mb: 4 }}>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center', 
+                            mb: 3,
+                            pb: 2,
+                            borderBottom: '2px solid #e0e0e0'
+                          }}>
+                            <Box>
+                              <Typography 
+                                variant="h4" 
+                                fontWeight={700}
+                                sx={{ 
+                                  color: '#1e293b',
+                                  mb: 0.5,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1
+                                }}
+                              >
+                                <PetsIcon sx={{ fontSize: 32, color: '#1976d2' }} />
+                                Τα Κατοικίδιά Μου
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Διαχειριστείτε τα κατοικίδιά σας ({pets.length} {pets.length === 1 ? 'κατοικίδιο' : 'κατοικίδια'})
+                              </Typography>
+                            </Box>
+                            <Button 
+                              variant="contained" 
+                              size="large"
+                              startIcon={<AddIcon />} 
+                              onClick={openAdd}
+                              sx={{
+                                bgcolor: '#1976d2',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                px: 3,
+                                py: 1.5,
+                                borderRadius: 2,
+                                boxShadow: '0 4px 12px rgba(25,118,210,0.3)',
+                                '&:hover': {
+                                  bgcolor: '#1565c0',
+                                  boxShadow: '0 6px 16px rgba(25,118,210,0.4)',
+                                  transform: 'translateY(-2px)'
+                                },
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              Προσθήκη
+                            </Button>
+                          </Box>
+
+                          {loading ? (
+                            <Grid container spacing={3}>
+                              {[1, 2, 3].map((i) => (
+                                <Grid item xs={12} sm={6} md={4} key={i}>
+                                  <Skeleton variant="rectangular" height={250} sx={{ borderRadius: 3 }} />
+                                </Grid>
+                              ))}
+                            </Grid>
+                          ) : pets.length === 0 ? (
+                            <Paper 
+                              elevation={0}
+                              sx={{ 
+                                p: 6, 
+                                textAlign: 'center',
+                                bgcolor: '#f8fafc',
+                                border: '2px dashed #cbd5e1',
+                                borderRadius: 3
+                              }}
+                            >
+                              <PetsIcon sx={{ fontSize: 80, color: '#94a3b8', mb: 2 }} />
+                              <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom>
+                                Δεν υπάρχουν κατοικίδια
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                Ξεκινήστε προσθέτοντας το πρώτο σας κατοικίδιο
+                              </Typography>
+                              <Button 
+                                variant="contained" 
+                                size="large"
+                                startIcon={<AddIcon />}
+                                onClick={openAdd}
+                                sx={{ 
+                                  bgcolor: '#1976d2',
+                                  textTransform: 'none',
+                                  fontWeight: 600,
+                                  px: 4
+                                }}
+                              >
+                                Προσθήκη Πρώτου Κατοικιδίου
+                              </Button>
+                            </Paper>
+                          ) : (
+                            <Grid container spacing={3}>
+                              {pets.map(pet => (
                                 <Grid item xs={12} sm={6} md={4} key={pet.id}>
-                                    <PetCard pet={pet} navigate={navigate} onEdit={openEdit} onDelete={deletePet} />
+                                  <PetCard pet={pet} navigate={navigate} onEdit={openEdit} onDelete={deletePet} />
                                 </Grid>
-                            ))}
-                            {pets.length === 0 && !loading && (
-                                <Grid item xs={12}>
-                                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: 4 }}>
-                                        Δεν υπάρχουν κατοικίδια. Πάτησε "Προσθήκη" για να προσθέσεις το πρώτο σου.
-                                    </Typography>
-                                </Grid>
-                            )}
-                        </Grid>
-                    </Paper>
+                              ))}
+                            </Grid>
+                          )}
+                        </Box>
 
                         {/* Quick Actions */}
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>

@@ -72,6 +72,35 @@ const heartbeat = keyframes`
   20%, 40% { transform: scale(1.1); }
 `;
 
+// Counter animation hook
+const useCountUp = (end, duration = 2000, shouldStart = true) => {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    if (!shouldStart) return;
+    
+    let startTime;
+    let animationFrame;
+    
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      setCount(Math.floor(progress * end));
+      
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration, shouldStart]);
+  
+  return count;
+};
+
 const theme = createTheme({
   palette: {
     primary: { main: '#00695c', light: '#439889', dark: '#004d40' },
@@ -104,12 +133,138 @@ const theme = createTheme({
   ]
 });
 
+// Stats Bar Component with animations
+const StatsBar = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
+  
+  const activeAds = useCountUp(285, 2000, isVisible);
+  const reunions = useCountUp(342, 2000, isVisible);
+  const views = useCountUp(8700, 2000, isVisible);
+  
+  return (
+    <Zoom in timeout={800}>
+      <Paper sx={{ 
+        p: 3, 
+        mb: 4, 
+        borderRadius: 4,
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: '-100%',
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+          animation: `${shimmer} 3s infinite`
+        }
+      }}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={4}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              animation: `${fadeInUp} 0.6s ease-out`
+            }}>
+              <Avatar sx={{ 
+                bgcolor: 'primary.main', 
+                width: 56, 
+                height: 56,
+                animation: `${pulse} 2s infinite`
+              }}>
+                <PetsIcon fontSize="large" />
+              </Avatar>
+              <Box>
+                <Typography variant="h4" fontWeight="bold" color="primary">
+                  {activeAds}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">Ενεργές Αγγελίες</Typography>
+              </Box>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              animation: `${fadeInUp} 0.6s ease-out 0.2s both`
+            }}>
+              <Avatar sx={{ 
+                bgcolor: 'success.main', 
+                width: 56, 
+                height: 56,
+                animation: `${heartbeat} 1.5s infinite`
+              }}>
+                <CheckCircleIcon fontSize="large" />
+              </Avatar>
+              <Box>
+                <Typography variant="h4" fontWeight="bold" color="success.main">
+                  {reunions}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">Επιτυχείς Επανενώσεις</Typography>
+              </Box>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              animation: `${fadeInUp} 0.6s ease-out 0.4s both`
+            }}>
+              <Avatar sx={{ 
+                bgcolor: 'secondary.main', 
+                width: 56, 
+                height: 56,
+                animation: `${float} 3s ease-in-out infinite`
+              }}>
+                <VisibilityIcon fontSize="large" />
+              </Avatar>
+              <Box>
+                <Typography variant="h4" fontWeight="bold" color="secondary">
+                  {views >= 1000 ? `${(views / 1000).toFixed(1)}K` : views}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">Προβολές Σήμερα</Typography>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Zoom>
+  );
+};
+
 // --- MOCK DATA (Χαμένα Ζώα) ---
 const LOST_PETS = [
   { id: 1, name: 'Μίκυ', type: 'Σκύλος', breed: 'Labrador', gender: 'Αρσενικό', age: '2 ετών', color: 'Μπεζ', date: '20 Οκτ 2025', location: 'Κυψέλη, Αθήνα', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80', reward: '50€', views: 245, urgent: true, description: 'Φιλικός σκύλος με καφέ κολάρο. Πολύ ευαίσθητος στους ξένους.' },
   { id: 2, name: 'Λούνα', type: 'Γάτα', breed: 'Άγνωστη', gender: 'Θηλυκό', age: '1 έτους', color: 'Μαύρο/Άσπρο', date: '18 Οκτ 2025', location: 'Περιστέρι', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80', reward: null, views: 178, urgent: false, description: 'Γάτα με διακριτική μαύρη κηλίδα στη μύτη.' },
   { id: 3, name: 'Ρόκυ', type: 'Σκύλος', breed: 'Terrier', gender: 'Αρσενικό', age: '4 ετών', color: 'Καφέ', date: '15 Οκτ 2025', location: 'Χαλάνδρι', img: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=400&q=80', reward: '100€', views: 392, urgent: true, description: 'Φοράει κίτρινο κολάρο με tag. Πολύ φιλικός.' },
   { id: 4, name: 'Μάγια', type: 'Γάτα', breed: 'Siamese', gender: 'Θηλυκό', age: '3 ετών', color: 'Μπεζ', date: '12 Οκτ 2025', location: 'Νέα Σμύρνη', img: 'https://images.unsplash.com/photo-1513245543132-31f507417b26?auto=format&fit=crop&w=400&q=80', reward: null, views: 156, urgent: false, description: 'Γάτα με μπλε μάτια και ιδιαίτερη φωνή.' },
+  { id: 5, name: 'Τσάρλι', type: 'Σκύλος', breed: 'Golden Retriever', gender: 'Αρσενικό', age: '5 ετών', color: 'Χρυσαφί', date: '19 Οκτ 2025', location: 'Γλυφάδα', img: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?auto=format&fit=crop&w=400&q=80', reward: '150€', views: 502, urgent: true, description: 'Μεγάλος χρυσαφένιος σκύλος με κόκκινο κολάρο. Πολύ φιλικός με παιδιά.' },
+  { id: 6, name: 'Μπέλα', type: 'Σκύλος', breed: 'Beagle', gender: 'Θηλυκό', age: '3 ετών', color: 'Τρίχρωμο', date: '17 Οκτ 2025', location: 'Μαρούσι', img: 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?auto=format&fit=crop&w=400&q=80', reward: '75€', views: 287, urgent: true, description: 'Beagle με άσπρο, μαύρο και καφέ χρώμα. Φοράει μπλε κολάρο.' },
+  { id: 7, name: 'Φίλιξ', type: 'Γάτα', breed: 'Περσική', gender: 'Αρσενικό', age: '2 ετών', color: 'Γκρι', date: '16 Οκτ 2025', location: 'Καλλιθέα', img: 'https://images.unsplash.com/photo-1573865526739-10c1dd7441f4?auto=format&fit=crop&w=400&q=80', reward: null, views: 198, urgent: false, description: 'Περσική γάτα με μακρύ γκρι τρίχωμα και πορτοκαλί μάτια.' },
+  { id: 8, name: 'Μάξιμους', type: 'Σκύλος', breed: 'German Shepherd', gender: 'Αρσενικό', age: '4 ετών', color: 'Μαύρο/Καφέ', date: '14 Οκτ 2025', location: 'Αιγάλεω', img: 'https://images.unsplash.com/photo-1568572933382-74d440642117?auto=format&fit=crop&w=400&q=80', reward: '200€', views: 645, urgent: true, description: 'Μεγάλος German Shepherd με μαύρη σέλα. Πολύ έξυπνος και προστατευτικός.' },
+  { id: 9, name: 'Μίμη', type: 'Γάτα', breed: 'Ευρωπαϊκή', gender: 'Θηλυκό', age: '6 μηνών', color: 'Πορτοκαλί', date: '13 Οκτ 2025', location: 'Βύρωνας', img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=400&q=80', reward: null, views: 134, urgent: false, description: 'Μικρή πορτοκαλί γατούλα με άσπρες κηλίδες στο στήθος.' },
+  { id: 10, name: 'Ντάξτερ', type: 'Σκύλος', breed: 'Bulldog', gender: 'Αρσενικό', age: '3 ετών', color: 'Άσπρο/Καφέ', date: '11 Οκτ 2025', location: 'Ζωγράφου', img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=400&q=80', reward: '120€', views: 421, urgent: true, description: 'Bulldog με άσπρο και καφέ χρώμα. Χαρακτηριστικό πλατύ μουσούδι.' },
+  { id: 11, name: 'Σόφι', type: 'Σκύλος', breed: 'Shih Tzu', gender: 'Θηλυκό', age: '2 ετών', color: 'Άσπρο/Χρυσαφί', date: '10 Οκτ 2025', location: 'Παλαιό Φάληρο', img: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=400&q=80', reward: '80€', views: 312, urgent: false, description: 'Μικρό Shih Tzu με μακριά μαλλιά. Φοράει ροζ κορδέλα.' },
+  { id: 12, name: 'Ουίσκι', type: 'Γάτα', breed: 'Maine Coon', gender: 'Αρσενικό', age: '4 ετών', color: 'Καφέ Ριγέ', date: '09 Οκτ 2025', location: 'Χολαργός', img: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=400&q=80', reward: '50€', views: 267, urgent: false, description: 'Μεγάλη γάτα Maine Coon με καφέ ριγέ τρίχωμα και πράσινα μάτια.' },
+  { id: 13, name: 'Μπάντι', type: 'Σκύλος', breed: 'Cocker Spaniel', gender: 'Αρσενικό', age: '6 ετών', color: 'Μαύρο', date: '08 Οκτ 2025', location: 'Κηφισιά', img: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=400&q=80', reward: '90€', views: 389, urgent: true, description: 'Cocker Spaniel με μακριά μαύρα αυτιά. Πολύ στοργικός και ήρεμος.' },
+  { id: 14, name: 'Νίνα', type: 'Γάτα', breed: 'British Shorthair', gender: 'Θηλυκό', age: '3 ετών', color: 'Γκρι-Μπλε', date: '07 Οκτ 2025', location: 'Ψυχικό', img: 'https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&w=400&q=80', reward: null, views: 223, urgent: false, description: 'British Shorthair με γκρι-μπλε τρίχωμα και χάλκινα μάτια.' },
+  { id: 15, name: 'Ζευς', type: 'Σκύλος', breed: 'Husky', gender: 'Αρσενικό', age: '3 ετών', color: 'Άσπρο/Μαύρο', date: '06 Οκτ 2025', location: 'Βριλήσσια', img: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?auto=format&fit=crop&w=400&q=80', reward: '180€', views: 578, urgent: true, description: 'Husky με μπλε μάτια και χαρακτηριστικό άσπρο-μαύρο τρίχωμα.' },
+  { id: 16, name: 'Πρίσιλα', type: 'Γάτα', breed: 'Ragdoll', gender: 'Θηλυκό', age: '2 ετών', color: 'Κρεμ/Καφέ', date: '05 Οκτ 2025', location: 'Αγία Παρασκευή', img: 'https://images.unsplash.com/photo-1529257414772-1960b7bea4eb?auto=format&fit=crop&w=400&q=80', reward: null, views: 167, urgent: false, description: 'Ragdoll με μπλε μάτια και μακριά μαλακή γούνα.' },
+  { id: 17, name: 'Τόμπι', type: 'Σκύλος', breed: 'Pug', gender: 'Αρσενικό', age: '4 ετών', color: 'Μπεζ', date: '04 Οκτ 2025', location: 'Πετρούπολη', img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=400&q=80', reward: '60€', views: 298, urgent: false, description: 'Pug με μαύρο μουσούδι και κουλουριασμένη ουρά.' },
+  { id: 18, name: 'Άρτεμις', type: 'Γάτα', breed: 'Σιαμέζα', gender: 'Θηλυκό', age: '5 ετών', color: 'Σιλ Ποιντ', date: '03 Οκτ 2025', location: 'Ηλιούπολη', img: 'https://images.unsplash.com/photo-1571988840298-3b5301d5109b?auto=format&fit=crop&w=400&q=80', reward: null, views: 201, urgent: false, description: 'Σιαμέζα γάτα με σκούρο μουσούδι και μπλε μάτια.' },
+  { id: 19, name: 'Μπρούνο', type: 'Σκύλος', breed: 'Rottweiler', gender: 'Αρσενικό', age: '5 ετών', color: 'Μαύρο/Καφέ', date: '02 Οκτ 2025', location: 'Αχαρνές', img: 'https://images.unsplash.com/photo-1567752881298-894bb81f9379?auto=format&fit=crop&w=400&q=80', reward: '250€', views: 712, urgent: true, description: 'Μεγάλος Rottweiler με μαύρο τρίχωμα και καφέ σημεία. Πολύ καλοκουρδισμένος.' },
+  { id: 20, name: 'Μέλι', type: 'Γάτα', breed: 'Άγνωστη', gender: 'Θηλυκό', age: '1 έτους', color: 'Μελί', date: '01 Οκτ 2025', location: 'Νέα Ιωνία', img: 'https://images.unsplash.com/photo-1615789591457-74a63395c990?auto=format&fit=crop&w=400&q=80', reward: null, views: 145, urgent: false, description: 'Μικρή γάτα με χρυσαφένιο-μελί χρώμα και πράσινα μάτια.' },
 ];
 
 const STEPS = [
@@ -140,6 +295,7 @@ function LostPetsSearchView({
   setDetailsDialogOpen,
   setView,
   stopKeyPropagation,
+  setHowItWorksDialogOpen,
 }) {
   return (
     <Box
@@ -209,34 +365,38 @@ function LostPetsSearchView({
               >
                 Δήλωση Απώλειας
               </Button>
+              
+              <Button 
+                variant="outlined" 
+                size="large" 
+                startIcon={<InfoIcon />}
+                onClick={() => setHowItWorksDialogOpen(true)}
+                sx={{ 
+                  fontWeight: 600, 
+                  px: 4, 
+                  py: 1.8, 
+                  borderRadius: '50px',
+                  borderColor: 'white',
+                  color: 'white',
+                  borderWidth: 2,
+                  '&:hover': { 
+                    borderWidth: 2,
+                    bgcolor: 'rgba(255,255,255,0.1)',
+                    borderColor: 'white' 
+                  }
+                }}
+              >
+                Πώς Λειτουργεί
+              </Button>
             </Box>
           </Box>
         </Box>
       </Fade>
       <Container maxWidth="xl">
-        <Zoom in timeout={1000}>
-          <Paper sx={{ 
-            p: 3, 
-            mb: 4, 
-            borderRadius: 4,
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
-          }}>
-            <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={4}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
-                    <PetsIcon fontSize="large" />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h4" fontWeight="bold" color="primary">{filteredPets.length}</Typography>
-                    <Typography variant="body2" color="text.secondary">Ενεργές Αγγελίες</Typography>
-                  </Box>
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Zoom>
+        {/* QUICK STATS BAR */}
+        <StatsBar />
+
+        {/* SEARCH BAR & FILTERS */}
         <Paper sx={{ p: 3, mb: 4, borderRadius: 4, boxShadow: 3 }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={5}>
@@ -371,22 +531,231 @@ function LostPetsSearchView({
             </Grid>
           ) : (
             filteredPets.map((pet, index) => (
-              <Grid item xs={12} sm={6} md={4} key={pet.id}>
-                <Grow in timeout={300 + index * 100}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={pet.id} sx={{ display: 'flex' }}>
+                <Grow in timeout={300 + index * 50} style={{ width: '100%', height: '100%' }}>
                   <Paper 
                     onClick={(e) => {
                       e.preventDefault();
                       setSelectedPet(pet);
                       setDetailsDialogOpen(true);
                     }}
-                    sx={{ borderRadius: 4, overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
+                    sx={{ 
+                      borderRadius: 4, 
+                      overflow: 'hidden', 
+                      cursor: 'pointer', 
+                      position: 'relative',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 12px 32px rgba(0,0,0,0.16)'
+                      }
+                    }}
                   >
-                    <Box sx={{ height: 240, position: 'relative', overflow: 'hidden', bgcolor: '#f0f0f0' }}>
-                      <img src={pet.img} alt={pet.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {/* Image Container */}
+                    <Box sx={{ 
+                      height: 260, 
+                      position: 'relative', 
+                      overflow: 'hidden', 
+                      bgcolor: '#f0f0f0',
+                      flexShrink: 0,
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '50%',
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)'
+                      }
+                    }}>
+                      <img 
+                        src={pet.img} 
+                        alt={pet.name} 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover',
+                          transition: 'transform 0.3s ease'
+                        }} 
+                      />
+                      
+                      {/* Urgent Badge */}
+                      {pet.urgent && (
+                        <Chip 
+                          icon={<WarningIcon />}
+                          label="ΕΠΕΙΓΟΝ" 
+                          color="error"
+                          size="small"
+                          sx={{ 
+                            position: 'absolute', 
+                            top: 12, 
+                            left: 12,
+                            fontWeight: 700,
+                            animation: `${pulse} 2s infinite`,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                          }}
+                        />
+                      )}
+                      
+                      {/* Reward Badge */}
+                      {pet.reward && (
+                        <Chip 
+                          label={`Αμοιβή: ${pet.reward}`}
+                          size="small"
+                          sx={{ 
+                            position: 'absolute', 
+                            top: 12, 
+                            right: 12,
+                            bgcolor: 'secondary.main',
+                            color: 'white',
+                            fontWeight: 700,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                          }}
+                        />
+                      )}
+                      
+                      {/* Quick Actions */}
+                      <Box sx={{
+                        position: 'absolute',
+                        top: 12,
+                        right: pet.reward ? 'auto' : 12,
+                        left: pet.reward ? 'auto' : 'auto',
+                        display: 'flex',
+                        gap: 1
+                      }}>
+                        <IconButton 
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          sx={{ 
+                            bgcolor: 'rgba(255,255,255,0.9)',
+                            backdropFilter: 'blur(8px)',
+                            '&:hover': { bgcolor: 'white', color: 'error.main' }
+                          }}
+                        >
+                          <FavoriteIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          sx={{ 
+                            bgcolor: 'rgba(255,255,255,0.9)',
+                            backdropFilter: 'blur(8px)',
+                            '&:hover': { bgcolor: 'white', color: 'primary.main' }
+                          }}
+                        >
+                          <ShareIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                      
+                      {/* Name Overlay */}
+                      <Box sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        p: 2,
+                        zIndex: 1
+                      }}>
+                        <Typography 
+                          variant="h5" 
+                          fontWeight="800"
+                          sx={{ 
+                            color: 'white',
+                            textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                            mb: 0.5
+                          }}
+                        >
+                          {pet.name}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <LocationOnIcon sx={{ fontSize: 16, color: 'white' }} />
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: 'white',
+                              fontWeight: 600,
+                              textShadow: '0 1px 4px rgba(0,0,0,0.5)'
+                            }}
+                          >
+                            {pet.location}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </Box>
-                    <Box sx={{ p: 2 }}>
-                      <Typography variant="h6" fontWeight="bold">{pet.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">{pet.location}</Typography>
+                    
+                    {/* Info Section */}
+                    <Box sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      {/* Type and Breed */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                        <Chip 
+                          icon={<PetsIcon />}
+                          label={pet.type}
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontWeight: 600 }}
+                        />
+                        <Typography variant="caption" color="text.secondary" fontWeight="500" noWrap sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {pet.breed}
+                        </Typography>
+                      </Box>
+                      
+                      {/* Spacer to push stats and button to bottom */}
+                      <Box sx={{ flex: 1, minHeight: '16px' }} />
+                      
+                      {/* Stats */}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        pt: 1.5,
+                        pb: 1.5,
+                        borderTop: '1px solid',
+                        borderColor: 'divider'
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <CalendarMonthIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="caption" color="text.secondary" fontWeight="600">
+                            {pet.date}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <VisibilityIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                          <Typography variant="caption" color="primary" fontWeight="700">
+                            {pet.views}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      
+                      {/* Action Button */}
+                      <Button 
+                        fullWidth
+                        variant="contained"
+                        endIcon={<ArrowForwardIcon />}
+                        sx={{ 
+                          borderRadius: 2,
+                          py: 1.2,
+                          fontWeight: 700,
+                          textTransform: 'none',
+                          fontSize: '0.9rem',
+                          bgcolor: 'primary.main',
+                          mt: 'auto',
+                          '&:hover': {
+                            bgcolor: 'primary.dark',
+                            transform: 'translateX(4px)'
+                          },
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Περισσότερα
+                      </Button>
                     </Box>
                   </Paper>
                 </Grow>
@@ -591,6 +960,7 @@ export default function LostPets() {
   // UI State
   const [selectedPet, setSelectedPet] = useState(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
   
   // Filtered & Sorted Results
   const filteredPets = useMemo(() => {
@@ -829,51 +1199,7 @@ export default function LostPets() {
 
         <Container maxWidth="xl">
             {/* QUICK STATS BAR */}
-            <Zoom in timeout={1000}>
-              <Paper sx={{ 
-                p: 3, 
-                mb: 4, 
-                borderRadius: 4,
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
-              }}>
-                <Grid container spacing={3} alignItems="center">
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
-                        <PetsIcon fontSize="large" />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h4" fontWeight="bold" color="primary">{filteredPets.length}</Typography>
-                        <Typography variant="body2" color="text.secondary">Ενεργές Αγγελίες</Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ bgcolor: 'success.main', width: 56, height: 56 }}>
-                        <CheckCircleIcon fontSize="large" />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h4" fontWeight="bold" color="success.main">47</Typography>
-                        <Typography variant="body2" color="text.secondary">Επιτυχείς Επανενώσεις</Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ bgcolor: 'secondary.main', width: 56, height: 56 }}>
-                        <VisibilityIcon fontSize="large" />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h4" fontWeight="bold" color="secondary">2.5K</Typography>
-                        <Typography variant="body2" color="text.secondary">Προβολές Σήμερα</Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Zoom>
+            <StatsBar />
 
             {/* SEARCH BAR & FILTERS */}
             <Paper sx={{ p: 3, mb: 4, borderRadius: 4, boxShadow: 3 }}>
@@ -1060,8 +1386,8 @@ export default function LostPets() {
                   </Grid>
                 ) : (
                   filteredPets.map((pet, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={pet.id}>
-                      <Grow in timeout={300 + index * 100}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={pet.id} sx={{ display: 'flex' }}>
+                      <Grow in timeout={300 + index * 50} style={{ width: '100%', height: '100%' }}>
                         <Paper 
                           onClick={(e) => {
                             e.preventDefault();
@@ -1073,45 +1399,23 @@ export default function LostPets() {
                             overflow: 'hidden', 
                             cursor: 'pointer',
                             position: 'relative',
-                            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                            boxShadow: 2,
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                             '&:hover': {
-                              transform: 'translateY(-12px) scale(1.02)',
-                              boxShadow: 8,
-                              '& .hover-bar': {
-                                transform: 'scaleX(1)'
-                              },
-                              '& .pet-image': {
-                                transform: 'scale(1.1)'
-                              },
-                              '& .hover-overlay': {
-                                opacity: 1,
-                                transform: 'translateY(0)'
-                              }
-                            },
-                            '&::before': {
-                              content: '""',
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              height: '4px',
-                              background: pet.urgent 
-                                ? 'linear-gradient(90deg, #D32F2F, #F57C00)'
-                                : 'linear-gradient(90deg, #00695c, #439889)',
-                              transform: 'scaleX(0)',
-                              transition: 'transform 0.3s ease',
-                              transformOrigin: 'left',
-                              zIndex: 1
+                              transform: 'translateY(-8px)',
+                              boxShadow: '0 12px 32px rgba(0,0,0,0.16)'
                             }
                           }}
-                          className="pet-card"
                         >
                             <Box sx={{ 
                               height: 240, 
                               position: 'relative', 
                               overflow: 'hidden',
-                              bgcolor: '#f0f0f0'
+                              bgcolor: '#f0f0f0',
+                              flexShrink: 0
                             }}>
                                 <img 
                                   src={pet.img} 
@@ -1202,9 +1506,9 @@ export default function LostPets() {
                                 </Box>
                             </Box>
                             
-                            <Box sx={{ p: 2.5 }}>
+                            <Box sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main' }}>
+                                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main' }} noWrap>
                                     {pet.name}
                                   </Typography>
                                   <Chip 
@@ -1215,18 +1519,21 @@ export default function LostPets() {
                                   />
                                 </Box>
                                 
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }} noWrap>
                                   {pet.breed} • {pet.gender} • {pet.age}
                                 </Typography>
                                 
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5, color: 'text.secondary' }}>
                                   <LocationOnIcon fontSize="small" color="action" /> 
-                                  <Typography variant="caption">{pet.location}</Typography>
+                                  <Typography variant="caption" noWrap sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{pet.location}</Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
                                   <CalendarMonthIcon fontSize="small" color="action" /> 
                                   <Typography variant="caption">Χάθηκε: {pet.date}</Typography>
                                 </Box>
+                                
+                                {/* Spacer to push button to bottom */}
+                                <Box sx={{ flex: 1, minHeight: '16px' }} />
 
                                 <Divider sx={{ my: 2 }} />
 
@@ -1239,6 +1546,7 @@ export default function LostPets() {
                                     py: 1.2,
                                     background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)',
                                     boxShadow: 1,
+                                    mt: 'auto',
                                     '&:hover': {
                                       background: 'linear-gradient(135deg, #004d40 0%, #00695c 100%)',
                                       boxShadow: 4
@@ -1793,8 +2101,44 @@ export default function LostPets() {
             onKeyPress={stopKeyPropagation}
             onKeyPressCapture={stopKeyPropagation}
           >
-            {/* View Switcher - call as functions to prevent unmount/remount */}
-            {view === 'search' ? renderSearchView() : renderFormView()}
+            {/* View Switcher */}
+            {view === 'search' ? (
+              <LostPetsSearchView
+                filteredPets={filteredPets}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                urgentOnly={urgentOnly}
+                setUrgentOnly={setUrgentOnly}
+                filtersOpen={filtersOpen}
+                setFiltersOpen={setFiltersOpen}
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
+                selectedLocation={selectedLocation}
+                setSelectedLocation={setSelectedLocation}
+                radius={radius}
+                setRadius={setRadius}
+                setSelectedPet={setSelectedPet}
+                setDetailsDialogOpen={setDetailsDialogOpen}
+                setView={setView}
+                stopKeyPropagation={stopKeyPropagation}
+                setHowItWorksDialogOpen={setHowItWorksDialogOpen}
+              />
+            ) : (
+              <LostPetsFormView
+                activeStep={activeStep}
+                setActiveStep={setActiveStep}
+                setView={setView}
+                formData={formData}
+                setFormData={setFormData}
+                formErrors={formErrors}
+                uploadedImages={uploadedImages}
+                handleImageUpload={handleImageUpload}
+                removeImage={removeImage}
+                handleNext={handleNext}
+              />
+            )}
 
             {/* Success Dialog */}
             <Dialog 
@@ -2028,6 +2372,114 @@ export default function LostPets() {
                   </DialogContent>
                 </Box>
               )}
+            </Dialog>
+            
+            {/* How It Works Dialog */}
+            <Dialog 
+              open={howItWorksDialogOpen} 
+              onClose={() => setHowItWorksDialogOpen(false)}
+              maxWidth="md"
+              fullWidth
+              PaperProps={{ 
+                sx: { 
+                  borderRadius: 4,
+                  animation: `${scaleIn} 0.4s ease-out`
+                } 
+              }}
+            >
+              <DialogContent sx={{ p: 4 }}>
+                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                  <PetsIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+                  <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    Πώς Λειτουργεί η Πλατφόρμα
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    Βοηθάμε να επανενωθούν χαμένα κατοικίδια με τις οικογένειές τους
+                  </Typography>
+                </Box>
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 3, borderRadius: 3, height: '100%', bgcolor: 'primary.50' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar sx={{ bgcolor: 'primary.main', width: 50, height: 50 }}>
+                          <SearchIcon />
+                        </Avatar>
+                        <Typography variant="h6" fontWeight="bold">
+                          1. Αναζήτηση
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Περιηγηθείτε στις ενεργές αγγελίες χαμένων κατοικιδίων. Χρησιμοποιήστε φίλτρα για περιοχή, είδος ζώου και άλλα κριτήρια για να βρείτε γρήγορα αυτό που ψάχνετε.
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 3, borderRadius: 3, height: '100%', bgcolor: 'secondary.50' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar sx={{ bgcolor: 'secondary.main', width: 50, height: 50 }}>
+                          <NotificationsActiveIcon />
+                        </Avatar>
+                        <Typography variant="h6" fontWeight="bold">
+                          2. Δήλωση Απώλειας
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Χάσατε το κατοικίδιό σας; Δημιουργήστε μια αγγελία με φωτογραφίες, περιγραφή και στοιχεία επικοινωνίας. Η αγγελία θα είναι άμεσα ορατή στην κοινότητα.
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 3, borderRadius: 3, height: '100%', bgcolor: 'success.50' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar sx={{ bgcolor: 'success.main', width: 50, height: 50 }}>
+                          <VisibilityIcon />
+                        </Avatar>
+                        <Typography variant="h6" fontWeight="bold">
+                          3. Κοινοποίηση
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Μοιραστείτε τις αγγελίες στα social media και με φίλους. Όσο περισσότεροι άνθρωποι βλέπουν την αγγελία, τόσο μεγαλύτερες οι πιθανότητες επιτυχίας.
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 3, borderRadius: 3, height: '100%', bgcolor: 'info.50' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar sx={{ bgcolor: 'info.main', width: 50, height: 50 }}>
+                          <CheckCircleIcon />
+                        </Avatar>
+                        <Typography variant="h6" fontWeight="bold">
+                          4. Επικοινωνία
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Βρήκατε πληροφορίες; Επικοινωνήστε απευθείας με τον ιδιοκτήτη μέσω τηλεφώνου ή email. Κάθε πληροφορία μπορεί να κάνει τη διαφορά!
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                <Box sx={{ mt: 4, textAlign: 'center' }}>
+                  <Alert severity="info" sx={{ mb: 3 }}>
+                    <Typography variant="body2" fontWeight="600">
+                      💡 Συμβουλή: Ενεργοποιήστε τις ειδοποιήσεις για να λαμβάνετε άμεσα νέες αγγελίες στην περιοχή σας!
+                    </Typography>
+                  </Alert>
+                  <Button 
+                    variant="contained" 
+                    size="large"
+                    onClick={() => setHowItWorksDialogOpen(false)}
+                    sx={{ borderRadius: 3, px: 5 }}
+                  >
+                    Κατάλαβα
+                  </Button>
+                </Box>
+              </DialogContent>
             </Dialog>
             
             {/* Snackbar Notifications */}

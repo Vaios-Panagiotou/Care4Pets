@@ -74,22 +74,20 @@ export default function Register() {
     : 'https://images.unsplash.com/photo-1628009368231-760335298025?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80';
 
   return (
-    <Grid container sx={{ minHeight: '100vh' }}>
-      
-      {/* LEFT IMAGE */}
-      <Grid item xs={false} sm={4} md={5} 
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      {/* LEFT FORM PANEL */}
+      <Box
+        component={Paper}
+        elevation={6}
+        square
         sx={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundRepeat: 'no-repeat',
-          backgroundColor: 'grey.100',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          transition: '0.5s all ease-in-out'
+          flex: { xs: 1, sm: '0 0 66.666%', md: '0 0 58.333%' },
+          height: '100%',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
         }}
-      />
-
-      {/* RIGHT FORM */}
-      <Grid item xs={12} sm={8} md={7} component={Paper} elevation={6} square>
+      >
         
         {/* PageHeader ADDED HERE */}
         <Box sx={{ px: 4, pt: 2 }}>
@@ -187,7 +185,40 @@ export default function Register() {
             </Grid>
           </Box>
         </Container>
-      </Grid>
-    </Grid>
+      </Box>
+
+      {/* RIGHT IMAGE PANEL */}
+      <Box
+        sx={{
+          display: { xs: 'none', sm: 'block' },
+          flex: { sm: '0 0 33.333%', md: '0 0 41.666%' },
+          height: '100%',
+          position: 'relative',
+          backgroundImage: `linear-gradient(120deg, rgba(0,105,92,0.5), rgba(0,105,92,0.08)), url(${bgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          transition: 'background-image 0.5s ease-in-out'
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 40,
+            left: 40,
+            right: 40,
+            color: '#fff',
+            textShadow: '0 2px 12px rgba(0,0,0,0.4)'
+          }}
+        >
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+            Φροντίδα με στιλ
+          </Typography>
+          <Typography variant="h6" sx={{ opacity: 0.95 }}>
+            Ο οδηγός υγείας κατοικιδίων σε κάθε βήμα της ζωής τους.
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 }

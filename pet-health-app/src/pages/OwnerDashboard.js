@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Accordion, 
   AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, 
-  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton, Tooltip 
+  ListItemText, AppBar, Toolbar, IconButton, Menu, MenuItem, ListItemButton, Tooltip, Avatar, Skeleton 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import DashboardSidebar from '../components/DashboardSidebar';
 
 // Icons
@@ -18,7 +19,9 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // <--- ΝΕΟ IMPORT
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 
 // Import PageHeader
 import PageHeader from './PageHeader'; 
@@ -145,6 +148,33 @@ const Navbar = () => {
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const [pets, setPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPets = async () => {
+      if (!user?.id) { 
+        setLoading(false); 
+        return; 
+      }
+      try {
+        const res = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
+        const data = await res.json();
+        setPets(data || []);
+      } catch (e) {
+        console.error('Error fetching pets:', e);
+        setPets([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (isAuthenticated && user) {
+      fetchPets();
+    } else {
+      setLoading(false);
+    }
+  }, [user, isAuthenticated]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -321,9 +351,57 @@ export default function OwnerDashboard() {
                       Τα Κατοικίδιά μου
                     </Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Προβολή όλων των κατοικιδίων σας
-                  </Typography>
+                  {loading ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Φόρτωση...
+                    </Typography>
+                  ) : !isAuthenticated ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Συνδεθείτε για να δείτε τα κατοικίδιά σας
+                    </Typography>
+                  ) : pets.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Δεν έχετε προσθέσει κατοικίδια ακόμα
+                    </Typography>
+                  ) : (
+                    <>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Έχετε {pets.length} {pets.length === 1 ? 'κατοικίδιο' : 'κατοικίδια'}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                        {pets.slice(0, 3).map((pet) => (
+                          <Box 
+                            key={pet.id}
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 0.5,
+                              bgcolor: 'white',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              border: '1px solid #e0e0e0'
+                            }}
+                          >
+                            <Avatar 
+                              src={pet.img} 
+                              sx={{ width: 20, height: 20, bgcolor: '#1976d2' }}
+                            >
+                              {!pet.img && pet.name?.[0]}
+                            </Avatar>
+                            <Typography variant="caption" fontWeight={600}>
+                              {pet.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                        {pets.length > 3 && (
+                          <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                            +{pets.length - 3} ακόμα
+                          </Typography>
+                        )}
+                      </Box>
+                    </>
+                  )}
                   <Button 
                     variant="contained" 
                     onClick={() => navigate('/owner/pets')}

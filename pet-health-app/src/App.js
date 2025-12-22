@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Alert, Box, Button, Container, Typography } from "@mui/material";
 import Home from "./pages/home";
 import Login from "./pages/login";
 import Register from "./pages/register";
@@ -21,14 +22,49 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Footer from "./components/Footer";
 
 function PrivateRoute({ children, role }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+  
   if (role && user.role !== role) {
-    // Redirect based on role mismatch
-    return <Navigate to={user.role === 'owner' ? '/owner' : '/vet'} replace />;
+    // Show unauthorized access page
+    return (
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Μη Εξουσιοδοτημένη Πρόσβαση
+            </Typography>
+            <Typography variant="body2">
+              Προσπαθείτε να αποκτήσετε πρόσβαση σε περιοχή {role === 'owner' ? 'ιδιοκτήτη' : 'κτηνιάτρου'}, αλλά είστε συνδεδεμένοι ως {user.role === 'owner' ? 'ιδιοκτήτης' : 'κτηνίατρος'}.
+            </Typography>
+          </Alert>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 3 }}>
+            <Button 
+              variant="contained" 
+              onClick={() => window.location.href = user.role === 'owner' ? '/owner' : '/vet'}
+            >
+              Μετάβαση στο Dashboard μου
+            </Button>
+            <Button 
+              variant="outlined" 
+              color="error"
+              onClick={() => {
+                logout();
+                window.location.href = '/login';
+              }}
+            >
+              Αποσύνδεση
+            </Button>
+          </Box>
+        </Box>
+      </Container>
+    );
   }
+  
   return children;
 }
 
