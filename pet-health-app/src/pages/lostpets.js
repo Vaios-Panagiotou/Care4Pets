@@ -194,6 +194,12 @@ const LOST_PETS = [
   { id: 1, name: 'Μίκυ', type: 'Σκύλος', breed: 'Labrador', gender: 'Αρσενικό', age: '2 ετών', color: 'Μπεζ', date: '20 Οκτ 2025', location: 'Κυψέλη, Αθήνα', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80', reward: '50€', views: 245, urgent: true, description: 'Φιλικός σκύλος με καφέ κολάρο. Πολύ ευαίσθητος στους ξένους.' },
   { id: 2, name: 'Λούνα', type: 'Γάτα', breed: 'Άγνωστη', gender: 'Θηλυκό', age: '1 έτους', color: 'Μαύρο/Άσπρο', date: '18 Οκτ 2025', location: 'Περιστέρι', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80', reward: null, views: 178, urgent: false, description: 'Γάτα με διακριτική μαύρη κηλίδα στη μύτη.' },
   { id: 3, name: 'Ρόκυ', type: 'Σκύλος', breed: 'Terrier', gender: 'Αρσενικό', age: '4 ετών', color: 'Καφέ', date: '15 Οκτ 2025', location: 'Χαλάνδρι', img: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=400&q=80', reward: '100€', views: 392, urgent: true, description: 'Φοράει κίτρινο κολάρο με tag. Πολύ φιλικός.' },
+  { id: 4, name: 'Μπέλλα', type: 'Σκύλος', breed: 'Golden Retriever', gender: 'Θηλυκό', age: '3 ετών', color: 'Χρυσό', date: '22 Οκτ 2025', location: 'Γλυφάδα', img: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?auto=format&fit=crop&w=400&q=80', reward: '80€', views: 312, urgent: true, description: 'Πολύ φιλική, φοράει ροζ κολάρο με όνομα.' },
+  { id: 5, name: 'Τίγρης', type: 'Γάτα', breed: 'Ταμπί', gender: 'Αρσενικό', age: '2 ετών', color: 'Πορτοκαλί', date: '19 Οκτ 2025', location: 'Νέα Σμύρνη', img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=400&q=80', reward: null, views: 156, urgent: false, description: 'Γάτα με πορτοκαλί ρίγες, πολύ φοβισμένη.' },
+  { id: 6, name: 'Μάξ', type: 'Σκύλος', breed: 'Beagle', gender: 'Αρσενικό', age: '5 ετών', color: 'Τρίχρωμο', date: '21 Οκτ 2025', location: 'Μαρούσι', img: 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?auto=format&fit=crop&w=400&q=80', reward: '60€', views: 289, urgent: false, description: 'Φοράει μπλε κολάρο, αποκρίνεται στο όνομά του.' },
+  { id: 7, name: 'Μίσυ', type: 'Γάτα', breed: 'Περσική', gender: 'Θηλυκό', age: '4 ετών', color: 'Λευκό', date: '17 Οκτ 2025', location: 'Κολωνάκι', img: 'https://images.unsplash.com/photo-1529778873920-4da4926a72c2?auto=format&fit=crop&w=400&q=80', reward: '150€', views: 445, urgent: true, description: 'Λευκή περσική γάτα με μπλε μάτια.' },
+  { id: 8, name: 'Τσάρλι', type: 'Σκύλος', breed: 'Poodle', gender: 'Αρσενικό', age: '1 έτους', color: 'Καφέ', date: '23 Οκτ 2025', location: 'Καλλιθέα', img: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=400&q=80', reward: '40€', views: 198, urgent: false, description: 'Μικρόσωμος σκύλος, πολύ παιχνιδιάρης.' },
+  { id: 9, name: 'Σόφι', type: 'Γάτα', breed: 'Σιαμέζα', gender: 'Θηλυκό', age: '3 ετών', color: 'Κρεμ/Καφέ', date: '16 Οκτ 2025', location: 'Παγκράτι', img: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=400&q=80', reward: null, views: 223, urgent: false, description: 'Σιαμέζα με χαρακτηριστικά γαλάζια μάτια.' },
 ];
 
 const STEPS = [
@@ -320,17 +326,169 @@ function LostPetsSearchView({
             </Grid>
           ) : (
             filteredPets.map((pet, index) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={pet.id}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={pet.id}>
                 <Grow in timeout={300 + index * 50}>
-                  <Paper onClick={() => { setSelectedPet(pet); setDetailsDialogOpen(true); }} sx={{ borderRadius: 4, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s', '&:hover': { transform: 'translateY(-8px)', boxShadow: 6 } }}>
-                    <Box sx={{ height: 260, position: 'relative', bgcolor: '#f0f0f0' }}>
-                      <img src={pet.img} alt={pet.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      {pet.urgent && <Chip icon={<WarningIcon />} label="ΕΠΕΙΓΟΝ" color="error" size="small" sx={{ position: 'absolute', top: 12, left: 12 }} />}
-                      {pet.reward && <Chip label={`Αμοιβή: ${pet.reward}`} size="small" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'secondary.main', color: 'white' }} />}
+                  <Paper 
+                    onClick={() => { setSelectedPet(pet); setDetailsDialogOpen(true); }} 
+                    sx={{ 
+                      borderRadius: 5, 
+                      overflow: 'visible', 
+                      cursor: 'pointer', 
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      border: '1px solid rgba(0,0,0,0.06)',
+                      '&:hover': { 
+                        transform: 'translateY(-12px)', 
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
+                        '& .pet-image': {
+                          transform: 'scale(1.1)'
+                        },
+                        '& .pet-overlay': {
+                          opacity: 1
+                        }
+                      },
+                      '&:active': {
+                        transform: 'translateY(-8px) scale(0.98)'
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: '100%',
+                        aspectRatio: '3 / 2',
+                        overflow: 'hidden',
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                        backgroundColor: '#eee',
+                      }}
+                    >
+                      {/* IMAGE */}
+                      <Box
+                        component="img"
+                        src={pet.img}
+                        alt={pet.name}
+                        className="pet-image"
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                          transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                      />
+
+                      {/*hover overlay with info*/}
+                      <Box
+                        className="pet-overlay"
+                        sx={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: '50%',
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+                          opacity: 0,
+                          transition: 'opacity 0.4s ease',
+                          display: 'flex',
+                          alignItems: 'flex-end',
+                          padding: 2,
+                          zIndex: 1
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <VisibilityIcon sx={{ fontSize: 16, color: 'white' }} />
+                          <Typography variant="caption" sx={{ color: 'white', fontWeight: 600 }}>
+                            {pet.views} προβολές
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/*ΕΠΕΙΓΟΝ*/}
+                      {pet.urgent && (
+                        <Chip
+                          label="ΕΠΕΙΓΟΝ"
+                          size="small"
+                          icon={<WarningIcon sx={{ fontSize: 14, animation: `${pulse} 2s infinite` }} />}
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            zIndex: 2,
+                            bgcolor: 'error.main',
+                            color: '#fff',
+                            fontWeight: 800,
+                            fontSize: '0.7rem',
+                            maxWidth: 'calc(100% - 16px)',
+                            borderRadius: 2,
+                            boxShadow: '0 2px 8px rgba(211, 47, 47, 0.4)',
+                            '& .MuiChip-icon': {
+                              color: '#fff',
+                              ml: 0.5
+                            }
+                          }}
+                        />
+                      )}
+
+                      {/*ΑΜΟΙΒΗ*/}
+                      {pet.reward && (
+                        <Chip
+                          label={`💰 ${pet.reward}`}
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            zIndex: 2,
+                            background: 'linear-gradient(135deg, #FFA726 0%, #F57C00 100%)',
+                            color: '#fff',
+                            fontWeight: 800,
+                            fontSize: '0.75rem',
+                            maxWidth: 'calc(100% - 16px)',
+                            borderRadius: 2,
+                            boxShadow: '0 2px 8px rgba(255, 167, 38, 0.4)'
+                          }}
+                        />
+                      )}
                     </Box>
-                    <Box sx={{ p: 2 }}>
-                      <Typography variant="h6" fontWeight="bold">{pet.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">{pet.breed} • {pet.location}</Typography>
+                    <Box sx={{ p: 2, bgcolor: 'white', borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}>
+                      <Typography 
+                        variant="h6" 
+                        fontWeight="800" 
+                        sx={{ 
+                          mb: 0.5,
+                          fontSize: '1rem',
+                          color: '#1a1a1a',
+                          letterSpacing: '-0.3px'
+                        }}
+                      >
+                        {pet.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, transition: 'all 0.2s', '&:hover': { transform: 'translateX(2px)' } }}>
+                        <PetsIcon sx={{ fontSize: 14, color: 'primary.main', transition: 'transform 0.2s' }} />
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: 'text.secondary',
+                            fontWeight: 500,
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          {pet.breed}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <LocationOnIcon sx={{ fontSize: 14, color: 'secondary.main' }} />
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: 'text.secondary',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          {pet.location}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Paper>
                 </Grow>
@@ -365,7 +523,7 @@ function LostPetsFormView({
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      // Create a simulated event for handleImageUpload
+      //create a simulated event for handleImageUpload
       handleImageUpload({ target: { files: e.dataTransfer.files } });
     }
   };
@@ -401,7 +559,7 @@ function LostPetsFormView({
                     <Grid item xs={12} sm={6}>
                       <TextField fullWidth required label="Όνομα Ζώου" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} error={!!formErrors.name} helperText={formErrors.name} />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
+                    <Grid size={{ xs: 5, sm: 2 }}>
                       <FormControl fullWidth required>
                         <InputLabel id="type-label">Είδος</InputLabel>
                         <Select
@@ -429,7 +587,7 @@ function LostPetsFormView({
                     {formErrors.images || 'Προσθέστε τουλάχιστον μία καθαρή φωτογραφία του κατοικιδίου σας'}
                   </Alert>
                   
-                  {/* Upload Area - Διορθωμένο Layout */}
+                  {/*upload area - διορθωμένο layout */}
                   <Paper 
                     component="label"
                     onDragOver={handleDragOver}
@@ -437,15 +595,15 @@ function LostPetsFormView({
                     onDrop={handleDrop}
                     elevation={0}
                     sx={{ 
-                      p: 6, // Περισσότερος χώρος εσωτερικά
+                      p: 6, //περισσότερος χώρος εσωτερικά
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minHeight: 320, // Σταθερό ύψος για να μη φαίνεται "πατημένο"
-                      border: '2px dashed', // Διακεκομμένη γραμμή
+                      minHeight: 320, //σταθερό ύψος για να μη φαίνεται"πατημένο"
+                      border: '2px dashed', //διακεκομμένη γραμμή
                       borderColor: isDragging ? 'primary.main' : (formErrors.images ? 'error.main' : 'grey.300'),
-                      bgcolor: isDragging ? 'action.hover' : '#fafafa', // Ελαφρύ γκρι φόντο
+                      bgcolor: isDragging ? 'action.hover' : '#fafafa', //ελαφρύ γκρι φόντο
                       borderRadius: 4, 
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
@@ -458,7 +616,7 @@ function LostPetsFormView({
                   >
                     <input type="file" hidden accept="image/*" multiple onChange={handleImageUpload} />
                     
-                    {/* Εικονίδιο Upload - Μεγάλο και κεντραρισμένο */}
+                    {/*εικονίδιο uploa-μεγάλο και κεντραρισμένο */}
                     <Box sx={{ 
                       mb: 3,
                       p: 2,
@@ -491,7 +649,7 @@ function LostPetsFormView({
                     />
                   </Paper>
 
-                  {/* Προεπισκόπηση Εικόνων (Previews) */}
+                  {/*προεπισκόπηση εικόνων (previews) */}
                   {uploadedImages.length > 0 && (
                     <Fade in>
                       <Box sx={{ mt: 4 }}>
@@ -522,10 +680,10 @@ function LostPetsFormView({
                                   style={{ 
                                     width: '100%', 
                                     height: '100%', 
-                                    objectFit: 'cover', // Γεμίζει το κουτάκι χωρίς να παραμορφώνει
+                                    objectFit: 'cover', //γεμίζει το κουτάκι χωρίς να παραμορφώνει
                                   }} 
                                 />
-                                {/* Κουμπί διαγραφής πάνω στη φώτο */}
+                                {/*κουμπί διαγραφής πάνω στη φώτο */}
                                 <IconButton 
                                   onClick={() => removeImage(img.id)} 
                                   size="small"
@@ -550,7 +708,7 @@ function LostPetsFormView({
                 </Box>
               )}
 
-              {/* ... Steps 2 & 3 simplified for brevity, similar structure ... */}
+              {/* ...steps2 & 3simplified for brevity,similar structure ...*/}
               {activeStep === 2 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
@@ -601,15 +759,15 @@ export default function LostPets() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
 
-  // Prevent key bubbling
+  //prevent key bubbling
   const stopKeyPropagation = useCallback((e) => {
     e.stopPropagation();
   }, []);
 
-  const filteredPets = useMemo(() => LOST_PETS, []); // Simplified filter logic for brevity
+  const filteredPets = useMemo(() => LOST_PETS, []); //simplified filter logic for brevity
 
   const handleNext = () => {
-    // Basic validation logic
+    //basic validation logic
     if (activeStep === 0 && !formData.name) { setFormErrors({ name: 'Required' }); return; }
     if (activeStep === 1 && uploadedImages.length === 0) { setFormErrors({ images: 'Required' }); return; }
     
@@ -638,8 +796,8 @@ export default function LostPets() {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#fbfbfb', pb: 8 }}>
-        {/* <PageHeader /> */}
-        {/* <DashboardSidebar /> */}
+        {/*<PageHeader /> */}
+        {/*<DashboardSidebar /> */}
         
         {view === 'search' ? (
           <LostPetsSearchView
@@ -673,7 +831,159 @@ export default function LostPets() {
           />
         )}
 
-        {/* Success Dialog */}
+        {/*pet details dialog*/}
+        <Dialog 
+          open={detailsDialogOpen} 
+          onClose={() => setDetailsDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          {selectedPet && (
+            <>
+              <Box sx={{ position: 'relative', height: 400, bgcolor: '#eee' }}>
+                <Box
+                  component="img"
+                  src={selectedPet.img}
+                  alt={selectedPet.name}
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+                <IconButton
+                  onClick={() => setDetailsDialogOpen(false)}
+                  sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                    '&:hover': { bgcolor: 'white' }
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+                {selectedPet.urgent && (
+                  <Chip
+                    icon={<WarningIcon />}
+                    label="ΕΠΕΙΓΟΝ"
+                    color="error"
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      left: 16,
+                      fontWeight: 800,
+                      fontSize: '0.8rem'
+                    }}
+                  />
+                )}
+              </Box>
+              <DialogContent sx={{ p: 4 }}>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    {selectedPet.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                    <Chip label={selectedPet.type} size="small" color="primary" />
+                    <Chip label={selectedPet.breed} size="small" variant="outlined" />
+                    <Chip label={selectedPet.gender} size="small" variant="outlined" />
+                    <Chip label={selectedPet.age} size="small" variant="outlined" />
+                  </Box>
+                </Box>
+
+                <Divider sx={{ my: 3 }} />
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <CalendarMonthIcon color="action" />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Ημερομηνία</Typography>
+                        <Typography variant="body1" fontWeight={600}>{selectedPet.date}</Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <LocationOnIcon color="action" />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Τοποθεσία</Typography>
+                        <Typography variant="body1" fontWeight={600}>{selectedPet.location}</Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <PetsIcon color="action" />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Χρώμα</Typography>
+                        <Typography variant="body1" fontWeight={600}>{selectedPet.color}</Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <VisibilityIcon color="action" />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">Προβολές</Typography>
+                        <Typography variant="body1" fontWeight={600}>{selectedPet.views}</Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+
+                {selectedPet.reward && (
+                  <Alert 
+                    icon={false}
+                    severity="warning" 
+                    sx={{ 
+                      mt: 3, 
+                      background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+                      border: '2px solid #FFA726',
+                      fontWeight: 700
+                    }}
+                  >
+                    💰 Αμοιβή: {selectedPet.reward}
+                  </Alert>
+                )}
+
+                <Divider sx={{ my: 3 }} />
+
+                <Box>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Περιγραφή
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                    {selectedPet.description}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
+                  <Button 
+                    variant="contained" 
+                    fullWidth 
+                    size="large"
+                    startIcon={<ShareIcon />}
+                    sx={{ borderRadius: 3 }}
+                  >
+                    Κοινοποίηση
+                  </Button>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    size="large"
+                    startIcon={<InfoIcon />}
+                    sx={{ borderRadius: 3 }}
+                  >
+                    Επικοινωνία
+                  </Button>
+                </Box>
+              </DialogContent>
+            </>
+          )}
+        </Dialog>
+
+        {/*success dialog*/}
         <Dialog open={openSuccess} onClose={() => { setOpenSuccess(false); setView('search'); setActiveStep(0); }}>
           <DialogContent sx={{ textAlign: 'center', p: 5 }}>
             <CheckCircleIcon color="success" sx={{ fontSize: 60, mb: 2 }} />
