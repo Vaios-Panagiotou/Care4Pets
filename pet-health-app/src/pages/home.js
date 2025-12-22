@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Typography, Button, Box, Container, Grid,
-  Paper, Card, CardContent
+  Paper, Card, CardContent, AppBar, Toolbar,
+  Menu, MenuItem, TextField, Autocomplete,
+  InputAdornment, Popper
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +23,16 @@ import PageviewIcon from '@mui/icons-material/Pageview';
 // IMPORT NEWS COMPONENT
 import { NewsCard, NEWS_DATA } from './News';
 
-// (Global navbar now provides search functionality)
+// Search data configuration
+const SEARCH_DATA = [
+  { title: 'Τα Κατοικίδιά μου', keywords: 'pets animals dog cat', path: '/owner/pets' },
+  { title: 'Ιστορικό Επισκέψεων', keywords: 'history visits vet', path: '/owner/history' },
+  { title: 'Αναζήτηση Κτηνιάτρου', keywords: 'search vet doctor', path: '/owner/search' },
+  { title: 'Βιβλιάριο Υγείας', keywords: 'health book record', path: '/owner/health-book' },
+  { title: 'Απολεσθέντα Ζώα', keywords: 'lost pets animals', path: '/lost-pets' },
+  { title: 'Νέα & Άρθρα', keywords: 'news articles blog', path: '/news' },
+  { title: 'Επικοινωνία', keywords: 'contact support help', path: '/contact' },
+];
 
 // --- DATA CONFIGURATION ---
 const STEPS = [
