@@ -53,10 +53,12 @@ export default function DashboardSidebar() {
         flexDirection: 'column',
         alignItems: 'center',
         gap: 0.4,
-        position: 'sticky',
-        top: '20px',
-        maxHeight: '520px',
-        alignSelf: 'flex-start', // prevent stretching to full page height
+        position: 'fixed',
+        left: '24px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        maxHeight: '80vh',
+        zIndex: 1000,
       }}
     >
       {navItems.map((item) => {

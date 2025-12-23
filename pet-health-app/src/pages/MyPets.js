@@ -582,12 +582,14 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                 </Box>
 
                 {/* Main Layout with Sidebar */}
-                <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+                <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', p: 2, gap: 2, justifyContent: 'center' }}>
                     {/* Sidebar */}
-                    <DashboardSidebar />
+                    <Box sx={{ ml: 2, position: 'sticky', top: 16, alignSelf: 'flex-start', height: 'fit-content' }}>
+                        <DashboardSidebar />
+                    </Box>
 
                     {/* Content */}
-                    <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 2, pb: 6, overflowY: 'auto' }}>
+                    <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 2, pb: 6 }}>
                         
                         {/* Pet Cards Section with Enhanced Header */}
                         <Box sx={{ mb: 4 }}>
