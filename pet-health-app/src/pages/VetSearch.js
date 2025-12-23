@@ -56,7 +56,7 @@ const ALL_VETS = [
   { id: 5, name: 'Δρ. Κώστας Νικολάου', address: 'Πατησίων 100 - Αθήνα', specialty: 'Χειρουργική', availability: 'Τετ, 29 Ιαν 2025', views: '620', rating: 4.6, likes: 180, price: '55€', img: 'https://randomuser.me/api/portraits/men/22.jpg' },
 ];
 
-const STEPS = ['Επιλογή Κτηνιάτρου', 'Επιλογή Ώρας/Μέρας', 'Σύνδεση', 'Επιλογή Κατοικιδίου', 'Προεπισκόπηση'];
+const STEPS = ['Επιλογή Κτηνιάτρου', 'Επιλογή Ώρας/Μέρας', 'Επιλογή Κατοικιδίου', 'Προεπισκόπηση'];
 const TIME_SLOTS = ['09:00', '10:00', '11:30', '13:00', '17:00', '18:30', '19:45'];
 
 const pulseRing = keyframes`
@@ -91,10 +91,6 @@ export default function VetSearch() {
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
   
-  // Login State
-  const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [loginError, setLoginError] = useState('');
-
   // Pagination State
   const [page, setPage] = useState(1);
   const vetsPerPage = 3;
@@ -194,24 +190,6 @@ export default function VetSearch() {
 
   const handleBack = () => {
     if (activeStep > 0) setActiveStep((prev) => prev - 1);
-  };
-
-  const handleLoginSubmit = async () => {
-    setLoginError('');
-    try {
-        const response = await fetch(`http://localhost:3001/users?email=${loginData.email}&password=${loginData.password}`);
-        const users = await response.json();
-        if (users.length > 0) {
-            const user = users[0];
-            localStorage.setItem('user', JSON.stringify(user));
-            setActiveStep((prev) => prev + 1);
-        } else {
-            setLoginError('Λάθος email ή κωδικός.');
-        }
-    } catch (err) {
-        console.error(err);
-        setLoginError('Σφάλμα σύνδεσης με τον server.');
-    }
   };
 
   // --- ACCESS GUARDS ---
@@ -461,46 +439,6 @@ export default function VetSearch() {
     </Box>
   );
 
-  const StepLogin = () => (
-    <Grid container spacing={6} justifyContent="center" alignItems="center">
-      <Grid item xs={12} md={6}>
-          <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80" alt="cat" style={{ width: '100%', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-      </Grid>
-      <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 5, borderRadius: '24px' }}>
-              <Typography variant="h5" fontWeight="bold" align="center" gutterBottom>Σύνδεση λογαριασμού</Typography>
-              
-              {loginError && <Alert severity="error" sx={{ mb: 2 }}>{loginError}</Alert>}
-
-              <TextField 
-                fullWidth label="Email" margin="normal" variant="filled" 
-                value={loginData.email}
-                onChange={(e) => setLoginData({...loginData, email: e.target.value})}
-              />
-              <TextField 
-                fullWidth label="Κωδικός" type="password" margin="normal" variant="filled" 
-                value={loginData.password}
-                onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-              />
-              
-              <FormControlLabel control={<Checkbox defaultChecked />} label="Θυμήσου με" sx={{ mt: 1 }} />
-              
-              <Button 
-                fullWidth variant="contained" 
-                sx={{ bgcolor: '#00695c', mt: 3, py: 1.5, fontSize: '1rem' }}
-                onClick={handleLoginSubmit}
-              >
-                Σύνδεση
-              </Button>
-              
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <Typography variant="caption">Δεν έχετε λογαριασμό; <span style={{ color: '#00695c', fontWeight: 'bold', cursor: 'pointer' }}>Εγγραφή</span></Typography>
-              </Box>
-          </Paper>
-      </Grid>
-    </Grid>
-  );
-
   const StepSelectPet = () => (
     <Box sx={{ textAlign: 'center' }}>
       <Typography variant="h5" fontWeight="bold">Επιλογή Κατοικιδίου</Typography>
@@ -618,13 +556,11 @@ export default function VetSearch() {
             
             {activeStep === 0 && <StepVetList />}
             {activeStep === 1 && <StepCalendar />}
-            {activeStep === 2 && <StepLogin />}
-            {activeStep === 3 && <StepSelectPet />}
-            {activeStep === 4 && <StepPreview />}
+            {activeStep === 2 && <StepSelectPet />}
+            {activeStep === 3 && <StepPreview />}
 
-            {/* HIDE NAVIGATION BUTTONS ON LOGIN STEP - BECAUSE LOGIN HAS ITS OWN BUTTON */}
-            {activeStep !== 2 && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 6 }}>
+            {/* NAVIGATION BUTTONS */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 6 }}>
                     <Button 
                         variant="contained" color="error" 
                         onClick={() => activeStep === 0 ? navigate('/owner') : handleBack()}
@@ -641,7 +577,6 @@ export default function VetSearch() {
                         {activeStep === STEPS.length - 1 ? 'Ολοκλήρωση' : 'Επόμενο'}
                     </Button>
                 </Box>
-            )}
 
             </Container>
 

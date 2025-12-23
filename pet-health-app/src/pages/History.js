@@ -19,11 +19,13 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
 import CloseIcon from '@mui/icons-material/Close';
 import InfoIcon from '@mui/icons-material/Info';
+import StarIcon from '@mui/icons-material/Star';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 
-// Import PageHeader
+//Import PageHeader
 import PageHeader from './PageHeader';
 
-// --- THEME ---
+//--- THEME ---
 const theme = createTheme({
   palette: {
     primary: { main: '#00695c' },
@@ -55,6 +57,12 @@ const HISTORY_DATA = {
   ],
   declarations: [
     { id: 1, date: '20 Ιουλ 2024', title: 'Δήλωση Απώλειας', pet: 'Pantiana', status: 'resolved', notes: 'Βρέθηκε μετά από 2 μέρες' }
+  ],
+  reviews: [
+    { id: 1, date: '16 Οκτ 2024', vetName: 'Δρ. Νίκος Παπαδόπουλος', clinic: 'Κτηνιατρική Κλινική Αθηνών', rating: 5, service: 'Ετήσιος Εμβολιασμός', comment: 'Εξαιρετικός επαγγελματίας! Πολύ φιλικός και υπομονετικός με το ζωάκι μου. Η εξέταση ήταν ενδελεχής και μου εξήγησε όλα τα βήματα. Σίγουρα θα ξαναπάω!' },
+    { id: 2, date: '03 Σεπ 2024', vetName: 'Δρ. Μαρία Κωνσταντίνου', clinic: 'VetCare Γλυφάδας', rating: 4, service: 'Δερματολογικός Έλεγχος', comment: 'Πολύ καλή εξυπηρέτηση και γρήγορη διάγνωση. Η γιατρός ήταν πολύ επαγγελματική. Μόνο το κόστος ήταν λίγο υψηλό αλλά άξιζε την ποιότητα.' },
+    { id: 3, date: '15 Ιουν 2024', vetName: 'Δρ. Γιώργος Αντωνίου', clinic: 'Πετ Κλινική Χαλανδρίου', rating: 5, service: 'Χειρουργείο Στείρωσης', comment: 'Άψογη επέμβαση! Το ζώο ανέρρωσε πολύ γρήγορα. Η μετεγχειρητική παρακολούθηση ήταν εξαιρετική. Πολύ ευγενικό προσωπικό και καθαρός χώρος.' },
+    { id: 4, date: '10 Μαϊ 2024', vetName: 'Δρ. Ελένη Παπαδάκη', clinic: 'Animal Care Center', rating: 3, service: 'Οδοντιατρική Εξέταση', comment: 'Καλή υπηρεσία αλλά πολύ μεγάλη αναμονή. Ο γιατρός ήταν επαγγελματίας αλλά το προσωπικό στη ρεσεψιόν θα μπορούσε να είναι πιο φιλικό.' }
   ]
 };
 
@@ -123,7 +131,7 @@ export default function History() {
             <PageHeader />
         </Container>
 
-        {/* HERO HEADER */}
+        {/*HERO HEADER*/}
         <Box sx={{ bgcolor: '#263238', py: 6, mb: 4, color: 'white', textAlign: 'center' }}>
             <Container maxWidth="md">
                 <HistoryIcon sx={{ fontSize: 60, mb: 2, opacity: 0.8 }} />
@@ -134,15 +142,15 @@ export default function History() {
             </Container>
         </Box>
 
-        {/* Main Layout with Sidebar */}
+        {/*MAIN LAYOUT WITH SIDEBAR */}
         <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
-            {/* Sidebar */}
+            {/*Sidebar */}
             <DashboardSidebar />
 
-            {/* Content */}
+            {/*Content*/}
             <Container maxWidth="lg" sx={{ overflowY: 'auto', py: 4 }}>
             
-            {/* TABS */}
+            {/*TABS*/}
             <Paper sx={{ mb: 4, borderRadius: '12px', overflow: 'hidden' }}>
                 <Tabs 
                     value={tabValue} 
@@ -155,10 +163,11 @@ export default function History() {
                     <Tab icon={<EventAvailableIcon />} iconPosition="start" label="Ραντεβού" />
                     <Tab icon={<MedicalServicesIcon />} iconPosition="start" label="Ιατρικό Ιστορικό" />
                     <Tab icon={<WarningIcon />} iconPosition="start" label="Δηλώσεις" />
+                    <Tab icon={<RateReviewIcon />} iconPosition="start" label="Κριτικές" />
                 </Tabs>
             </Paper>
 
-            {/* CONTENT - TAB 0: APPOINTMENTS */}
+            {/*TAB 0:APPOINTMENTS */}
             {tabValue === 0 && (
                 <Box>
                     <Typography variant="h6" sx={{ mb: 2 }}>Ολοκληρωμένα & Ακυρωμένα Ραντεβού</Typography>
@@ -192,7 +201,7 @@ export default function History() {
                 </Box>
             )}
 
-            {/* CONTENT - TAB 1: MEDICAL */}
+            {/*TAB 1:MEDICAL*/}
             {tabValue === 1 && (
                 <Box>
                     <Typography variant="h6" sx={{ mb: 2 }}>Ιατρικό Αρχείο & Εμβόλια</Typography>
@@ -203,7 +212,7 @@ export default function History() {
                             title={item.title}
                             subtitle={`${item.pet} • ${item.notes}`}
                             date={item.date}
-                            status="completed" // Reuse styling
+                            status="completed" //reuse styling
                             statusLabel={item.type}
                             onClick={() => handleOpenDialog({
                                 type: 'medical',
@@ -237,7 +246,77 @@ export default function History() {
                 </Box>
             )}
 
-            {/* CONTENT - TAB 2: DECLARATIONS */}
+            {/*TAB 3:REVIEWS*/}
+            {tabValue === 3 && (
+                <Box>
+                    <Typography variant="h6" sx={{ mb: 2 }}>Οι Κριτικές μου για Κτηνιάτρους</Typography>
+                    {HISTORY_DATA.reviews.length > 0 ? (
+                        HISTORY_DATA.reviews.map((item) => (
+                            <Paper 
+                                key={item.id} 
+                                sx={{ 
+                                    mb: 2, 
+                                    p: 3, 
+                                    cursor: 'pointer', 
+                                    transition: '0.2s', 
+                                    '&:hover': { bgcolor: '#f5f5f5', transform: 'translateY(-2px)', boxShadow: 3 } 
+                                }}
+                                onClick={() => handleOpenDialog({
+                                    type: 'review',
+                                    data: item,
+                                    details: {
+                                        clinicAddress: item.clinic === 'Κτηνιατρική Κλινική Αθηνών' 
+                                            ? 'Λεωφ. Κηφισίας 123, Αθήνα' 
+                                            : item.clinic === 'VetCare Γλυφάδας'
+                                            ? 'Αγ. Κωνσταντίνου 45, Γλυφάδα'
+                                            : item.clinic === 'Πετ Κλινική Χαλανδρίου'
+                                            ? 'Πεντέλης 78, Χαλάνδρι'
+                                            : 'Μεσογείων 234, Αθήνα',
+                                        clinicPhone: '210 1234567',
+                                        helpful: Math.floor(Math.random() * 20) + 5,
+                                        verified: true
+                                    }
+                                })}
+                            >
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography variant="h6" fontWeight="bold" sx={{ mb: 0.5 }}>
+                                            {item.vetName}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                            {item.clinic} • {item.service}
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            {[...Array(5)].map((_, i) => (
+                                                <StarIcon 
+                                                    key={i} 
+                                                    sx={{ 
+                                                        fontSize: 20, 
+                                                        color: i < item.rating ? '#FFA726' : '#e0e0e0' 
+                                                    }} 
+                                                />
+                                            ))}
+                                            <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
+                                                ({item.rating}/5)
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                    <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', ml: 2 }}>
+                                        {item.date}
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.6 }}>
+                                    {item.comment}
+                                </Typography>
+                            </Paper>
+                        ))
+                    ) : (
+                        <Typography color="text.secondary" align="center" sx={{ py: 4 }}>Δεν έχετε καταχωρήσει κριτικές.</Typography>
+                    )}
+                </Box>
+            )}
+
+            {/*TAB 2:DECLARATIONS*/}
             {tabValue === 2 && (
                 <Box>
                     <Typography variant="h6" sx={{ mb: 2 }}>Ιστορικό Δηλώσεων (Απώλεια / Εύρεση)</Typography>
@@ -278,7 +357,7 @@ export default function History() {
             </Container>
         </Box>
 
-        {/* Info Dialog */}
+        {/*INFO DIALOG*/}
         <Dialog 
           open={openDialog} 
           onClose={handleCloseDialog}
@@ -367,7 +446,7 @@ export default function History() {
                     </>
                   )}
 
-                  {/* Medical Details */}
+                  {/*MEDICAL DETAILS*/}
                   {dialogContent.type === 'medical' && (
                     <>
                       <Grid item xs={12}>
@@ -419,7 +498,63 @@ export default function History() {
                     </>
                   )}
 
-                  {/* Declaration Details */}
+                  {/*REVIEW DETAILS*/}
+                  {dialogContent.type === 'review' && (
+                    <>
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                          <Box>
+                            <Typography variant="h6" fontWeight="bold">{dialogContent.data.vetName}</Typography>
+                            <Typography variant="body2" color="text.secondary">{dialogContent.data.clinic}</Typography>
+                            <Typography variant="caption" color="text.secondary">{dialogContent.details.clinicAddress}</Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Typography variant="caption" color="text.secondary" fontWeight="bold">ΒΑΘΜΟΛΟΓΙΑ</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                          {[...Array(5)].map((_, i) => (
+                            <StarIcon 
+                              key={i} 
+                              sx={{ 
+                                fontSize: 32, 
+                                color: i < dialogContent.data.rating ? '#FFA726' : '#e0e0e0' 
+                              }} 
+                            />
+                          ))}
+                          <Typography variant="h5" fontWeight="bold" sx={{ ml: 1 }}>
+                            {dialogContent.data.rating}/5
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" color="text.secondary" fontWeight="bold">ΥΠΗΡΕΣΙΑ</Typography>
+                        <Typography variant="body1">{dialogContent.data.service}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" color="text.secondary" fontWeight="bold">ΗΜΕΡΟΜΗΝΙΑ</Typography>
+                        <Typography variant="body1">{dialogContent.data.date}</Typography>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Paper elevation={0} sx={{ p: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                          <Typography variant="caption" color="text.secondary" fontWeight="bold">Η ΚΡΙΤΙΚΗ ΜΟΥ</Typography>
+                          <Typography variant="body1" sx={{ mt: 1.5, lineHeight: 1.8 }}>
+                            {dialogContent.data.comment}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: '#e3f2fd', borderRadius: 2 }}>
+                          <CheckCircleIcon color="primary" />
+                          <Typography variant="body2" color="primary" fontWeight="600">
+                            Επιβεβαιωμένη Επίσκεψη • {dialogContent.details.helpful} άτομα βρήκαν αυτή την κριτική χρήσιμη
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </>
+                  )}
+
+                  {/*DECLARATION DETAILS*/}
                   {dialogContent.type === 'declaration' && (
                     <>
                       <Grid item xs={12}>
