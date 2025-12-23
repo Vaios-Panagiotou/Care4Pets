@@ -36,6 +36,14 @@ import WcIcon from '@mui/icons-material/Wc';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PetsIcon from '@mui/icons-material/Pets';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import ShieldIcon from '@mui/icons-material/Shield';
+import LanguageIcon from '@mui/icons-material/Language';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 // --- Styled Components ---
 
@@ -61,11 +69,11 @@ const CreativeField = ({ label, value, type = 'text', onChange, name, editable, 
                 width: 40, 
                 height: 40, 
                 borderRadius: '12px', 
-                bgcolor: 'rgba(59, 130, 246, 0.1)', 
+                bgcolor: 'rgba(0, 105, 92, 0.1)', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                color: '#3b82f6'
+                color: '#00695c'
             }}
         >
             {Icon && <Icon fontSize="small" />}
@@ -132,30 +140,30 @@ export default function Profile() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', bgcolor: '#f1f5f9' }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', bgcolor: '#f8f9fa' }}>
       
       {/* Decorative Background Blobs */}
       <Box sx={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(255,255,255,0) 70%)' }} />
-        <Box sx={{ position: 'absolute', bottom: '-10%', left: '-5%', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, rgba(255,255,255,0) 70%)' }} />
+        <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,105,92,0.12) 0%, rgba(255,255,255,0) 70%)' }} />
+        <Box sx={{ position: 'absolute', bottom: '-10%', left: '-5%', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,183,77,0.08) 0%, rgba(255,255,255,0) 70%)' }} />
       </Box>
 
       <DashboardSidebar />
 
-      <Container maxWidth="xl" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="xl" sx={{ py: 4, position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         
         {/* Page Header */}
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '100%' }}>
             <Box>
                 <Typography variant="h4" fontWeight="bold" sx={{ color: '#1e293b' }}>Το Προφίλ μου</Typography>
                 <Typography variant="body2" sx={{ color: '#64748b' }}>Διαχείριση προσωπικών στοιχείων και ασφάλειας</Typography>
             </Box>
         </Box>
 
-        <Grid container spacing={4}>
+        <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '1200px' }}>
             
           {/* LEFT COLUMN: IDENTITY CARD */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card 
                 sx={{ 
                     borderRadius: 4, 
@@ -167,7 +175,7 @@ export default function Profile() {
                 {/* Banner inside card */}
                 <Box sx={{ 
                     height: 120, 
-                    background: 'linear-gradient(120deg, #3b82f6 0%, #8b5cf6 100%)',
+                    background: 'linear-gradient(120deg, #00695c 0%, #ffb74d 100%)',
                     borderRadius: '16px 16px 0 0',
                     position: 'relative'
                 }}>
@@ -260,7 +268,7 @@ export default function Profile() {
           </Grid>
 
           {/* RIGHT COLUMN: DETAILS FORM */}
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={8} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Fade in={true} timeout={800}>
                 <Paper sx={{ 
                     p: 0, 
@@ -272,7 +280,7 @@ export default function Profile() {
                     {/* Section 1: General Info */}
                     <Box sx={{ p: 4 }}>
                         <Typography variant="h6" fontWeight="bold" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box component="span" sx={{ width: 4, height: 24, bgcolor: '#3b82f6', borderRadius: 1 }} />
+                            <Box component="span" sx={{ width: 4, height: 24, bgcolor: '#00695c', borderRadius: 1 }} />
                             Βασικές Πληροφορίες
                         </Typography>
                         
@@ -289,7 +297,7 @@ export default function Profile() {
                     {/* Section 2: Contact & Security */}
                     <Box sx={{ p: 4, bgcolor: '#f8fafc' }}>
                          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box component="span" sx={{ width: 4, height: 24, bgcolor: '#8b5cf6', borderRadius: 1 }} />
+                            <Box component="span" sx={{ width: 4, height: 24, bgcolor: '#ffb74d', borderRadius: 1 }} />
                             Επικοινωνία & Ασφάλεια
                         </Typography>
 
@@ -304,6 +312,101 @@ export default function Profile() {
           </Grid>
 
         </Grid>
+
+        {/* BOTTOM SECTION: Additional Information */}
+        <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '1200px', mt: 2 }}>
+          
+          {/* Statistics Cards */}
+          <Grid item xs={12}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: '#1e293b', textAlign: 'center' }}>
+              Στατιστικά Λογαριασμού
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)', color: '#fff', textAlign: 'center' }}>
+                  <CardContent>
+                    <PetsIcon sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="h4" fontWeight="bold">3</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Κατοικίδια</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #ffb74d 0%, #ff9800 100%)', color: '#fff', textAlign: 'center' }}>
+                  <CardContent>
+                    <CalendarMonthIcon sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="h4" fontWeight="bold">12</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Ραντεβού</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #00897b 0%, #00695c 100%)', color: '#fff', textAlign: 'center' }}>
+                  <CardContent>
+                    <LocalHospitalIcon sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="h4" fontWeight="bold">8</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Εμβόλια</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #ffc107 0%, #ffb74d 100%)', color: '#fff', textAlign: 'center' }}>
+                  <CardContent>
+                    <FavoriteIcon sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="h4" fontWeight="bold">25</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Εξετάσεις</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Grid>
+
+          {/* Account Info & Preferences */}
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3, borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', bgcolor: '#fff' }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ShieldIcon sx={{ color: '#00695c' }} />
+                Πληροφορίες Λογαριασμού
+              </Typography>
+              
+              <Stack spacing={2}>
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'rgba(0,105,92,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CalendarMonthIcon sx={{ color: '#00695c', fontSize: 20 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>ΗΜΕΡΟΜΗΝΙΑ ΔΗΜΙΟΥΡΓΙΑΣ</Typography>
+                    <Typography variant="body2" fontWeight="600" sx={{ color: '#1e293b' }}>15 Ιανουαρίου 2023</Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'rgba(255,183,77,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <AccessTimeIcon sx={{ color: '#ffb74d', fontSize: 20 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>ΤΕΛΕΥΤΑΙΑ ΣΥΝΔΕΣΗ</Typography>
+                    <Typography variant="body2" fontWeight="600" sx={{ color: '#1e293b' }}>Σήμερα στις 14:30</Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ShieldIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>ΚΑΤΑΣΤΑΣΗ ΑΣΦΑΛΕΙΑΣ</Typography>
+                    <Typography variant="body2" fontWeight="600" sx={{ color: '#16a34a' }}>Πλήρως Ασφαλής</Typography>
+                  </Box>
+                </Box>
+              </Stack>
+            </Paper>
+          </Grid>
+
+
+
+        </Grid>
+
       </Container>
     </Box>
   );
