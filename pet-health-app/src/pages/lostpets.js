@@ -215,6 +215,8 @@ function LostPetsSearchView({
   selectedType, setSelectedType, selectedLocation, setSelectedLocation,
   radius, setRadius, setSelectedPet, setDetailsDialogOpen, setView,
   stopKeyPropagation, setHowItWorksDialogOpen,
+  selectedBreed, setSelectedBreed, selectedGender, setSelectedGender,
+  selectedColor, setSelectedColor, hasReward, setHasReward,
 }) {
   return (
     <Box onKeyDown={stopKeyPropagation} tabIndex={0} sx={{ outline: 'none' }}>
@@ -293,7 +295,7 @@ function LostPetsSearchView({
           <Collapse in={filtersOpen}>
             <Divider sx={{ my: 3 }} />
             <Grid container spacing={3}>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Είδος Ζώου</InputLabel>
                   <Select label="Είδος Ζώου" value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
@@ -303,10 +305,53 @@ function LostPetsSearchView({
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>Ράτσα</InputLabel>
+                  <Select label="Ράτσα" value={selectedBreed} onChange={(e) => setSelectedBreed(e.target.value)}>
+                    <MenuItem value="">Όλες</MenuItem>
+                    <MenuItem value="Labrador">Labrador</MenuItem>
+                    <MenuItem value="Golden Retriever">Golden Retriever</MenuItem>
+                    <MenuItem value="Terrier">Terrier</MenuItem>
+                    <MenuItem value="Beagle">Beagle</MenuItem>
+                    <MenuItem value="Poodle">Poodle</MenuItem>
+                    <MenuItem value="Περσική">Περσική</MenuItem>
+                    <MenuItem value="Σιαμέζα">Σιαμέζα</MenuItem>
+                    <MenuItem value="Ταμπί">Ταμπί</MenuItem>
+                    <MenuItem value="Άγνωστη">Άγνωστη</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>Φύλο</InputLabel>
+                  <Select label="Φύλο" value={selectedGender} onChange={(e) => setSelectedGender(e.target.value)}>
+                    <MenuItem value="">Όλα</MenuItem>
+                    <MenuItem value="Αρσενικό">Αρσενικό</MenuItem>
+                    <MenuItem value="Θηλυκό">Θηλυκό</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <TextField 
+                  fullWidth 
+                  label="Χρώμα" 
+                  value={selectedColor} 
+                  onChange={(e) => setSelectedColor(e.target.value)}
+                  placeholder="π.χ. Μαύρο"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
                 <TextField fullWidth label="Περιοχή" value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton size="small"><MyLocationIcon fontSize="small" /></IconButton></InputAdornment>) }} />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormControlLabel 
+                  control={<Checkbox checked={hasReward} onChange={(e) => setHasReward(e.target.checked)} color="secondary" />} 
+                  label="Μόνο με αμοιβή"
+                  sx={{ mt: 1 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <Typography gutterBottom variant="body2" fontWeight={600}>Ακτίνα: {radius} km</Typography>
                 <Slider value={radius} onChange={(e, val) => setRadius(val)} valueLabelDisplay="auto" step={5} min={0} max={50} />
               </Grid>
@@ -749,6 +794,10 @@ export default function LostPets() {
   const [urgentOnly, setUrgentOnly] = useState(false);
   const [sortBy, setSortBy] = useState('date');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedBreed, setSelectedBreed] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [hasReward, setHasReward] = useState(false);
   
   const [activeStep, setActiveStep] = useState(0);
   const [openSuccess, setOpenSuccess] = useState(false);
@@ -764,7 +813,76 @@ export default function LostPets() {
     e.stopPropagation();
   }, []);
 
-  const filteredPets = useMemo(() => LOST_PETS, []); //simplified filter logic for brevity
+  const filteredPets = useMemo(() => {
+    let filtered = [...LOST_PETS];
+
+    // Search query filter
+    if (searchQuery) {
+      filtered = filtered.filter(pet => 
+        pet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pet.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pet.location.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Type filter
+    if (selectedType) {
+      filtered = filtered.filter(pet => pet.type === selectedType);
+    }
+
+    // Breed filter
+    if (selectedBreed) {
+      filtered = filtered.filter(pet => pet.breed === selectedBreed);
+    }
+
+    // Gender filter
+    if (selectedGender) {
+      filtered = filtered.filter(pet => pet.gender === selectedGender);
+    }
+
+    // Color filter
+    if (selectedColor) {
+      filtered = filtered.filter(pet => pet.color.toLowerCase().includes(selectedColor.toLowerCase()));
+    }
+
+    // Location filter
+    if (selectedLocation) {
+      filtered = filtered.filter(pet => 
+        pet.location.toLowerCase().includes(selectedLocation.toLowerCase())
+      );
+    }
+
+    // Urgent filter
+    if (urgentOnly) {
+      filtered = filtered.filter(pet => pet.urgent);
+    }
+
+    // Reward filter
+    if (hasReward) {
+      filtered = filtered.filter(pet => pet.reward);
+    }
+
+    // Sorting
+    switch (sortBy) {
+      case 'date':
+        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+        break;
+      case 'views':
+        filtered.sort((a, b) => b.views - a.views);
+        break;
+      case 'reward':
+        filtered.sort((a, b) => {
+          const rewardA = a.reward ? parseInt(a.reward.replace(/€|\s/g, '')) : 0;
+          const rewardB = b.reward ? parseInt(b.reward.replace(/€|\s/g, '')) : 0;
+          return rewardB - rewardA;
+        });
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  }, [searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
 
   const handleNext = () => {
     //basic validation logic
@@ -809,6 +927,10 @@ export default function LostPets() {
             selectedType={selectedType} setSelectedType={setSelectedType}
             selectedLocation={selectedLocation} setSelectedLocation={setSelectedLocation}
             radius={radius} setRadius={setRadius}
+            selectedBreed={selectedBreed} setSelectedBreed={setSelectedBreed}
+            selectedGender={selectedGender} setSelectedGender={setSelectedGender}
+            selectedColor={selectedColor} setSelectedColor={setSelectedColor}
+            hasReward={hasReward} setHasReward={setHasReward}
             setSelectedPet={setSelectedPet}
             setDetailsDialogOpen={setDetailsDialogOpen}
             setView={setView}
