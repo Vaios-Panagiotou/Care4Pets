@@ -13,6 +13,7 @@ import Person2Icon from '@mui/icons-material/Person2';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 const OWNER_NAV = [
   { id: 'pets', label: 'Τα Κατοικίδια', icon: PetsIcon, path: '/owner/pets' },
@@ -25,6 +26,7 @@ const VET_NAV = [
   { id: 'history', label: 'Ιστορικό', icon: HistoryIcon, path: '/vet/history' },
   { id: 'schedule', label: 'Πρόγραμμα', icon: EventAvailableIcon, path: '/vet/schedule' },
   { id: 'clinic', label: 'Το Ιατρείο', icon: MedicalServicesIcon, path: '/vet/clinic' },
+  { id: 'records', label: 'Καταγραφές', icon: DescriptionIcon, path: '/vet/records' },
 ];
 
 export default function DashboardSidebar() {

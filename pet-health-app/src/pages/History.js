@@ -423,11 +423,12 @@ export default function History() {
                       </Grid>
                       <Grid item xs={12}>
                         <Typography variant="caption" color="text.secondary" fontWeight="bold">ΚΑΤΑΣΤΑΣΗ</Typography>
-                        <Chip 
-                          label={dialogContent.data.status === 'completed' ? 'Ολοκληρώθηκε' : 'Ακυρώθηκε'} 
-                          color={dialogContent.data.status === 'completed' ? 'success' : 'error'} 
-                          sx={{ mt: 1 }}
-                        />
+                        <Box sx={{ mt: 1 }}>
+                          <Chip 
+                            label={dialogContent.data.status === 'completed' ? 'Ολοκληρώθηκε' : 'Ακυρώθηκε'} 
+                            color={dialogContent.data.status === 'completed' ? 'success' : 'error'} 
+                          />
+                        </Box>
                       </Grid>
                       <Grid item xs={12}>
                         <Paper elevation={0} sx={{ p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
@@ -451,7 +452,9 @@ export default function History() {
                     <>
                       <Grid item xs={12}>
                         <Typography variant="caption" color="text.secondary" fontWeight="bold">ΤΥΠΟΣ ΠΡΑΞΗΣ</Typography>
-                        <Chip label={dialogContent.data.type} color="primary" sx={{ mt: 0.5 }} />
+                        <Box sx={{ mt: 1 }}>
+                          <Chip label={dialogContent.data.type} color="primary" />
+                        </Box>
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary" fontWeight="bold">ΚΤΗΝΙΑΤΡΟΣ</Typography>
@@ -559,7 +562,9 @@ export default function History() {
                     <>
                       <Grid item xs={12}>
                         <Typography variant="caption" color="text.secondary" fontWeight="bold">ΚΑΤΑΣΤΑΣΗ</Typography>
-                        <Chip label="Βρέθηκε" color="success" sx={{ mt: 0.5 }} />
+                        <Box sx={{ mt: 1 }}>
+                          <Chip label="Βρέθηκε" color="success" />
+                        </Box>
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary" fontWeight="bold">ΤΟΠΟΣ ΑΠΩΛΕΙΑΣ</Typography>
@@ -577,11 +582,15 @@ export default function History() {
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary" fontWeight="bold">ΜΙΚΡΟΤΣΙΠ</Typography>
-                        <Typography variant="body2" fontFamily="monospace" sx={{ bgcolor: '#f5f5f5', p: 1, borderRadius: 1, display: 'inline-block' }}>{dialogContent.details.microchip}</Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="body2" fontFamily="monospace" sx={{ bgcolor: '#f5f5f5', p: 1, borderRadius: 1, display: 'inline-block' }}>{dialogContent.details.microchip}</Typography>
+                        </Box>
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" color="text.secondary" fontWeight="bold">ΑΡΙΘΜΟΣ ΥΠΟΘΕΣΗΣ</Typography>
-                        <Typography variant="body2" fontFamily="monospace" sx={{ bgcolor: '#f5f5f5', p: 1, borderRadius: 1, display: 'inline-block' }}>{dialogContent.details.caseNumber}</Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="body2" fontFamily="monospace" sx={{ bgcolor: '#f5f5f5', p: 1, borderRadius: 1, display: 'inline-block' }}>{dialogContent.details.caseNumber}</Typography>
+                        </Box>
                       </Grid>
                       <Grid item xs={12}>
                         <Paper elevation={0} sx={{ p: 2, bgcolor: '#fff3e0', borderRadius: 2 }}>

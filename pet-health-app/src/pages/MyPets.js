@@ -743,12 +743,6 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                         </Grid>
                     </Grid>
 
-                    {/* History Section */}
-                    <Paper sx={{ p: 3, mt: 4 }}>
-                        <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Πλήρες ιστορικό χρόνου κατοικιδίων</Typography>
-                        <Button variant="outlined" size="small">Δες τα όλα</Button>
-                    </Paper>
-
                     {/* Add/Edit Dialog */}
                     <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
                         <DialogTitle>{editing === 'new' ? 'Προσθήκη Κατοικιδίου' : 'Επεξεργασία Κατοικιδίου'}</DialogTitle>
