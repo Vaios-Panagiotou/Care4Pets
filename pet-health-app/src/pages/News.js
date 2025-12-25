@@ -352,7 +352,7 @@ export default function News() {
                         {/* GRID */}
                         <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
                                 {filteredNews.map(item => (
-                                        <Grid item xs={12} sm={6} md={4} key={item.id} sx={{ display: 'flex' }}>
+                                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id} sx={{ display: 'flex' }}>
                                                 <NewsCard item={item} />
                                         </Grid>
                                 ))}

@@ -252,7 +252,7 @@ export default function VetRecords() {
                 <Typography variant="h6" sx={{ mb: 3 }}>Πρόσφατα Καταγεγραμμένα Ζώα</Typography>
                 <Grid container spacing={3}>
                   {NEW_PETS.map((item) => (
-                    <Grid item xs={12} md={6} key={item.id}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                       <Paper sx={{ p: 3, borderRadius: 3, '&:hover': { boxShadow: 4 }, transition: '0.3s' }}>
                         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                           <Avatar sx={{ bgcolor: 'secondary.main', width: 56, height: 56 }}>

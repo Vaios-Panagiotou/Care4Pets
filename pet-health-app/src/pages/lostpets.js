@@ -767,7 +767,16 @@ function LostPetsFormView({
               {activeStep === 3 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    <TextField fullWidth required label="Τηλέφωνο" value={formData.phone || ''} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                    <TextField 
+                      fullWidth 
+                      required 
+                      label="Τηλέφωνο" 
+                      placeholder="6912345678"
+                      value={formData.phone || ''} 
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
+                      error={formData.phone && !/^[0-9]{10}$/.test(formData.phone.replace(/[\s-]/g, ''))}
+                      helperText={formData.phone && !/^[0-9]{10}$/.test(formData.phone.replace(/[\s-]/g, '')) ? 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)' : ''}
+                    />
                   </Grid>
                 </Grid>
               )}

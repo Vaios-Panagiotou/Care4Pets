@@ -64,10 +64,34 @@ const ContactItem = ({ icon, bg, color, title, content }) => (
 
 export default function Contact() {
   const [openSuccess, setOpenSuccess] = useState(false);
+  const [formData, setFormData] = useState({ email: '', phone: '' });
+  const [errors, setErrors] = useState({ email: '', phone: '' });
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(phone.replace(/[\s-]/g, ''));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setOpenSuccess(true);
+    const newErrors = { email: '', phone: '' };
+
+    if (!validateEmail(formData.email)) {
+      newErrors.email = 'Παρακαλώ εισάγετε έγκυρο email';
+    }
+    if (!validatePhone(formData.phone)) {
+      newErrors.phone = 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)';
+    }
+
+    setErrors(newErrors);
+    if (!newErrors.email && !newErrors.phone) {
+      setOpenSuccess(true);
+    }
   };
 
   return (
@@ -120,10 +144,31 @@ export default function Contact() {
                           <TextField required fullWidth label="Επώνυμο" placeholder="π.χ. Παπαδόπουλος" variant="outlined" />
                       </Grid>
                       <Grid item xs={12}>
-                          <TextField required fullWidth type="email" label="Email" placeholder="name@example.com" variant="outlined" />
+                          <TextField 
+                            required 
+                            fullWidth 
+                            type="email" 
+                            label="Email" 
+                            placeholder="name@example.com" 
+                            variant="outlined" 
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            error={!!errors.email}
+                            helperText={errors.email}
+                          />
                       </Grid>
                       <Grid item xs={12}>
-                          <TextField required fullWidth label="Κινητό Τηλέφωνο" variant="outlined" />
+                          <TextField 
+                            required 
+                            fullWidth 
+                            label="Κινητό Τηλέφωνο" 
+                            placeholder="6912345678"
+                            variant="outlined" 
+                            value={formData.phone}
+                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                            error={!!errors.phone}
+                            helperText={errors.phone}
+                          />
                       </Grid>
                       <Grid item xs={12}>
                           <TextField required fullWidth multiline rows={4} label="Πληροφορίες" variant="outlined" />

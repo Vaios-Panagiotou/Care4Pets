@@ -408,7 +408,7 @@ const NewsSection = () => {
 
             <Grid container spacing={4}>
                 {NEWS_DATA.slice(0, 3).map((item) => (
-                <Grid item xs={12} md={4} key={item.id}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                     <NewsCard item={item} />
                 </Grid>
                 ))}

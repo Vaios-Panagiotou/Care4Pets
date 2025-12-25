@@ -57,27 +57,27 @@ const StatSquare = ({ icon: Icon, value, label, color, trend }) => (
             elevation={0}
             sx={{ 
                 height: '100%', 
-                minHeight: 130,
+                minHeight: 150,
                 border: '1px solid #e2e8f0',
                 display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
                 background: 'white',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                py: 3
             }}
         >
             {/* Colored Accent Bar */}
             <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 4, bgcolor: color }} />
             
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                 <Box sx={{ p: 0.8, borderRadius: '8px', bgcolor: `${color}15`, color: color }}>
-                    <Icon fontSize="small" />
+            <Stack alignItems="center" spacing={1.5}>
+                 <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: `${color}15`, color: color, display: 'flex' }}>
+                    <Icon sx={{ fontSize: 32 }} />
                 </Box>
-                <Typography variant="caption" fontWeight="bold" sx={{ color: '#64748b' }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: '#0f172a' }}>{value}</Typography>
+                <Typography variant="caption" fontWeight="600" sx={{ color: '#64748b', textAlign: 'center', letterSpacing: '0.5px' }}>
                     {label.toUpperCase()}
                 </Typography>
             </Stack>
-
-            <Typography variant="h4" fontWeight="bold" sx={{ color: '#0f172a' }}>{value}</Typography>
             
             {trend && (
                 <Chip 
@@ -130,6 +130,7 @@ export default function VetClinicProfile() {
     { id: 4, name: 'Microchip & Καταγραφή', price: '40', category: 'Διοικητικά' }
   ]);
   const [newService, setNewService] = useState({ name: '', price: '' });
+  const [errors, setErrors] = useState({ phone: '', email: '' });
 
   const [info, setInfo] = useState({
     name: 'VetCare Clinic Pro',
@@ -139,6 +140,25 @@ export default function VetClinicProfile() {
     email: 'contact@vetcarepro.gr',
     emergency: true
   });
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(phone.replace(/[\s\-+]/g, ''));
+  };
+
+  const handleInfoChange = (field, value) => {
+    setInfo({ ...info, [field]: value });
+    if (field === 'email') {
+      setErrors({ ...errors, email: validateEmail(value) ? '' : 'Παρακαλώ εισάγετε έγκυρο email' });
+    } else if (field === 'phone') {
+      setErrors({ ...errors, phone: validatePhone(value) ? '' : 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)' });
+    }
+  };
 
   const handleAddService = () => {
     if (newService.name && newService.price) {
@@ -212,9 +232,27 @@ export default function VetClinicProfile() {
                                 />
 
                                 <Stack spacing={2}>
-                                    <TextField fullWidth size="small" disabled={!isEditing} value={info.address} InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnIcon color="action" fontSize="small"/></InputAdornment> }} />
-                                    <TextField fullWidth size="small" disabled={!isEditing} value={info.phone} InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon color="action" fontSize="small"/></InputAdornment> }} />
-                                    <TextField fullWidth size="small" disabled={!isEditing} value={info.email} InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon color="action" fontSize="small"/></InputAdornment> }} />
+                                    <TextField fullWidth size="small" disabled={!isEditing} value={info.address} onChange={(e) => setInfo({...info, address: e.target.value})} InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnIcon color="action" fontSize="small"/></InputAdornment> }} />
+                                    <TextField 
+                                        fullWidth 
+                                        size="small" 
+                                        disabled={!isEditing} 
+                                        value={info.phone} 
+                                        onChange={(e) => handleInfoChange('phone', e.target.value)}
+                                        error={isEditing && !!errors.phone}
+                                        helperText={isEditing ? errors.phone : ''}
+                                        InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon color="action" fontSize="small"/></InputAdornment> }} 
+                                    />
+                                    <TextField 
+                                        fullWidth 
+                                        size="small" 
+                                        disabled={!isEditing} 
+                                        value={info.email} 
+                                        onChange={(e) => handleInfoChange('email', e.target.value)}
+                                        error={isEditing && !!errors.email}
+                                        helperText={isEditing ? errors.email : ''}
+                                        InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon color="action" fontSize="small"/></InputAdornment> }} 
+                                    />
                                 </Stack>
                             </CardContent>
                         </Card>
