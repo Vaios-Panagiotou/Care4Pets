@@ -125,20 +125,39 @@ export default function PageHeader() {
           // Μετάφραση ή χρήση του αγγλικού αν δεν υπάρχει στο λεξικό
           const name = routeNameMap[value] || value;
           
-          // Μην κάνουμε τα "owner" και "vet" clickable - είναι μόνο role indicators
+          // Role indicators are now clickable
           const isRoleIndicator = value === 'owner' || value === 'vet';
+          const roleLink = value === 'owner' ? '/owner/dashboard' : value === 'vet' ? '/vet/dashboard' : null;
 
-          return last || isRoleIndicator ? (
+          return last ? (
             <Typography 
               key={to} 
               sx={{ 
-                color: isRoleIndicator ? '#64748b' : '#0f172a', 
-                fontWeight: last ? 600 : 500,
+                color: '#0f172a', 
+                fontWeight: 600,
                 fontSize: '0.8rem'
               }}
             >
               {name}
             </Typography>
+          ) : isRoleIndicator && roleLink ? (
+            <Link 
+              component={RouterLink} 
+              to={roleLink} 
+              underline="none" 
+              key={to} 
+              sx={{ 
+                color: '#64748b',
+                fontWeight: 500,
+                fontSize: '0.8rem',
+                transition: 'all 0.2s ease',
+                '&:hover': { 
+                  color: '#1d4ed8'
+                }
+              }}
+            >
+              {name}
+            </Link>
           ) : (
             <Link 
               component={RouterLink} 

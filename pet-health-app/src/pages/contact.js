@@ -12,6 +12,9 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PetsIcon from '@mui/icons-material/Pets';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import SendIcon from '@mui/icons-material/Send';
 
 // --- THEME ---
 const theme = createTheme({
@@ -271,15 +274,167 @@ export default function Contact() {
           </Paper>
         </Container>
 
-        {/* POPUP */}
-        <Dialog open={openSuccess} onClose={() => setOpenSuccess(false)} PaperProps={{ sx: { borderRadius: '24px', p: 3, maxWidth: '400px' } }}>
-            <DialogContent sx={{ textAlign: 'center' }}>
-                <Box sx={{ bgcolor: '#E8F5E9', width: 70, height: 70, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-                    <CheckCircleIcon sx={{ color: '#4CAF50', fontSize: 40 }} />
+        {/* SUCCESS POPUP - Enhanced & Interactive */}
+        <Dialog 
+          open={openSuccess} 
+          onClose={() => setOpenSuccess(false)} 
+          PaperProps={{ 
+            sx: { 
+              borderRadius: '32px', 
+              p: 4, 
+              maxWidth: '480px',
+              overflow: 'visible',
+              position: 'relative'
+            } 
+          }}
+          TransitionProps={{
+            onEntered: () => {
+              // Trigger confetti or celebration animation
+            }
+          }}
+        >
+            <DialogContent sx={{ textAlign: 'center', position: 'relative', overflow: 'visible', p: 0 }}>
+                {/* Floating Paw Prints Animation */}
+                <Box sx={{ 
+                  position: 'absolute', 
+                  top: -30, 
+                  left: '50%', 
+                  transform: 'translateX(-50%)',
+                  animation: 'bounce 1s ease infinite',
+                  '@keyframes bounce': {
+                    '0%, 100%': { transform: 'translateX(-50%) translateY(0)' },
+                    '50%': { transform: 'translateX(-50%) translateY(-10px)' }
+                  }
+                }}>
+                  <Box sx={{ 
+                    bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #7C4DFF 0%, #FF7043 100%)',
+                    width: 90, 
+                    height: 90, 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    boxShadow: '0 10px 40px rgba(124, 77, 255, 0.4)',
+                    position: 'relative'
+                  }}>
+                    <SendIcon sx={{ color: 'white', fontSize: 45, transform: 'rotate(-45deg)' }} />
+                    <Box sx={{
+                      position: 'absolute',
+                      top: -5,
+                      right: -5,
+                      bgcolor: '#00E676',
+                      width: 30,
+                      height: 30,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '3px solid white',
+                      animation: 'pulse 1.5s ease infinite',
+                      '@keyframes pulse': {
+                        '0%, 100%': { transform: 'scale(1)' },
+                        '50%': { transform: 'scale(1.1)' }
+                      }
+                    }}>
+                      <CheckCircleIcon sx={{ color: 'white', fontSize: 18 }} />
+                    </Box>
+                  </Box>
                 </Box>
-                <Typography variant="h6" fontWeight="bold">Επιτυχία!</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Το μήνυμα ελήφθη.</Typography>
-                <Button onClick={() => setOpenSuccess(false)} fullWidth variant="contained" sx={{ bgcolor: '#7C4DFF' }}>Εντάξει</Button>
+
+                {/* Main Content */}
+                <Box sx={{ mt: 7, mb: 2 }}>
+                  <Typography variant="h4" fontWeight="bold" sx={{ 
+                    mb: 1.5,
+                    background: 'linear-gradient(135deg, #7C4DFF 0%, #FF7043 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
+                    Ευχαριστούμε! 🎉
+                  </Typography>
+                  
+                  <Typography variant="body1" color="text.primary" sx={{ mb: 1, fontWeight: 500, fontSize: '1.05rem' }}>
+                    Το μήνυμά σας έφτασε με επιτυχία!
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
+                    Η ομάδα μας θα επικοινωνήσει μαζί σας το συντομότερο δυνατό. Συνήθως απαντάμε εντός 24 ωρών.
+                  </Typography>
+
+                  {/* Pet Icons Row */}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    gap: 2, 
+                    mb: 3,
+                    '& > *': {
+                      animation: 'wiggle 1s ease infinite',
+                      animationDelay: 'calc(var(--delay) * 0.2s)'
+                    },
+                    '@keyframes wiggle': {
+                      '0%, 100%': { transform: 'rotate(0deg)' },
+                      '25%': { transform: 'rotate(-10deg)' },
+                      '75%': { transform: 'rotate(10deg)' }
+                    }
+                  }}>
+                    <Box sx={{ '--delay': 0, bgcolor: '#FFE0B2', p: 1.5, borderRadius: '12px' }}>
+                      <PetsIcon sx={{ color: '#F57C00', fontSize: 28 }} />
+                    </Box>
+                    <Box sx={{ '--delay': 1, bgcolor: '#F8BBD0', p: 1.5, borderRadius: '12px' }}>
+                      <FavoriteIcon sx={{ color: '#C2185B', fontSize: 28 }} />
+                    </Box>
+                    <Box sx={{ '--delay': 2, bgcolor: '#C5CAE9', p: 1.5, borderRadius: '12px' }}>
+                      <PetsIcon sx={{ color: '#3949AB', fontSize: 28 }} />
+                    </Box>
+                  </Box>
+
+                  {/* Action Buttons */}
+                  <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <Button 
+                      onClick={() => setOpenSuccess(false)} 
+                      fullWidth 
+                      variant="contained" 
+                      size="large"
+                      sx={{ 
+                        bgcolor: '#7C4DFF',
+                        py: 1.5,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 14px rgba(124, 77, 255, 0.4)',
+                        '&:hover': {
+                          bgcolor: '#6C3FEF',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 6px 20px rgba(124, 77, 255, 0.5)'
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      Τέλεια!
+                    </Button>
+                    <Button 
+                      onClick={() => window.location.href = '/'} 
+                      fullWidth 
+                      variant="outlined" 
+                      size="large"
+                      sx={{ 
+                        borderColor: '#7C4DFF',
+                        color: '#7C4DFF',
+                        py: 1.5,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        borderRadius: '12px',
+                        '&:hover': {
+                          borderColor: '#6C3FEF',
+                          bgcolor: 'rgba(124, 77, 255, 0.05)'
+                        }
+                      }}
+                    >
+                      Επιστροφή στην Αρχική
+                    </Button>
+                  </Box>
+                </Box>
             </DialogContent>
         </Dialog>
 

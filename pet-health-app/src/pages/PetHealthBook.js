@@ -18,11 +18,11 @@ import PetsIcon from '@mui/icons-material/Pets';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import TimelineIcon from '@mui/icons-material/Timeline';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 export default function PetHealthBook() {
   const { id } = useParams();
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogContent, setDialogContent] = useState(null);
   const [currentTab, setCurrentTab] = useState(0);
@@ -44,6 +44,46 @@ export default function PetHealthBook() {
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
   };
+
+  // Fetch pet data from JSON server
+  useEffect(() => {
+    const fetchPetData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3001/pets/${id}`);
+        if (response.ok) {
+          const pet = await response.json();
+          setPetData(pet);
+          
+          // Mock vaccine data
+          setVaccines([
+            { id: 1, name: 'Εμβόλιο Λύσσας', date: '15 Ιαν 2024', nextDate: '15 Ιαν 2025', status: 'Ενεργό', vet: 'Δρ. Παπαδόπουλος' },
+            { id: 2, name: 'Πενταπλό (DHPP)', date: '20 Φεβ 2024', nextDate: '20 Φεβ 2025', status: 'Ενεργό', vet: 'Δρ. Κωνσταντίνου' },
+            { id: 3, name: 'Leishmaniasis', date: '10 Μαρ 2024', nextDate: '10 Μαρ 2025', status: 'Λήγει Σύντομα', vet: 'Δρ. Παπαδόπουλος' }
+          ]);
+
+          // Mock history data
+          setHistory([
+            { id: 1, date: '15 Δεκ 2024', type: 'Εξέταση', vet: 'Δρ. Παπαδόπουλος', notes: 'Γενική εξέταση - Όλα καλά' },
+            { id: 2, date: '10 Νοε 2024', type: 'Εμβολιασμός', vet: 'Δρ. Κωνσταντίνου', notes: 'Εμβόλιο λύσσας' }
+          ]);
+        } else {
+          setPetData(null);
+        }
+      } catch (error) {
+        console.error('Error fetching pet data:', error);
+        setPetData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPetData();
+  }, [id, user]);
 
   // Calculate vaccine status
   const activeVaccines = vaccines.filter(v => v.status === 'Ενεργό').length;
@@ -491,7 +531,7 @@ export default function PetHealthBook() {
               </Box>
             )}
 
-            {!isAuthenticated && (
+            {!user && (
               <Typography color="error" sx={{ mt: 4, textAlign: 'center', p: 3, bgcolor: 'error.light', borderRadius: 2 }}>
                 Πρέπει να συνδεθείτε για να δείτε τις πληροφορίες υγείας του ζώου.
               </Typography>
