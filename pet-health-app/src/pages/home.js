@@ -13,12 +13,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import PetsIcon from '@mui/icons-material/Pets';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EmailIcon from '@mui/icons-material/Email';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import ArticleIcon from '@mui/icons-material/Article';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import PageviewIcon from '@mui/icons-material/Pageview';
 
 // IMPORT NEWS COMPONENT
 import { NewsCard, NEWS_DATA } from './News';
@@ -84,7 +79,7 @@ const Navbar = () => {
   const [anchorElOwner, setAnchorElOwner] = useState(null);
   const [searchValue, setSearchValue] = useState(null);
   const [inputValue, setInputValue] = useState('');
-  const navigate = useNavigate(); // Hook inside component
+  const navigate = useNavigate();
 
   const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
   const handleCloseMenu = (setAnchor) => setAnchor(null);
@@ -121,7 +116,6 @@ const Navbar = () => {
               <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
                 <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση χαμένου κατοικιδίου</MenuItem>
                 <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/news'); }}>Νέα και Ενημέρωση</MenuItem>
-                <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Δήλωση εύρεσης κατοικιδίου</MenuItem>
               </Menu>
             </Box>
 

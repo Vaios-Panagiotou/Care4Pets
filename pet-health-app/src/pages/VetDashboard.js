@@ -13,7 +13,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import VaccinesIcon from '@mui/icons-material/Vaccines';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import DescriptionIcon from '@mui/icons-material/Description';
 import HistoryIcon from '@mui/icons-material/History';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PetsIcon from '@mui/icons-material/Pets';
@@ -80,14 +81,14 @@ export default function VetDashboard() {
           height: '400px', 
           width: '100%',
           bgcolor: '#263238',
-          backgroundImage: 'url(https://images.unsplash.com/photo-1628009368231-760335298025?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80)',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1530041539828-114de669390e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80)',
           backgroundSize: 'cover', 
           backgroundPosition: 'center',
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center'
         }}>
-          <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.6)' }} />
+          <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,105,92,0.7)' }} />
           <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', color: 'white' }}>
             <Typography variant="h2" fontWeight="800" sx={{ textShadow: '0 4px 20px rgba(0,0,0,0.8)' }}>
               Καλωσήρθατε, Γιατρέ
@@ -118,9 +119,9 @@ export default function VetDashboard() {
             <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
               {[
                 { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#00897B', path: '/vet/history' },
-                { label: 'Νέα Καταγραφή', icon: <VaccinesIcon fontSize="large" />, color: '#00897B', path: '/vet/new-record' },
-                { label: 'Ραντεβού', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B', path: '/vet/schedule' },
-                { label: 'Το Ιατρείο', icon: <AssignmentIndIcon fontSize="large" />, color: '#00897B', path: '/vet/clinic' }
+                { label: 'Πρόγραμμα', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B', path: '/vet/schedule' },
+                { label: 'Το Ιατρείο', icon: <MedicalServicesIcon fontSize="large" />, color: '#00897B', path: '/vet/clinic' },
+                { label: 'Καταγραφές', icon: <DescriptionIcon fontSize="large" />, color: '#00897B', path: '/vet/records' }
               ].map((action) => (
                 <Grid item xs={12} sm={4} key={action.label}>
                   <Paper elevation={0} onClick={() => navigate(action.path)} sx={{ 

@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, 
   TextField, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel,
-  Slider, Dialog, DialogContent, Stepper, Step, StepLabel, Tooltip, Collapse,
-  Alert, LinearProgress, Fade, Grow, Snackbar, Divider, InputAdornment, Zoom
+  Slider, Dialog, DialogContent, Stepper, Step, StepLabel, Collapse,
+  Alert, LinearProgress, Fade, Grow, Divider, InputAdornment, Zoom
 } from '@mui/material';
 import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Icons
 import SearchIcon from '@mui/icons-material/Search';
@@ -16,8 +16,6 @@ import PetsIcon from '@mui/icons-material/Pets';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import InfoIcon from '@mui/icons-material/Info';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -795,6 +793,7 @@ function LostPetsFormView({
 
 export default function LostPets() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [view, setView] = useState('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -816,6 +815,14 @@ export default function LostPets() {
   const [selectedPet, setSelectedPet] = useState(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
+
+  // Check URL parameter to show form view
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('view') === 'form') {
+      setView('form');
+    }
+  }, [location]);
 
   //prevent key bubbling
   const stopKeyPropagation = useCallback((e) => {

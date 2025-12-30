@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, Container, Typography, Paper, Divider, Chip, Accordion, AccordionSummary, AccordionDetails, 
   Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton, Avatar, Card, 
-  CardContent, Tabs, Tab, Badge, LinearProgress, CircularProgress 
+  CardContent, Tabs, Tab, CircularProgress 
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import PageHeader from './PageHeader';
 import DashboardSidebar from '../components/DashboardSidebar';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';

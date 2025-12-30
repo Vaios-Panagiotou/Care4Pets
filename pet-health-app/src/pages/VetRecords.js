@@ -2,24 +2,19 @@ import React, { useState } from 'react';
 import {
   Box, Container, Grid, Typography, Paper, Tabs, Tab, TextField, Button,
   FormControl, InputLabel, Select, MenuItem, Chip, Dialog, DialogTitle,
-  DialogContent, DialogActions, Alert, Divider, IconButton, List, ListItem,
-  ListItemText, ListItemSecondaryAction, Avatar
+  DialogContent, DialogActions, Alert, Divider, IconButton, Avatar
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
 import DashboardSidebar from '../components/DashboardSidebar';
 import PageHeader from './PageHeader';
 
 // Icons
-import AddIcon from '@mui/icons-material/Add';
 import PetsIcon from '@mui/icons-material/Pets';
 import DescriptionIcon from '@mui/icons-material/Description';
-import VaccinesIcon from '@mui/icons-material/Vaccines';
 import MedicationIcon from '@mui/icons-material/Medication';
 import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
-import PersonIcon from '@mui/icons-material/Person';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -52,7 +47,6 @@ const NEW_PETS = [
 ];
 
 export default function VetRecords() {
-  const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   
   // Prescription Dialog

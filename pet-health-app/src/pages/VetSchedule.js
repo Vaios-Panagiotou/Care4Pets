@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { 
-  Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, Divider 
+  Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,6 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import PersonIcon from '@mui/icons-material/Person';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 // Import PageHeader
 import PageHeader from './PageHeader';
@@ -137,247 +136,37 @@ const TimelineItem = ({ item }) => (
 );
 
 // 4. CALENDAR WIDGET
-const CalendarWidget = () => {
-  const [currentMonth, setCurrentMonth] = React.useState(10); // November (0-indexed)
-  const [currentYear, setCurrentYear] = React.useState(2025);
-  const [selectedDay, setSelectedDay] = React.useState(17);
-  const [hoveredDay, setHoveredDay] = React.useState(null);
-
-  const days = ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'];
-  const monthNames = ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος', 
-                      'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
-  
-  const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
-  
-  const daysInMonth = getDaysInMonth(currentMonth, currentYear);
-  const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
-  const prevMonthDays = getDaysInMonth(currentMonth - 1, currentYear);
-  
-  // Appointments by day (example data with details)
-  const appointments = {
-    17: { 
-      type: 'confirmed', 
-      count: 1,
-      details: [
-        { time: '10:00', doctor: 'Δρ. Νίκος Παπαδόπουλος', pet: 'Max', reason: 'Εμβολιασμός', location: 'Αθήνα, Κέντρο' }
-      ]
-    },
-    18: { 
-      type: 'confirmed', 
-      count: 2,
-      details: [
-        { time: '09:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Bella', reason: 'Τακτικός Έλεγχος', location: 'Καλλιθέα' },
-        { time: '14:00', doctor: 'Δρ. Γιάννης Γεωργίου', pet: 'Charlie', reason: 'Επανεξέταση', location: 'Αθήνα, Κέντρο' }
-      ]
-    },
-    20: { 
-      type: 'pending', 
-      count: 1,
-      details: [
-        { time: '11:00', doctor: 'Δρ. Ελένη Παπαδάκη', pet: 'Lucy', reason: 'Καθαρισμός Δοντιών', location: 'Γλυφάδα' }
-      ]
-    }
-  };
-
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
-  };
-
-  const handleDayClick = (day) => {
-    setSelectedDay(day);
-  };
-
-  const renderDay = (day, isCurrentMonth = true) => {
-    const appointment = isCurrentMonth ? appointments[day] : null;
-    let bg = 'transparent', color = '#1e293b', border = 'none';
-    
-    if (appointment) {
-      if (appointment.type === 'confirmed') { bg = '#10b981'; color = 'white'; }
-      else if (appointment.type === 'pending') { bg = '#f59e0b'; color = 'white'; }
-      else if (appointment.type === 'cancelled') { bg = '#ef4444'; color = 'white'; }
-    }
-    
-    if (isCurrentMonth && day === selectedDay) {
-      border = '2px solid #00695c';
-    }
-
-    const isToday = isCurrentMonth && day === 17 && currentMonth === 10 && currentYear === 2025;
-    
-    return (
-      <Box 
-        onClick={() => isCurrentMonth && handleDayClick(day)}
-        onMouseEnter={() => setHoveredDay(isCurrentMonth ? day : null)}
-        onMouseLeave={() => setHoveredDay(null)}
-        sx={{ 
-          width: 48, 
-          height: 48, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          bgcolor: bg, 
-          color: isCurrentMonth ? color : '#bdbdbd', 
-          borderRadius: '8px', 
-          fontSize: '0.95rem',
-          fontWeight: isToday ? 700 : 500,
-          cursor: isCurrentMonth ? 'pointer' : 'default',
-          border: border,
-          position: 'relative',
-          transition: 'all 0.2s ease',
-          boxShadow: hoveredDay === day && isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
-          transform: hoveredDay === day && isCurrentMonth ? 'scale(1.1)' : 'scale(1)',
-          '&:hover': { 
-            bgcolor: !appointment && isCurrentMonth ? '#e3f2fd' : bg,
-            boxShadow: isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
-          }
-        }}
-      >
-        {day}
-        {appointment && isCurrentMonth && (
-          <Box sx={{ 
-            position: 'absolute', 
-            bottom: 4, 
-            right: 4, 
-            width: 6, 
-            height: 6, 
-            borderRadius: '50%', 
-            bgcolor: 'white',
-            border: `1px solid ${bg}`
-          }} />
-        )}
-      </Box>
-    );
-  };
-
-  const calendar = [];
-  
-  // Previous month days
-  for (let i = firstDay === 0 ? 6 : firstDay - 1; i > 0; i--) {
-    calendar.push({ day: prevMonthDays - i + 1, isCurrentMonth: false });
-  }
-  
-  // Current month days
-  for (let i = 1; i <= daysInMonth; i++) {
-    calendar.push({ day: i, isCurrentMonth: true });
-  }
-  
-  // Next month days to fill the grid
-  const remainingDays = 42 - calendar.length;
-  for (let i = 1; i <= remainingDays; i++) {
-    calendar.push({ day: i, isCurrentMonth: false });
-  }
-  
-  return (
-    <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3 }}>
-        <IconButton size="small" onClick={handlePrevMonth}><ChevronLeftIcon /></IconButton>
-        <Typography variant="h6" fontWeight={700} sx={{ minWidth: 200, textAlign: 'center' }}>{monthNames[currentMonth]} {currentYear}</Typography>
-        <IconButton size="small" onClick={handleNextMonth}><ChevronRightIcon /></IconButton>
-      </Box>
-      
-      <Grid container spacing={1} sx={{ textAlign: 'center', mb: 2 }}>
-        {days.map(d => (
-          <Grid item xs={12/7} key={d}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>{d}</Typography>
-          </Grid>
-        ))}
-      </Grid>
-      
-      <Grid container spacing={1} sx={{ textAlign: 'center' }}>
-        {calendar.map((item, idx) => (
-          <Grid item xs={12/7} key={idx}>
-            {renderDay(item.day, item.isCurrentMonth)}
-          </Grid>
-        ))}
-      </Grid>
-
-      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, bgcolor: '#10b981', borderRadius: '4px' }} />
-          <Typography variant="caption">Επιβεβαιωμένα Ραντεβού</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, bgcolor: '#f59e0b', borderRadius: '4px' }} />
-          <Typography variant="caption">Σε Αναμονή</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, bgcolor: '#ef4444', borderRadius: '4px' }} />
-          <Typography variant="caption">Ακυρωμένα</Typography>
-        </Box>
-      </Box>
-
-      {selectedDay && (
-        <Box sx={{ mt: 3 }}>
-          <Box sx={{ p: 2, bgcolor: '#dbeafe', borderRadius: 2, border: '1px solid #93c5fd', mb: 2 }}>
-            <Typography variant="body2" fontWeight={600} color="primary">
-              {selectedDay} {monthNames[currentMonth]} {currentYear}
-            </Typography>
-            {appointments[selectedDay] ? (
-              <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.primary' }}>
-                {appointments[selectedDay].count} ραντεβού
-              </Typography>
-            ) : (
-              <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
-                Δεν υπάρχουν ραντεβού
-              </Typography>
-            )}
-          </Box>
-          
-          {appointments[selectedDay] && appointments[selectedDay].details && (
-            <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
-              {appointments[selectedDay].details.map((apt, idx) => {
-                const statusColors = {
-                  confirmed: { bg: '#d1fae5', border: '#10b981', text: '#065f46', badge: 'Επιβεβαιωμένο' },
-                  pending: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', badge: 'Σε Αναμονή' },
-                  cancelled: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', badge: 'Ακυρωμένο' }
-                };
-                const colors = statusColors[appointments[selectedDay].type];
-                
-                return (
-                  <Paper key={idx} sx={{ p: 1.5, mb: 1.5, bgcolor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="caption" sx={{ 
-                        bgcolor: 'white', 
-                        color: colors.text, 
-                        px: 1, py: 0.5, borderRadius: 0.5, fontWeight: 600 
-                      }}>
-                        {colors.badge}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" fontWeight={700} sx={{ mt: 1, color: 'text.primary' }}>{apt.time}</Typography>
-                    <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>📋 {apt.doctor}</Typography>
-                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>🐕 {apt.pet}</Typography>
-                    {apt.location && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>
-                      <LocationOnIcon sx={{ fontSize: 14 }} /> {apt.location}
-                    </Typography>}
-                  </Paper>
-                );
-              })}
-            </Box>
-          )}
-        </Box>
-      )}
-    </Paper>
-  );
-};
+const CalendarWidget = () => (
+  <Paper sx={{ p: 3, borderRadius: '16px' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <IconButton size="small"><ChevronLeftIcon /></IconButton>
+        <Typography variant="subtitle2" fontWeight="bold">Νοέμβριος 2025</Typography>
+        <IconButton size="small"><ChevronRightIcon /></IconButton>
+    </Box>
+    <Grid container spacing={1} sx={{ textAlign: 'center' }}>
+        {['Δ','Τ','Τ','Π','Π','Σ','Κ'].map(d => <Grid item xs={1.7} key={d}><Typography variant="caption" fontWeight="bold" color="text.secondary">{d}</Typography></Grid>)}
+        {[...Array(30)].map((_, i) => {
+            const day = i + 1;
+            const isToday = day === 17;
+            const hasAppt = day === 17 || day === 18 || day === 20;
+            return (
+                <Grid item xs={1.7} key={i}>
+                    <Box sx={{ 
+                        width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto',
+                        borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem',
+                        bgcolor: isToday ? '#00695c' : 'transparent',
+                        color: isToday ? 'white' : 'inherit',
+                        fontWeight: isToday ? 'bold' : 'normal',
+                        border: isToday ? 'none' : (hasAppt ? '1px solid #b2dfdb' : 'none')
+                    }}>{day}</Box>
+                </Grid>
+            )
+        })}
+    </Grid>
+  </Paper>
+);
 
 export default function VetSchedule() {
-  const navigate = useNavigate();
-
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa', pb: 10, display: 'flex', flexDirection: 'column' }}>

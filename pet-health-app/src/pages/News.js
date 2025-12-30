@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box, Container, Grid, Typography, Button, Paper, Card, CardContent,
-    Chip, Pagination, TextField, IconButton, Tab, Tabs, CardActionArea,
+    Chip, Pagination, TextField, Tab, Tabs, CardActionArea,
     Snackbar, Alert
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -10,11 +10,9 @@ import { useNavigate } from 'react-router-dom';
 // Icons
 import SearchIcon from '@mui/icons-material/Search';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import SendIcon from '@mui/icons-material/Send';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import FilterListIcon from '@mui/icons-material/FilterList';
+import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 // Import PageHeader
 import PageHeader from './PageHeader';
@@ -127,7 +125,9 @@ export const NewsCard = ({ item }) => {
         <Card
             onClick={() => navigate(`/news/${item.id}`)}
             sx={{
-                height: 440,
+                height: '100%',
+                minHeight: 420,
+                maxHeight: 420,
                 borderRadius: '14px',
                 bgcolor: 'white',
                 overflow: 'hidden',
@@ -141,10 +141,19 @@ export const NewsCard = ({ item }) => {
                 }
             }}
         >
-            <CardActionArea sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardActionArea sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
 
-                {/* Image - Fixed Height with fallback */}
-                <Box sx={{ width: '100%', height: 210, overflow: 'hidden', position: 'relative', bgcolor: '#f5f7fa', flexShrink: 0 }}>
+                {/* Image - Fixed Height and Aspect Ratio */}
+                <Box sx={{ 
+                    width: '100%', 
+                    height: 200, 
+                    minHeight: 200,
+                    maxHeight: 200,
+                    overflow: 'hidden', 
+                    position: 'relative', 
+                    bgcolor: '#f5f7fa', 
+                    flexShrink: 0 
+                }}>
                     <Box
                         component="img"
                         src={imgSrc}
@@ -155,6 +164,8 @@ export const NewsCard = ({ item }) => {
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
+                            objectPosition: 'center',
+                            display: 'block',
                             transition: 'transform 0.3s ease',
                             '.MuiCardActionArea-root:hover &': { transform: 'scale(1.05)' }
                         }}
@@ -164,19 +175,42 @@ export const NewsCard = ({ item }) => {
                         label={item.category}
                         size="small"
                         sx={{
-                            position: 'absolute', top: 10, right: 10,
-                            bgcolor: CATEGORY_COLORS[item.category] || '#1976d2', color: 'white', fontWeight: 600, fontSize: '0.7rem'
+                            position: 'absolute', top: 12, right: 12,
+                            bgcolor: CATEGORY_COLORS[item.category] || '#1976d2', 
+                            color: 'white', 
+                            fontWeight: 600, 
+                            fontSize: '0.7rem',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                         }}
                     />
                 </Box>
 
                 {/* Content - Fixed Structure */}
-                <CardContent sx={{ p: '16px', width: '100%', height: '230px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <CardContent sx={{ 
+                    p: 2.5, 
+                    width: '100%', 
+                    flex: 1,
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'space-between' 
+                }}>
 
                     {/* Meta Info */}
-                    <Box sx={{ display: 'flex', gap: 1.5, mb: 1, fontSize: '0.8rem', color: 'text.secondary', flexShrink: 0 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><AccessTimeIcon sx={{ fontSize: 15 }}/>{item.date}</Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>📖 {item.readTime}</Box>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        gap: 1.5, 
+                        mb: 1.5, 
+                        fontSize: '0.8rem', 
+                        color: 'text.secondary', 
+                        flexShrink: 0 
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <AccessTimeIcon sx={{ fontSize: 15 }}/>
+                            {item.date}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            📖 {item.readTime}
+                        </Box>
                     </Box>
 
                     {/* Title - Exactly 2 lines */}
@@ -186,27 +220,43 @@ export const NewsCard = ({ item }) => {
                             fontWeight: 700,
                             color: 'text.primary',
                             lineHeight: 1.4,
-                            height: '48px',
+                            minHeight: '56px',
+                            maxHeight: '56px',
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            flexShrink: 0
+                            flexShrink: 0,
+                            mb: 2
                         }}
                     >
                         {item.title}
                     </Typography>
 
                     {/* Footer - Fixed Position */}
-                    <Box sx={{ pt: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem' }}>
+                    <Box sx={{ 
+                        pt: 1.5, 
+                        borderTop: '1px solid #e2e8f0', 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        flexShrink: 0,
+                        mt: 'auto'
+                    }}>
+                        <Typography variant="caption" sx={{ 
+                            color: 'text.secondary', 
+                            fontWeight: 600, 
+                            fontSize: '0.75rem' 
+                        }}>
                             <span style={{ color: '#1976d2' }}>{item.author}</span>
                         </Typography>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: 'text.secondary' }}>
-                            <FavoriteBorderIcon sx={{ fontSize: 15 }} />
-                            <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{item.likes}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+                            <FavoriteBorderIcon sx={{ fontSize: 16 }} />
+                            <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>
+                                {item.likes}
+                            </Typography>
                         </Box>
                     </Box>
                 </CardContent>
@@ -216,39 +266,163 @@ export const NewsCard = ({ item }) => {
 };
 
 // 2. HERO SECTION
-const PlayfulHero = ({ onSearch }) => (
-    <Box sx={{ 
-            mb: 6, py: 6, px: 2,
-            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-            color: 'white', textAlign: 'center',
-            borderRadius: { xs: 0, md: '0 0 24px 24px' }
-    }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>Νέα & Ενημερώσεις</Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9, mb: 4 }}>Καλοδεχόρισμα στην κοινότητα της Care4Pets</Typography>
-            
-            <Box sx={{ maxWidth: 500, mx: 'auto', display: 'flex', gap: 1 }}>
-                <TextField
-                    fullWidth
-                    placeholder="Αναζήτηση άρθρων..."
-                    size="small"
-                    onChange={(e) => onSearch(e.target.value)}
-                    InputProps={{
-                        startAdornment: <SearchIcon sx={{ mr: 1, color: 'white', opacity: 0.7 }} />,
-                    }}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            bgcolor: 'rgba(255,255,255,0.15)',
-                            color: 'white',
-                            borderRadius: 2,
-                            '& fieldset': { border: 'none' },
-                            '&:hover, &.Mui-focused': { bgcolor: 'rgba(255,255,255,0.25)' }
-                        },
-                        '& .MuiOutlinedInput-input::placeholder': { color: 'rgba(255,255,255,0.6)', opacity: 1 }
-                    }}
-                />
-            </Box>
-    </Box>
-);
+const PlayfulHero = ({ onSearch }) => {
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+    return (
+        <Box sx={{ 
+                position: 'relative',
+                mb: 6, 
+                height: 420,
+                backgroundImage: 'url(https://images.unsplash.com/photo-1444212477490-ca407925329e?auto=format&fit=crop&w=1920&q=80)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: { xs: 0, md: '0 0 24px 24px' },
+                overflow: 'hidden'
+        }}>
+                {/* Animated Gradient Overlay */}
+                <Box sx={{ 
+                    position: 'absolute', 
+                    inset: 0, 
+                    background: 'linear-gradient(135deg, rgba(25,118,210,0.85) 0%, rgba(21,101,192,0.75) 100%)',
+                    zIndex: 1
+                }} />
+                
+                {/* Content */}
+                <Box sx={{ 
+                    position: 'relative', 
+                    zIndex: 2, 
+                    textAlign: 'center',
+                    color: 'white',
+                    px: 2,
+                    maxWidth: 900
+                }}>
+                    {/* Icon Badge */}
+                    <Box sx={{ 
+                        display: 'inline-flex',
+                        bgcolor: 'rgba(255,255,255,0.2)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: '50px',
+                        p: 1.5,
+                        mb: 2,
+                        animation: 'bounce 2s ease-in-out infinite',
+                        '@keyframes bounce': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }}>
+                        <NewspaperIcon sx={{ fontSize: 40 }} />
+                    </Box>
+
+                    <Typography variant="h3" sx={{ 
+                        fontWeight: 800, 
+                        mb: 2, 
+                        textShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        animation: 'fadeInDown 0.8s ease-out',
+                        '@keyframes fadeInDown': {
+                            '0%': { opacity: 0, transform: 'translateY(-20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' }
+                        }
+                    }}>
+                        Νέα & Ενημερώσεις
+                    </Typography>
+                    <Typography variant="h6" sx={{ 
+                        opacity: 0.95, 
+                        mb: 4,
+                        animation: 'fadeInDown 0.8s ease-out 0.2s both'
+                    }}>
+                        Ανακαλύψτε τα τελευταία άρθρα για την φροντίδα των κατοικιδίων σας
+                    </Typography>
+                    
+                    {/* Interactive Stats */}
+                    <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        gap: 4, 
+                        mb: 4,
+                        animation: 'fadeInUp 0.8s ease-out 0.4s both',
+                        '@keyframes fadeInUp': {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' }
+                        }
+                    }}>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="h4" sx={{ fontWeight: 800 }}>150+</Typography>
+                            <Typography variant="caption" sx={{ opacity: 0.9 }}>Άρθρα</Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="h4" sx={{ fontWeight: 800 }}>50K+</Typography>
+                            <Typography variant="caption" sx={{ opacity: 0.9 }}>Αναγνώστες</Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="h4" sx={{ fontWeight: 800 }}>20+</Typography>
+                            <Typography variant="caption" sx={{ opacity: 0.9 }}>Συγγραφείς</Typography>
+                        </Box>
+                    </Box>
+                    
+                    {/* Enhanced Search Bar */}
+                    <Box sx={{ 
+                        maxWidth: 600, 
+                        mx: 'auto',
+                        transform: isSearchFocused ? 'scale(1.02)' : 'scale(1)',
+                        transition: 'transform 0.3s ease',
+                        animation: 'fadeInUp 0.8s ease-out 0.6s both'
+                    }}>
+                        <TextField
+                            fullWidth
+                            placeholder="Αναζήτηση άρθρων, κατηγοριών..."
+                            size="medium"
+                            onChange={(e) => onSearch(e.target.value)}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setIsSearchFocused(false)}
+                            InputProps={{
+                                startAdornment: <SearchIcon sx={{ mr: 1, color: 'white', fontSize: 28 }} />,
+                                endAdornment: (
+                                    <Chip 
+                                        label="Enter" 
+                                        size="small" 
+                                        sx={{ 
+                                            bgcolor: 'rgba(255,255,255,0.2)', 
+                                            color: 'white',
+                                            fontWeight: 700,
+                                            fontSize: '0.7rem'
+                                        }} 
+                                    />
+                                )
+                            }}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: 'rgba(255,255,255,0.15)',
+                                    backdropFilter: 'blur(15px)',
+                                    color: 'white',
+                                    borderRadius: 3,
+                                    fontSize: '1.1rem',
+                                    py: 0.5,
+                                    '& fieldset': { border: '2px solid rgba(255,255,255,0.2)' },
+                                    '&:hover': { 
+                                        bgcolor: 'rgba(255,255,255,0.2)',
+                                        '& fieldset': { borderColor: 'rgba(255,255,255,0.4)' }
+                                    },
+                                    '&.Mui-focused': { 
+                                        bgcolor: 'rgba(255,255,255,0.25)',
+                                        '& fieldset': { borderColor: 'rgba(255,255,255,0.6)' }
+                                    }
+                                },
+                                '& .MuiOutlinedInput-input::placeholder': { 
+                                    color: 'rgba(255,255,255,0.7)', 
+                                    opacity: 1,
+                                    fontSize: '1rem'
+                                }
+                            }}
+                        />
+                    </Box>
+                </Box>
+        </Box>
+    );
+};
 
 // 3. NEWSLETTER
 const Newsletter = () => {
@@ -308,6 +482,10 @@ export default function News() {
     const [activeTab, setActiveTab] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const filteredNews = NEWS_DATA.filter((item) => {
         const matchesCategory = activeTab === 0 || item.category === CATEGORIES[activeTab];
         const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -350,9 +528,9 @@ export default function News() {
                         </Box>
 
                         {/* GRID */}
-                        <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
+                        <Grid container spacing={3}>
                                 {filteredNews.map(item => (
-                                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id} sx={{ display: 'flex' }}>
+                                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                                                 <NewsCard item={item} />
                                         </Grid>
                                 ))}

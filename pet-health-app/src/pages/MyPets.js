@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Container, Grid, Typography, Button, Paper, Avatar, IconButton, TextField,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton, Card, CardContent
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,6 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
-import HistoryIcon from '@mui/icons-material/History';
 
 const theme = createTheme({
   palette: { 
@@ -125,24 +124,6 @@ const CalendarWidget = () => {
       details: [
         { time: '14:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Pantiana', reason: 'Ετήσια Εξέταση', location: 'Καλλιθέα' }
       ]
-    }
-  };
-
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
     }
   };
 

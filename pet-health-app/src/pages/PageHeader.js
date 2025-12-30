@@ -4,7 +4,6 @@ import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 // Icons
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import HomeIcon from '@mui/icons-material/Home';
 
@@ -125,9 +124,9 @@ export default function PageHeader() {
           // Μετάφραση ή χρήση του αγγλικού αν δεν υπάρχει στο λεξικό
           const name = routeNameMap[value] || value;
           
-          // Role indicators are now clickable
+          // Role indicators should link to their dashboards
           const isRoleIndicator = value === 'owner' || value === 'vet';
-          const roleLink = value === 'owner' ? '/owner/dashboard' : value === 'vet' ? '/vet/dashboard' : null;
+          const roleLink = value === 'owner' ? '/owner' : value === 'vet' ? '/vet' : null;
 
           return last ? (
             <Typography 
@@ -147,8 +146,8 @@ export default function PageHeader() {
               underline="none" 
               key={to} 
               sx={{ 
-                color: '#64748b',
-                fontWeight: 500,
+                color: '#0f172a',
+                fontWeight: 600,
                 fontSize: '0.8rem',
                 transition: 'all 0.2s ease',
                 '&:hover': { 

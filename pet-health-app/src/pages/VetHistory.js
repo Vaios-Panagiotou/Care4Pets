@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  Box, Container, Typography, Paper, Chip, Tabs, Tab, List, ListItem, 
-  ListItemText, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton,
+  Box, Container, Typography, Paper, Chip, Tabs, Tab, List, 
+  Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton,
   Rating, Avatar, Card, CardContent
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -11,7 +11,6 @@ import DashboardSidebar from '../components/DashboardSidebar';
 import HistoryIcon from '@mui/icons-material/History';
 import PetsIcon from '@mui/icons-material/Pets';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import CloseIcon from '@mui/icons-material/Close';
 import InfoIcon from '@mui/icons-material/Info';
