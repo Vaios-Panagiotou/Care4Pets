@@ -195,8 +195,26 @@ export default function History() {
         </Container>
 
         {/*HERO HEADER*/}
-        <Box sx={{ bgcolor: '#263238', py: 6, mb: 4, color: 'white', textAlign: 'center' }}>
-            <Container maxWidth="md">
+        <Box sx={{ 
+            position: 'relative',
+            py: 6, 
+            mb: 4, 
+            color: 'white', 
+            textAlign: 'center',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1581888227599-779811939961?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            overflow: 'hidden'
+        }}>
+            {/* Gradient Overlay */}
+            <Box sx={{ 
+                position: 'absolute', 
+                inset: 0, 
+                background: 'linear-gradient(135deg, rgba(38, 50, 56, 0.9) 0%, rgba(0, 105, 92, 0.85) 100%)',
+                zIndex: 1
+            }} />
+            
+            <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2 }}>
                 <HistoryIcon sx={{ fontSize: 60, mb: 2, opacity: 0.8 }} />
                 <Typography variant="h4" fontWeight="bold">Ιστορικό & Αρχείο</Typography>
                 <Typography variant="body1" sx={{ opacity: 0.8, mt: 1 }}>
