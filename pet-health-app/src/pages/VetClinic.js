@@ -141,6 +141,15 @@ export default function VetClinicProfile() {
     emergency: true
   });
 
+  const [hours, setHours] = useState({
+    'Δευτέρα': '09:00 - 21:00',
+    'Τρίτη': '09:00 - 21:00',
+    'Τετάρτη': '09:00 - 21:00',
+    'Πέμπτη': '09:00 - 21:00',
+    'Παρασκευή': '09:00 - 21:00',
+    'Σάββατο': '09:00 - 14:00'
+  });
+
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -173,14 +182,17 @@ export default function VetClinicProfile() {
         
         <DashboardSidebar />
 
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Container maxWidth="xl" sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             
             {/* Header Area */}
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '100%' }}>
                 <Box>
                     <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, letterSpacing: 1 }}>BUSINESS PROFILE</Typography>
                     <Typography variant="h4" sx={{ color: '#0f172a' }}>Διαχείριση Κλινικής</Typography>
                 </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%', mb: 3 }}>
                 <Button 
                     variant="contained" 
                     size="large"
@@ -193,7 +205,7 @@ export default function VetClinicProfile() {
                 </Button>
             </Box>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={3} sx={{ justifyContent: 'center', maxWidth: '1200px' }}>
                 
                 {/* --- LEFT COLUMN: IDENTITY & HOURS --- */}
                 <Grid item xs={12} lg={4}>
@@ -279,9 +291,8 @@ export default function VetClinicProfile() {
                         
                         {/* 1. Services Management */}
                         <Paper sx={{ p: 4, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Box sx={{ mb: 3 }}>
                                 <Typography variant="h6" fontWeight="bold" sx={{ color: '#0f172a' }}>Υπηρεσίες & Τιμοκατάλογος</Typography>
-                                <Button startIcon={<AddIcon />} disabled={!isEditing} variant="text">Νέα Κατηγορία</Button>
                             </Box>
                             
                             {isEditing && (
@@ -315,15 +326,35 @@ export default function VetClinicProfile() {
                                     </Typography>
                                     <Stack spacing={1.5}>
                                         {['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή'].map(day => (
-                                            <Box key={day} sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                                                <Typography color="text.secondary">{day}</Typography>
-                                                <Typography fontWeight="500">09:00 - 21:00</Typography>
+                                            <Box key={day} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', gap: 2 }}>
+                                                <Typography color="text.secondary" sx={{ minWidth: 80 }}>{day}</Typography>
+                                                {isEditing ? (
+                                                    <TextField 
+                                                        size="small" 
+                                                        value={hours[day]} 
+                                                        onChange={(e) => setHours({...hours, [day]: e.target.value})}
+                                                        variant="outlined"
+                                                        sx={{ width: 150 }}
+                                                    />
+                                                ) : (
+                                                    <Typography fontWeight="500">{hours[day]}</Typography>
+                                                )}
                                             </Box>
                                         ))}
                                         <Divider sx={{ my: 1 }} />
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                                            <Typography color="text.secondary">Σάββατο</Typography>
-                                            <Typography fontWeight="500">09:00 - 14:00</Typography>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', gap: 2 }}>
+                                            <Typography color="text.secondary" sx={{ minWidth: 80 }}>Σάββατο</Typography>
+                                            {isEditing ? (
+                                                <TextField 
+                                                    size="small" 
+                                                    value={hours['Σάββατο']} 
+                                                    onChange={(e) => setHours({...hours, 'Σάββατο': e.target.value})}
+                                                    variant="outlined"
+                                                    sx={{ width: 150 }}
+                                                />
+                                            ) : (
+                                                <Typography fontWeight="500">{hours['Σάββατο']}</Typography>
+                                            )}
                                         </Box>
                                     </Stack>
                                 </Paper>

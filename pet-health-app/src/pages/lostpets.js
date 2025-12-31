@@ -602,8 +602,8 @@ function LostPetsFormView({
                     <Grid item xs={12} sm={6}>
                       <TextField fullWidth required label="Όνομα Ζώου" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} error={!!formErrors.name} helperText={formErrors.name} />
                     </Grid>
-                    <Grid size={{ xs: 5, sm: 2 }}>
-                      <FormControl fullWidth required>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth required sx={{ minWidth: 200 }}>
                         <InputLabel id="type-label">Είδος</InputLabel>
                         <Select
                           labelId="type-label"
