@@ -509,27 +509,26 @@ export default function VetSearch() {
           <DashboardSidebar />
           
           <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-              <Paper elevation={0} sx={{ mb: 2, mx: 2, p: 2.5, borderRadius: 3, border: '1px dashed #b0bec5', bgcolor: '#f1f8e9', display: 'flex', alignItems: 'center', gap: 2, animation: `${floatCard} 7s ease-in-out infinite` }}>
-                <CheckCircleIcon color="success" />
-                <Box>
-                  <Typography fontWeight={700} color="text.primary">Σύνδεση ελέγχθηκε</Typography>
-                  <Typography variant="body2" color="text.secondary">Είστε συνδεδεμένος ως {userLabel}. Μπορείτε να συνεχίσετε με ασφάλεια.</Typography>
-                </Box>
-                <Chip label="Connected" color="success" variant="outlined" sx={{ ml: 'auto', fontWeight: 'bold' }} />
-              </Paper>
             <Box sx={{ 
-                height: '300px', position: 'relative', mb: 5, bgcolor: '#333',
-                backgroundImage: 'url(https://images.unsplash.com/photo-1628009368231-760335298025?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)',
+                height: '300px', position: 'relative', mb: 8,
+                backgroundImage: 'url(https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1600&q=80)',
                 backgroundSize: 'cover', backgroundPosition: 'center',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'visible'
             }}>
-                <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.5)' }} />
-                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', position: 'relative', zIndex: 1 }}>
+                {/* Gradient Overlay */}
+                <Box sx={{ 
+                    position: 'absolute', 
+                    inset: 0, 
+                    background: 'linear-gradient(135deg, rgba(0, 105, 92, 0.85) 0%, rgba(38, 50, 56, 0.75) 100%)',
+                    zIndex: 1
+                }} />
+                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', position: 'relative', zIndex: 2 }}>
                     Ραντεβού με Κτηνίατρο
                 </Typography>
             
-            <Box sx={{ position: 'absolute', bottom: -25, width: '100%', display: 'flex', justifyContent: 'center' }}>
-                <Paper elevation={3} sx={{ px: 4, py: 1.5, borderRadius: '50px', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ position: 'absolute', bottom: -30, width: '100%', display: 'flex', justifyContent: 'center', zIndex: 3 }}>
+                <Paper elevation={3} sx={{ px: 4, py: 1.5, borderRadius: '50px', display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'white' }}>
                     {STEPS.map((label, index) => (
                         <Box key={index} sx={{ display: 'flex', alignItems: 'center' }}>
                             <Box sx={{ 

@@ -216,14 +216,6 @@ const CalendarWidget = () => {
         <Typography variant="h6" fontWeight={700}>{monthNames[currentMonth]} {currentYear}</Typography>
       </Box>
       
-      <Grid container spacing={1} sx={{ textAlign: 'center', mb: 2 }}>
-        {days.map(d => (
-          <Grid item xs={12/7} key={d}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>{d}</Typography>
-          </Grid>
-        ))}
-      </Grid>
-      
       <Grid container spacing={1} sx={{ textAlign: 'center' }}>
         {calendar.map((item, idx) => (
           <Grid item xs={12/7} key={idx}>

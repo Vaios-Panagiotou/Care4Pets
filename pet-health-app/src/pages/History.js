@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Box, Container, Typography, Paper, Chip, Tabs, Tab, List, ListItem, 
-  ListItemIcon, ListItemText, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton 
+  ListItemIcon, ListItemText, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton,
+  Rating, TextField, Alert, Snackbar
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -69,7 +70,7 @@ const HISTORY_DATA = {
 // --- SUB-COMPONENTS ---
 
 // 1. History Item Row
-const HistoryItem = ({ icon, title, subtitle, date, status, statusLabel, onClick }) => (
+const HistoryItem = ({ icon, title, subtitle, date, status, statusLabel, onClick, showReviewButton, onReviewClick }) => (
   <Paper sx={{ mb: 2, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: '0.2s', '&:hover': { bgcolor: '#f5f5f5' } }} onClick={onClick}>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box sx={{ p: 1.5, bgcolor: '#e0f2f1', color: '#00695c', borderRadius: '50%' }}>
@@ -82,7 +83,31 @@ const HistoryItem = ({ icon, title, subtitle, date, status, statusLabel, onClick
         </Box>
     </Box>
     
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+        {showReviewButton && (
+          <Button 
+            size="small"
+            variant="outlined"
+            startIcon={<RateReviewIcon sx={{ display: { xs: 'none', sm: 'block' } }} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onReviewClick();
+            }}
+            sx={{ 
+              borderColor: '#FFA726',
+              color: '#FFA726',
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              px: { xs: 1, sm: 2 },
+              display: { xs: 'none', md: 'flex' },
+              '&:hover': { 
+                borderColor: '#FB8C00',
+                bgcolor: 'rgba(255, 167, 38, 0.08)'
+              }
+            }}
+          >
+            Αξιολόγηση
+          </Button>
+        )}
         <Typography variant="body2" color="text.secondary" fontWeight="500" sx={{ display: { xs: 'none', sm: 'block' } }}>
             {date}
         </Typography>
@@ -107,6 +132,11 @@ export default function History() {
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogContent, setDialogContent] = useState(null);
+  const [openReviewDialog, setOpenReviewDialog] = useState(false);
+  const [reviewData, setReviewData] = useState(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
 
   const handleTabChange = (event, newValue) => {
@@ -123,6 +153,39 @@ export default function History() {
     setDialogContent(null);
   };
 
+  const handleOpenReviewDialog = (appointment) => {
+    setReviewData(appointment);
+    setReviewRating(0);
+    setReviewComment('');
+    setOpenReviewDialog(true);
+  };
+
+  const handleCloseReviewDialog = () => {
+    setOpenReviewDialog(false);
+    setReviewData(null);
+    setReviewRating(0);
+    setReviewComment('');
+  };
+
+  const handleSubmitReview = () => {
+    if (reviewRating === 0) {
+      setSnackbar({ open: true, message: 'Παρακαλώ δώστε βαθμολογία', severity: 'warning' });
+      return;
+    }
+    if (!reviewComment.trim()) {
+      setSnackbar({ open: true, message: 'Παρακαλώ γράψτε ένα σχόλιο', severity: 'warning' });
+      return;
+    }
+    // Here you would typically send the review to your backend
+    console.log('Review submitted:', { 
+      appointment: reviewData, 
+      rating: reviewRating, 
+      comment: reviewComment 
+    });
+    setSnackbar({ open: true, message: 'Η κριτική σας καταχωρήθηκε επιτυχώς!', severity: 'success' });
+    handleCloseReviewDialog();
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f9f9f9', pb: 8, display: 'flex', flexDirection: 'column' }}>
@@ -132,8 +195,26 @@ export default function History() {
         </Container>
 
         {/*HERO HEADER*/}
-        <Box sx={{ bgcolor: '#263238', py: 6, mb: 4, color: 'white', textAlign: 'center' }}>
-            <Container maxWidth="md">
+        <Box sx={{ 
+            position: 'relative',
+            py: 6, 
+            mb: 4, 
+            color: 'white', 
+            textAlign: 'center',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1581888227599-779811939961?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            overflow: 'hidden'
+        }}>
+            {/* Gradient Overlay */}
+            <Box sx={{ 
+                position: 'absolute', 
+                inset: 0, 
+                background: 'linear-gradient(135deg, rgba(38, 50, 56, 0.9) 0%, rgba(0, 105, 92, 0.85) 100%)',
+                zIndex: 1
+            }} />
+            
+            <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2 }}>
                 <HistoryIcon sx={{ fontSize: 60, mb: 2, opacity: 0.8 }} />
                 <Typography variant="h4" fontWeight="bold">Ιστορικό & Αρχείο</Typography>
                 <Typography variant="body1" sx={{ opacity: 0.8, mt: 1 }}>
@@ -180,6 +261,8 @@ export default function History() {
                             date={item.date}
                             status={item.status}
                             statusLabel={item.status === 'completed' ? 'Ολοκληρώθηκε' : 'Ακυρώθηκε'}
+                            showReviewButton={item.status === 'completed'}
+                            onReviewClick={() => handleOpenReviewDialog(item)}
                             onClick={() => handleOpenDialog({
                                 type: 'appointment',
                                 data: item,
@@ -444,6 +527,27 @@ export default function History() {
                           </Paper>
                         </Grid>
                       )}
+                      {dialogContent.data.status === 'completed' && (
+                        <Grid item xs={12}>
+                          <Button 
+                            fullWidth 
+                            variant="contained" 
+                            startIcon={<RateReviewIcon />}
+                            onClick={() => {
+                              handleCloseDialog();
+                              handleOpenReviewDialog(dialogContent.data);
+                            }}
+                            sx={{ 
+                              bgcolor: '#FFA726', 
+                              color: 'white',
+                              py: 1.5,
+                              '&:hover': { bgcolor: '#FB8C00' }
+                            }}
+                          >
+                            Αξιολογήστε τον Κτηνίατρο
+                          </Button>
+                        </Grid>
+                      )}
                     </>
                   )}
 
@@ -620,6 +724,124 @@ export default function History() {
             </>
           )}
         </Dialog>
+
+        {/* REVIEW DIALOG */}
+        <Dialog 
+          open={openReviewDialog} 
+          onClose={handleCloseReviewDialog}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: { borderRadius: '16px' }
+          }}
+        >
+          <DialogTitle sx={{ 
+            bgcolor: '#FFA726',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <RateReviewIcon />
+              <Typography variant="h6" fontWeight="bold">Αξιολόγηση Κτηνιάτρου</Typography>
+            </Box>
+            <IconButton onClick={handleCloseReviewDialog} sx={{ color: 'white' }}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ pt: 3 }}>
+            {reviewData && (
+              <Box>
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#f5f5f5', borderRadius: 2, mb: 3 }}>
+                  <Typography variant="subtitle2" color="text.secondary">ΡΑΝΤΕΒΟΥ</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ mt: 0.5 }}>{reviewData.title}</Typography>
+                  <Typography variant="body2" color="text.secondary">{reviewData.vet}</Typography>
+                  <Typography variant="caption" color="text.secondary">{reviewData.date}</Typography>
+                </Paper>
+
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Βαθμολογία *
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Rating
+                      value={reviewRating}
+                      onChange={(event, newValue) => setReviewRating(newValue)}
+                      size="large"
+                      sx={{
+                        '& .MuiRating-iconFilled': {
+                          color: '#FFA726'
+                        }
+                      }}
+                    />
+                    <Typography variant="h6" fontWeight="bold" color="primary">
+                      {reviewRating > 0 ? `${reviewRating}/5` : ''}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Η γνώμη σας *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    placeholder="Περιγράψτε την εμπειρία σας με τον κτηνίατρο. Πώς ήταν η συμπεριφορά του; Ήταν επαγγελματίας; Θα τον συστήνατε;"
+                    variant="outlined"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2
+                      }
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    {reviewComment.length}/500 χαρακτήρες
+                  </Typography>
+                </Box>
+
+                <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
+                  Η κριτική σας θα είναι ορατή σε άλλους ιδιοκτήτες κατοικιδίων και θα βοηθήσει στην επιλογή κτηνιάτρου.
+                </Alert>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button onClick={handleCloseReviewDialog} variant="outlined" color="inherit">
+              Ακύρωση
+            </Button>
+            <Button 
+              onClick={handleSubmitReview} 
+              variant="contained" 
+              sx={{ 
+                bgcolor: '#FFA726',
+                '&:hover': { bgcolor: '#FB8C00' }
+              }}
+            >
+              Υποβολή Κριτικής
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* SNACKBAR FOR NOTIFICATIONS */}
+        <Snackbar 
+          open={snackbar.open} 
+          autoHideDuration={4000} 
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={() => setSnackbar({ ...snackbar, open: false })} 
+            severity={snackbar.severity}
+            sx={{ width: '100%', borderRadius: 2 }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </ThemeProvider>
   );
