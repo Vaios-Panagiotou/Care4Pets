@@ -321,44 +321,48 @@ export default function Profile() {
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: '#1e293b', textAlign: 'center' }}>
               Στατιστικά Λογαριασμού
             </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)', color: '#fff', textAlign: 'center' }}>
-                  <CardContent>
-                    <PetsIcon sx={{ fontSize: 40, mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">3</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Κατοικίδια</Typography>
-                  </CardContent>
-                </Card>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+              <Grid container spacing={4} alignItems="stretch" justifyContent="center" sx={{ mb: 0 }}>
+                <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
+                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)', color: '#fff', textAlign: 'center', width: '100%', height: 140, minWidth: 120, maxWidth: 180, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <CardContent sx={{ width: '100%', p: 2 }}>
+                      <PetsIcon sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4" fontWeight="bold">3</Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>Κατοικίδια</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
+                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #ffb74d 0%, #ff9800 100%)', color: '#fff', textAlign: 'center', width: '100%', height: 140, minWidth: 120, maxWidth: 180, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <CardContent sx={{ width: '100%', p: 2 }}>
+                      <CalendarMonthIcon sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4" fontWeight="bold">12</Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>Ραντεβού</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #ffb74d 0%, #ff9800 100%)', color: '#fff', textAlign: 'center' }}>
-                  <CardContent>
-                    <CalendarMonthIcon sx={{ fontSize: 40, mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">12</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Ραντεβού</Typography>
-                  </CardContent>
-                </Card>
+              <Grid container spacing={4} alignItems="stretch" justifyContent="center" sx={{ mt: 1 }}>
+                <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
+                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #00897b 0%, #00695c 100%)', color: '#fff', textAlign: 'center', width: '100%', height: 140, minWidth: 120, maxWidth: 180, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <CardContent sx={{ width: '100%', p: 2 }}>
+                      <LocalHospitalIcon sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4" fontWeight="bold">8</Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>Εμβόλια</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
+                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%)', color: '#fff', textAlign: 'center', width: '100%', height: 140, minWidth: 120, maxWidth: 180, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <CardContent sx={{ width: '100%', p: 2 }}>
+                      <FavoriteIcon sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4" fontWeight="bold">25</Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>Εξετάσεις</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #00897b 0%, #00695c 100%)', color: '#fff', textAlign: 'center' }}>
-                  <CardContent>
-                    <LocalHospitalIcon sx={{ fontSize: 40, mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">8</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Εμβόλια</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'linear-gradient(135deg, #ffc107 0%, #ffb74d 100%)', color: '#fff', textAlign: 'center' }}>
-                  <CardContent>
-                    <FavoriteIcon sx={{ fontSize: 40, mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">25</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Εξετάσεις</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+            </Box>
           </Grid>
 
           {/* Account Info & Preferences */}

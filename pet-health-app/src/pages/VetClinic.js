@@ -52,14 +52,16 @@ const theme = createTheme({
 
 // 1. The 2x2 Stat Grid Component (Business Version)
 const StatSquare = ({ icon: Icon, value, label, color, trend }) => (
-    <Grid item xs={6}>
+    <Grid item xs={12} sm={6} md={3} sx={{ display: 'flex' }}>
         <Card 
             elevation={0}
             sx={{ 
-                height: '100%', 
-                minHeight: 150,
-                border: '1px solid #e2e8f0',
+                width: '100%',
+                height: 220,
+                minWidth: 180,
+                maxWidth: 220,
                 display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                border: '1px solid #e2e8f0',
                 background: 'white',
                 position: 'relative',
                 overflow: 'hidden',
@@ -68,22 +70,20 @@ const StatSquare = ({ icon: Icon, value, label, color, trend }) => (
         >
             {/* Colored Accent Bar */}
             <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 4, bgcolor: color }} />
-            
-            <Stack alignItems="center" spacing={1.5}>
-                 <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: `${color}15`, color: color, display: 'flex' }}>
+            <Stack alignItems="center" spacing={1.5} sx={{ width: '100%' }}>
+                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: `${color}15`, color: color, display: 'flex', minWidth: 56, minHeight: 56, justifyContent: 'center', alignItems: 'center' }}>
                     <Icon sx={{ fontSize: 32 }} />
                 </Box>
                 <Typography variant="h4" fontWeight="bold" sx={{ color: '#0f172a' }}>{value}</Typography>
-                <Typography variant="caption" fontWeight="600" sx={{ color: '#64748b', textAlign: 'center', letterSpacing: '0.5px' }}>
+                <Typography variant="caption" fontWeight="600" sx={{ color: '#64748b', textAlign: 'center', letterSpacing: '0.5px', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {label.toUpperCase()}
                 </Typography>
             </Stack>
-            
             {trend && (
                 <Chip 
                     label={trend} 
                     size="small" 
-                    sx={{ mt: 1, height: 20, fontSize: '0.7rem', bgcolor: '#dcfce7', color: '#166534', fontWeight: 700 }} 
+                    sx={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', bgcolor: `${color}15`, color: color, fontWeight: 700 }}
                 />
             )}
         </Card>
@@ -262,7 +262,7 @@ export default function VetClinicProfile() {
                              <Typography variant="h6" sx={{ mb: 2, color: '#334155', display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <TrendingUpIcon color="primary" /> Στατιστικά Επιχείρησης
                             </Typography>
-                            <Grid container spacing={2}>
+                            <Grid container spacing={2} alignItems="stretch">
                                 <StatSquare icon={PeopleIcon} value="124" label="Νέοι Πελάτες" color="#0e7490" trend="+12%" />
                                 <StatSquare icon={PetsIcon} value="45" label="Επισκέψεις Σήμερα" color="#f59e0b" />
                                 <StatSquare icon={EuroIcon} value="8.5k" label="Έσοδα Μήνα" color="#10b981" trend="+5%" />
