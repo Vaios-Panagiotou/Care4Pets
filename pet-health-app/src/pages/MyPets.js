@@ -45,27 +45,27 @@ const theme = createTheme({
   </Paper>
 );
 
-const AppointmentCard = ({ date, time, doctor, pet, location, phone, status }) => (
-  <Paper sx={{ p: 2, mb: 2, borderLeft: status === 'confirmed' ? '4px solid #10b981' : '4px solid #ef4444', bgcolor: 'white' }}>
+const AppointmentCard = ({ appointment, onViewDetails, onCancel }) => (
+  <Paper sx={{ p: 2, mb: 2, borderLeft: appointment.status === 'confirmed' ? '4px solid #10b981' : '4px solid #ef4444', bgcolor: 'white' }}>
     <Typography variant="caption" sx={{ 
-      bgcolor: status === 'confirmed' ? '#d1fae5' : '#fee2e2',
-      color: status === 'confirmed' ? '#065f46' : '#991b1b',
+      bgcolor: appointment.status === 'confirmed' ? '#d1fae5' : '#fee2e2',
+      color: appointment.status === 'confirmed' ? '#065f46' : '#991b1b',
       px: 1, py: 0.5, borderRadius: 1, fontWeight: 600, fontSize: '0.7rem'
     }}>
-      {status === 'confirmed' ? 'Επιβεβαιωμένο' : 'Ακυρωμένο'}
+      {appointment.status === 'confirmed' ? 'Επιβεβαιωμένο' : 'Ακυρωμένο'}
     </Typography>
-    <Typography variant="body2" fontWeight={700} sx={{ mt: 1, color: 'text.primary' }}>{date} • {time}</Typography>
-    <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>📋 {doctor}</Typography>
-    <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>🐕 {pet}</Typography>
-    {location && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>
-      <LocationOnIcon sx={{ fontSize: 14 }} /> {location}
+    <Typography variant="body2" fontWeight={700} sx={{ mt: 1, color: 'text.primary' }}>{appointment.date} • {appointment.time}</Typography>
+    <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>📋 {appointment.vetName || appointment.doctor}</Typography>
+    <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>🐕 {appointment.petName || appointment.pet}</Typography>
+    {appointment.location && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>
+      <LocationOnIcon sx={{ fontSize: 14 }} /> {appointment.location}
     </Typography>}
-    {phone && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
-      <PhoneIcon sx={{ fontSize: 14 }} /> {phone}
+    {appointment.phone && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+      <PhoneIcon sx={{ fontSize: 14 }} /> {appointment.phone}
     </Typography>}
     <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
-      <Button size="small" variant="outlined" sx={{ fontSize: '0.7rem' }}>Λεπτομέρειες</Button>
-      {status === 'confirmed' && <Button size="small" variant="contained" sx={{ fontSize: '0.7rem', bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}>Ακύρωση</Button>}
+      <Button size="small" variant="outlined" sx={{ fontSize: '0.7rem' }} onClick={() => onViewDetails(appointment)}>Λεπτομέρειες</Button>
+      {appointment.status === 'confirmed' && <Button size="small" variant="contained" sx={{ fontSize: '0.7rem', bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }} onClick={() => onCancel(appointment)}>Ακύρωση</Button>}
     </Box>
   </Paper>
 );
@@ -308,7 +308,7 @@ const CalendarWidget = () => {
   );
 };
 
-const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
+const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
   <Paper 
     elevation={0}
     sx={{ 
@@ -457,6 +457,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
         size="medium"
         variant="contained" 
         fullWidth
+        onClick={() => onViewDetails(pet)}
         sx={{ 
           textTransform: 'none',
           fontWeight: 600,
@@ -478,33 +479,58 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
     const navigate = useNavigate();
     const { user } = useAuth();
     const [pets, setPets] = useState([]);
+    const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({ name: '', breed: '', gender: 'male', age: '', weight: '', img: '' });
-
-    // Mock appointments
-    const appointments = [
-        { id: 1, date: 'Τρίτη, 17 Νοεμβρίου 2025', time: '10:00', doctor: 'Δρ. Νίκος Παπαδόπουλος', pet: 'Kouvelaj - Εμβολιασμός', location: 'Αθήνα, Κέντρο - Ακαδημίας 23', phone: '+30 210 1234567', status: 'confirmed' },
-        { id: 2, date: 'Τετάρτη, 28 Νοεμβρίου 2025', time: '14:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Pantiana - Ετήσια Εξέταση', location: 'Καλλιθέα', phone: '+30 210 7654321', status: 'cancelled' }
-    ];
+    const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+    const [selectedAppointment, setSelectedAppointment] = useState(null);
+    const [petDetailsDialogOpen, setPetDetailsDialogOpen] = useState(false);
+    const [selectedPet, setSelectedPet] = useState(null);
 
     useEffect(() => {
         const fetchPets = async () => {
             setError('');
-            if (!user?.id) { setLoading(false); return; }
+            if (!user?.id) { 
+                setLoading(false); 
+                return; 
+            }
             try {
-                const data = await petsAPI.getByOwnerId(user.id);
-                setPets(data || []);
+                // Direct fetch to ensure data is retrieved
+                const response = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setPets(data || []);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
             } catch (e) {
-                console.error(e);
+                console.error('Error fetching pets:', e);
                 setError('Σφάλμα φόρτωσης κατοικιδίων. Βεβαιώσου ότι τρέχει το json-server στο port 3001.');
             } finally {
                 setLoading(false);
             }
         };
         fetchPets();
+    }, [user]);
+
+    // Fetch appointments
+    useEffect(() => {
+        const fetchAppointments = async () => {
+            if (!user?.id) return;
+            try {
+                const response = await fetch(`http://localhost:3001/appointments?ownerId=${user.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setAppointments(data || []);
+                }
+            } catch (e) {
+                console.error('Error fetching appointments:', e);
+            }
+        };
+        fetchAppointments();
     }, [user]);
 
     //Addition of pets by users is disabled per policy (vet-only via national registry)
@@ -536,6 +562,41 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
         } catch (e) {
             console.error(e);
             setError('Αποτυχία διαγραφής.');
+        }
+    };
+
+    // Appointment handlers
+    const handleViewPetDetails = (pet) => {
+        setSelectedPet(pet);
+        setPetDetailsDialogOpen(true);
+    };
+
+    const handleViewDetails = (appointment) => {
+        setSelectedAppointment(appointment);
+        setDetailsDialogOpen(true);
+    };
+
+    const handleCancelAppointment = async (appointment) => {
+        if (window.confirm('Είστε σίγουροι ότι θέλετε να ακυρώσετε το ραντεβού;')) {
+            try {
+                // Update appointment status to cancelled
+                const response = await fetch(`http://localhost:3001/appointments/${appointment.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'cancelled' })
+                });
+                
+                if (response.ok) {
+                    // Update local state
+                    setAppointments(prev => prev.map(a => 
+                        a.id === appointment.id ? { ...a, status: 'cancelled' } : a
+                    ));
+                    alert('Το ραντεβού ακυρώθηκε επιτυχώς.');
+                }
+            } catch (error) {
+                console.error('Error cancelling appointment:', error);
+                alert('Σφάλμα κατά την ακύρωση του ραντεβού.');
+            }
         }
     };
 
@@ -646,7 +707,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                             <Grid container spacing={3}>
                               {pets.map(pet => (
                                 <Grid item xs={12} sm={6} md={4} key={pet.id}>
-                                  <PetCard pet={pet} navigate={navigate} onEdit={openEdit} onDelete={deletePet} />
+                                  <PetCard pet={pet} navigate={navigate} onEdit={openEdit} onDelete={deletePet} onViewDetails={handleViewPetDetails} />
                                 </Grid>
                               ))}
                             </Grid>
@@ -682,13 +743,23 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                                 <Box sx={{ flex: 1 }}>
                                     <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Επερχόμενα Ραντεβού</Typography>
                                     {appointments.filter(a => a.status === 'confirmed').map(app => (
-                                        <AppointmentCard key={app.id} {...app} />
+                                        <AppointmentCard 
+                                            key={app.id} 
+                                            appointment={app}
+                                            onViewDetails={handleViewDetails}
+                                            onCancel={handleCancelAppointment}
+                                        />
                                     ))}
                                 </Box>
                                 <Box sx={{ flex: 1 }}>
                                     <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Ακυρωμένα</Typography>
                                     {appointments.filter(a => a.status === 'cancelled').map(app => (
-                                        <AppointmentCard key={app.id} {...app} />
+                                        <AppointmentCard 
+                                            key={app.id} 
+                                            appointment={app}
+                                            onViewDetails={handleViewDetails}
+                                            onCancel={handleCancelAppointment}
+                                        />
                                     ))}
                                 </Box>
                             </Box>
@@ -715,6 +786,121 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                         <DialogActions>
                             <Button onClick={closeDialog}>Άκυρο</Button>
                             <Button variant="contained" onClick={savePet}>Αποθήκευση</Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    {/* Appointment Details Dialog */}
+                    <Dialog open={detailsDialogOpen} onClose={() => setDetailsDialogOpen(false)} maxWidth="sm" fullWidth>
+                        <DialogTitle>Λεπτομέρειες Ραντεβού</DialogTitle>
+                        <DialogContent dividers>
+                            {selectedAppointment && (
+                                <Box>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        <strong>Κτηνίατρος:</strong> {selectedAppointment.vetName || 'Δεν καθορίστηκε'}
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        <strong>Κατοικίδιο:</strong> {selectedAppointment.petName || 'Δεν καθορίστηκε'}
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        <strong>Ημερομηνία:</strong> {selectedAppointment.date || 'Δεν καθορίστηκε'}
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        <strong>Ώρα:</strong> {selectedAppointment.time || 'Δεν καθορίστηκε'}
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        <strong>Κατάσταση:</strong>{' '}
+                                        <Chip 
+                                            label={selectedAppointment.status === 'confirmed' ? 'Επιβεβαιωμένο' : 'Ακυρωμένο'}
+                                            color={selectedAppointment.status === 'confirmed' ? 'success' : 'error'}
+                                            size="small"
+                                        />
+                                    </Typography>
+                                    {selectedAppointment.type && (
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                            <strong>Τύπος:</strong> {selectedAppointment.type}
+                                        </Typography>
+                                    )}
+                                </Box>
+                            )}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setDetailsDialogOpen(false)}>Κλείσιμο</Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    {/* Pet Details Dialog */}
+                    <Dialog open={petDetailsDialogOpen} onClose={() => setPetDetailsDialogOpen(false)} maxWidth="sm" fullWidth>
+                        <DialogTitle>Λεπτομέρειες Κατοικιδίου</DialogTitle>
+                        <DialogContent dividers>
+                            {selectedPet && (
+                                <Box>
+                                    {selectedPet.img && (
+                                        <Box sx={{ textAlign: 'center', mb: 3 }}>
+                                            <Avatar 
+                                                src={selectedPet.img} 
+                                                sx={{ 
+                                                    width: 120, 
+                                                    height: 120,
+                                                    margin: '0 auto',
+                                                    border: '3px solid #e3f2fd',
+                                                    boxShadow: '0 4px 12px rgba(25,118,210,0.15)'
+                                                }}
+                                            >
+                                                <PetsIcon sx={{ fontSize: 60, color: '#1976d2' }} />
+                                            </Avatar>
+                                        </Box>
+                                    )}
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        <strong>Όνομα:</strong> {selectedPet.name}
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        <strong>Φυλή:</strong> {selectedPet.breed || 'Δεν καθορίστηκε'}
+                                    </Typography>
+                                    {selectedPet.type && (
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                            <strong>Τύπος:</strong> {selectedPet.type === 'dog' ? 'Σκύλος' : selectedPet.type === 'cat' ? 'Γάτα' : selectedPet.type}
+                                        </Typography>
+                                    )}
+                                    {selectedPet.gender && (
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                            <strong>Φύλο:</strong>{' '}
+                                            <Chip 
+                                                icon={selectedPet.gender === 'male' ? <MaleIcon /> : <FemaleIcon />}
+                                                label={selectedPet.gender === 'male' ? 'Αρσενικό' : 'Θηλυκό'}
+                                                size="small"
+                                                sx={{ 
+                                                    bgcolor: selectedPet.gender === 'male' ? '#e3f2fd' : '#fce4ec',
+                                                    color: selectedPet.gender === 'male' ? '#1976d2' : '#d81b60',
+                                                    fontWeight: 600
+                                                }}
+                                            />
+                                        </Typography>
+                                    )}
+                                    {selectedPet.age && (
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                            <strong>Ηλικία:</strong> {selectedPet.age}
+                                        </Typography>
+                                    )}
+                                    {selectedPet.weight && (
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                            <strong>Βάρος:</strong> {selectedPet.weight}
+                                        </Typography>
+                                    )}
+                                    {selectedPet.microchip && (
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                            <strong>Microchip:</strong> {selectedPet.microchip}
+                                        </Typography>
+                                    )}
+                                    {selectedPet.birthDate && (
+                                        <Typography variant="body1" sx={{ mb: 2 }}>
+                                            <strong>Ημερομηνία Γέννησης:</strong> {selectedPet.birthDate}
+                                        </Typography>
+                                    )}
+                                </Box>
+                            )}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setPetDetailsDialogOpen(false)}>Κλείσιμο</Button>
                         </DialogActions>
                     </Dialog>
                 </Container>

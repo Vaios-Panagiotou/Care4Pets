@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, 
   Divider, Pagination, TextField, Radio, RadioGroup, FormControlLabel, FormControl,
-  Dialog, DialogContent, Checkbox, Alert, Tooltip, InputAdornment
+  Dialog, DialogContent, Checkbox, Alert, Tooltip, InputAdornment, MenuItem
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { keyframes } from '@mui/system';
@@ -92,6 +92,38 @@ export default function VetSearch() {
   const [hasPets, setHasPets] = useState(true);
   const userLabel = user?.name || user?.fullName || user?.email || 'τον λογαριασμό σας';
   
+  // Pet management state
+  const [userPets, setUserPets] = useState([]);
+  const [showNewPetForm, setShowNewPetForm] = useState(false);
+  const [newPetForm, setNewPetForm] = useState({
+    name: '',
+    type: 'dog',
+    breed: '',
+    gender: 'male',
+    age: '',
+    weight: '',
+    color: ''
+  });
+  
+  // Load user's pets from database
+  useEffect(() => {
+    const loadUserPets = async () => {
+      if (!user?.id) return;
+      try {
+        const response = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
+        if (response.ok) {
+          const pets = await response.json();
+          setUserPets(pets);
+          setHasPets(pets.length > 0);
+        }
+      } catch (error) {
+        console.error('Error loading pets:', error);
+        setHasPets(true);
+      }
+    };
+    loadUserPets();
+  }, [user]);
+  
   const [activeStep, setActiveStep] = useState(0);
   const [openSuccess, setOpenSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState(queryParam);
@@ -105,6 +137,12 @@ export default function VetSearch() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
+  const [appointmentReason, setAppointmentReason] = useState('');
+  
+  // Stable callback for reason TextField to prevent re-renders
+  const handleReasonChange = useCallback((e) => {
+    setAppointmentReason(e.target.value);
+  }, []);
   
   // Pagination State
   const [page, setPage] = useState(1);
@@ -307,7 +345,8 @@ export default function VetSearch() {
           time: selectedTime || '15:00',
           date: selectedDate || new Date().toLocaleDateString('el-GR'),
           status: 'confirmed',
-          type: 'Visit'
+          type: 'Visit',
+          reason: appointmentReason || 'Τακτικός Έλεγχος'
         };
         try {
           await appointmentsAPI.create(payload);
@@ -720,34 +759,294 @@ export default function VetSearch() {
     <Box sx={{ textAlign: 'center' }}>
       <Typography variant="h5" fontWeight="bold">Επιλογή Κατοικιδίου</Typography>
       <Divider sx={{ width: 60, height: 3, bgcolor: '#333', mx: 'auto', mb: 6, mt: 1 }} />
-      <Grid container spacing={4} justifyContent="center">
-          {[
-              { name: 'Kouvelaj', type: 'Golden Retriever', gender: 'male', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80' },
-              { name: 'Pantiana', type: 'Περσική Γάτα', gender: 'female', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=200&q=80' }
-          ].map((pet, i) => (
-              <Grid item xs={12} sm={5} key={i}>
-                  <Paper 
-                    elevation={selectedPet?.name === pet.name ? 4 : 0} 
-                    onClick={() => setSelectedPet(pet)}
-                    sx={{ 
-                        p: 2, border: selectedPet?.name === pet.name ? '2px solid #00695c' : '1px solid #333', 
-                        borderRadius: '12px', textAlign: 'left', cursor: 'pointer', 
-                        bgcolor: selectedPet?.name === pet.name ? '#e0f2f1' : 'white',
-                        '&:hover': { bgcolor: '#f5f5f5' } 
-                    }}
-                  >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Box>
-                              <Typography variant="h6" fontWeight="bold">{pet.name} {pet.gender === 'male' ? '♂' : '♀'}</Typography>
-                              <Typography variant="caption" color="text.secondary">{pet.type}</Typography>
-                          </Box>
-                          <Avatar src={pet.img} variant="rounded" sx={{ width: 60, height: 60 }} />
-                      </Box>
-                      <Button fullWidth variant="contained" size="small" sx={{ mt: 2, bgcolor: '#333' }}>Επιλογή</Button>
-                  </Paper>
+      
+      {userPets.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Δεν έχετε κατοικίδια. Παρακαλώ προσθέστε ένα κατοικίδιο πρώτα.
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => setShowNewPetForm(!showNewPetForm)}
+            sx={{ bgcolor: '#00695c' }}
+          >
+            {showNewPetForm ? 'Ακύρωση' : 'Δημιουργία Κατοικιδίου'}
+          </Button>
+          
+          {showNewPetForm && (
+            <Box sx={{ mt: 4, p: 3, border: '1px solid #ccc', borderRadius: 2, maxWidth: 400, mx: 'auto' }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Στοιχεία Νέου Κατοικιδίου</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <TextField
+                  label="Όνομα"
+                  value={newPetForm.name}
+                  onChange={(e) => setNewPetForm({...newPetForm, name: e.target.value})}
+                  size="small"
+                />
+                <TextField
+                  select
+                  label="Τύπος"
+                  value={newPetForm.type}
+                  onChange={(e) => setNewPetForm({...newPetForm, type: e.target.value})}
+                  size="small"
+                >
+                  <MenuItem value="dog">Σκύλος</MenuItem>
+                  <MenuItem value="cat">Γάτα</MenuItem>
+                  <MenuItem value="other">Άλλο</MenuItem>
+                </TextField>
+                <TextField
+                  label="Φυλή"
+                  value={newPetForm.breed}
+                  onChange={(e) => setNewPetForm({...newPetForm, breed: e.target.value})}
+                  size="small"
+                />
+                <TextField
+                  select
+                  label="Φύλο"
+                  value={newPetForm.gender}
+                  onChange={(e) => setNewPetForm({...newPetForm, gender: e.target.value})}
+                  size="small"
+                >
+                  <MenuItem value="male">Αρσενικό</MenuItem>
+                  <MenuItem value="female">Θηλυκό</MenuItem>
+                </TextField>
+                <TextField
+                  label="Ηλικία"
+                  value={newPetForm.age}
+                  onChange={(e) => setNewPetForm({...newPetForm, age: e.target.value})}
+                  size="small"
+                />
+                <TextField
+                  label="Βάρος (kg)"
+                  value={newPetForm.weight}
+                  onChange={(e) => setNewPetForm({...newPetForm, weight: e.target.value})}
+                  size="small"
+                />
+              </Box>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{ mt: 2, bgcolor: '#00695c' }}
+                onClick={() => {
+                  if (!newPetForm.name) {
+                    alert('Παρακαλώ εισάγετε όνομα κατοικιδίου');
+                    return;
+                  }
+                  const payload = {
+                    ownerId: user?.id,
+                    name: newPetForm.name,
+                    type: newPetForm.type,
+                    breed: newPetForm.breed,
+                    gender: newPetForm.gender,
+                    age: newPetForm.age,
+                    weight: newPetForm.weight,
+                    color: newPetForm.color,
+                    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
+                  };
+                  
+                  fetch('http://localhost:3001/pets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  })
+                  .then(res => res.json())
+                  .then(pet => {
+                    setSelectedPet({
+                      id: pet.id,
+                      name: pet.name,
+                      type: pet.type,
+                      breed: pet.breed,
+                      image: pet.image
+                    });
+                    setShowNewPetForm(false);
+                    // Reload user pets
+                    fetch(`http://localhost:3001/pets?ownerId=${user?.id}`)
+                      .then(r => r.json())
+                      .then(pets => setUserPets(pets));
+                    alert('Κατοικίδιο δημιουργήθηκε!');
+                  })
+                  .catch(err => alert('Σφάλμα: ' + err.message));
+                }}
+              >
+                Δημιουργία & Συνέχεια
+              </Button>
+            </Box>
+          )}
+        </Box>
+      ) : (
+        <Box>
+          <Grid container spacing={4} justifyContent="center">
+            {userPets.map((pet, i) => (
+              <Grid item xs={12} sm={5} key={pet.id}>
+                <Paper 
+                  elevation={selectedPet?.id === pet.id ? 4 : 0} 
+                  onClick={() => setSelectedPet(pet)}
+                  sx={{ 
+                    p: 2, 
+                    border: selectedPet?.id === pet.id ? '2px solid #00695c' : '1px solid #333', 
+                    borderRadius: '12px', 
+                    textAlign: 'left', 
+                    cursor: 'pointer', 
+                    bgcolor: selectedPet?.id === pet.id ? '#e0f2f1' : 'white',
+                    '&:hover': { bgcolor: '#f5f5f5' } 
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography variant="h6" fontWeight="bold">{pet.name} {pet.gender === 'male' ? '♂' : '♀'}</Typography>
+                      <Typography variant="caption" color="text.secondary">{pet.breed}</Typography>
+                    </Box>
+                    <Avatar src={pet.image} variant="rounded" sx={{ width: 60, height: 60 }} />
+                  </Box>
+                  <Button fullWidth variant="contained" size="small" sx={{ mt: 2, bgcolor: '#333' }}>Επιλογή</Button>
+                </Paper>
               </Grid>
-          ))}
-      </Grid>
+            ))}
+          </Grid>
+          
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Button 
+              variant="outlined" 
+              onClick={() => setShowNewPetForm(!showNewPetForm)}
+              sx={{ 
+                borderColor: '#00695c',
+                color: '#00695c',
+                '&:hover': {
+                  borderColor: '#00695c',
+                  bgcolor: '#e0f2f1'
+                }
+              }}
+            >
+              {showNewPetForm ? 'Ακύρωση' : '+ Προσθήκη Νέου Κατοικιδίου'}
+            </Button>
+          </Box>
+          
+          {showNewPetForm && (
+            <Box sx={{ mt: 4, p: 3, border: '1px solid #ccc', borderRadius: 2, maxWidth: 400, mx: 'auto' }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Στοιχεία Νέου Κατοικιδίου</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <TextField
+                  label="Όνομα"
+                  value={newPetForm.name}
+                  onChange={(e) => setNewPetForm({...newPetForm, name: e.target.value})}
+                  size="small"
+                />
+                <TextField
+                  select
+                  label="Τύπος"
+                  value={newPetForm.type}
+                  onChange={(e) => setNewPetForm({...newPetForm, type: e.target.value})}
+                  size="small"
+                >
+                  <MenuItem value="dog">Σκύλος</MenuItem>
+                  <MenuItem value="cat">Γάτα</MenuItem>
+                  <MenuItem value="other">Άλλο</MenuItem>
+                </TextField>
+                <TextField
+                  label="Φυλή"
+                  value={newPetForm.breed}
+                  onChange={(e) => setNewPetForm({...newPetForm, breed: e.target.value})}
+                  size="small"
+                />
+                <TextField
+                  select
+                  label="Φύλο"
+                  value={newPetForm.gender}
+                  onChange={(e) => setNewPetForm({...newPetForm, gender: e.target.value})}
+                  size="small"
+                >
+                  <MenuItem value="male">Αρσενικό</MenuItem>
+                  <MenuItem value="female">Θηλυκό</MenuItem>
+                </TextField>
+                <TextField
+                  label="Ηλικία"
+                  value={newPetForm.age}
+                  onChange={(e) => setNewPetForm({...newPetForm, age: e.target.value})}
+                  size="small"
+                />
+                <TextField
+                  label="Βάρος (kg)"
+                  value={newPetForm.weight}
+                  onChange={(e) => setNewPetForm({...newPetForm, weight: e.target.value})}
+                  size="small"
+                />
+              </Box>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{ mt: 2, bgcolor: '#00695c' }}
+                onClick={() => {
+                  if (!newPetForm.name) {
+                    alert('Παρακαλώ εισάγετε όνομα κατοικιδίου');
+                    return;
+                  }
+                  const payload = {
+                    ownerId: user?.id,
+                    name: newPetForm.name,
+                    type: newPetForm.type,
+                    breed: newPetForm.breed,
+                    gender: newPetForm.gender,
+                    age: newPetForm.age,
+                    weight: newPetForm.weight,
+                    color: newPetForm.color,
+                    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
+                  };
+                  
+                  fetch('http://localhost:3001/pets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  })
+                  .then(res => res.json())
+                  .then(pet => {
+                    setSelectedPet({
+                      id: pet.id,
+                      name: pet.name,
+                      type: pet.type,
+                      breed: pet.breed,
+                      image: pet.image
+                    });
+                    setShowNewPetForm(false);
+                    setNewPetForm({ name: '', type: 'dog', breed: '', gender: 'male', age: '', weight: '', color: '' });
+                    // Reload user pets
+                    fetch(`http://localhost:3001/pets?ownerId=${user?.id}`)
+                      .then(r => r.json())
+                      .then(pets => setUserPets(pets));
+                    alert('Κατοικίδιο δημιουργήθηκε!');
+                  })
+                  .catch(err => alert('Σφάλμα: ' + err.message));
+                }}
+              >
+                Δημιουργία & Συνέχεια
+              </Button>
+            </Box>
+          )}
+          
+          <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Λόγος Ραντεβού"
+              placeholder="Περιγράψτε τον λόγο του ραντεβού (π.χ. εμβολιασμός, τακτικός έλεγχος, πρόβλημα υγείας)"
+              value={appointmentReason}
+              onChange={handleReasonChange}
+              variant="outlined"
+              sx={{ 
+                bgcolor: 'white',
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: '#00695c',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#00695c',
+                  },
+                }
+              }}
+            />
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 
