@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardSidebar from '../components/DashboardSidebar';
 import PageHeader from './PageHeader';
-import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MaleIcon from '@mui/icons-material/Male';
@@ -19,6 +18,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
+import { petsAPI } from '../services/api';
 
 const theme = createTheme({
   palette: { 
@@ -495,11 +495,11 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
             setError('');
             if (!user?.id) { setLoading(false); return; }
             try {
-                const res = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
-                const data = await res.json();
+                const data = await petsAPI.getByOwnerId(user.id);
                 setPets(data || []);
             } catch (e) {
-                setError('Σφάλμα φόρτωσης κατοικιδίων. Βεβαιώσου ότι τρέχει το json-server.');
+                console.error(e);
+                setError('Σφάλμα φόρτωσης κατοικιδίων. Βεβαιώσου ότι τρέχει το json-server στο port 3001.');
             } finally {
                 setLoading(false);
             }
@@ -507,7 +507,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
         fetchPets();
     }, [user]);
 
-    const openAdd = () => { setEditing('new'); setForm({ name: '', breed: '', gender: 'male', age: '', weight: '', img: '' }); setDialogOpen(true); };
+    //Addition of pets by users is disabled per policy (vet-only via national registry)
     const openEdit = (pet) => { setEditing(pet.id); setForm({ name: pet.name || '', breed: pet.breed || '', gender: (pet.gender || 'male'), age: pet.age || '', weight: pet.weight || '', img: pet.img || '' }); setDialogOpen(true); };
     const closeDialog = () => { setDialogOpen(false); setEditing(null); };
 
@@ -516,21 +516,27 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
         const payload = { ...form, ownerId: user.id };
         try {
             if (editing === 'new') {
-                const res = await fetch('http://localhost:3001/pets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                const created = await res.json();
+                const created = await petsAPI.create(payload);
                 setPets(prev => [created, ...prev]);
             } else {
-                const res = await fetch(`http://localhost:3001/pets/${editing}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                const updated = await res.json();
+                const updated = await petsAPI.update(editing, { ...payload, id: editing });
                 setPets(prev => prev.map(p => p.id === updated.id ? updated : p));
             }
             closeDialog();
-        } catch (e) { setError('Αποτυχία αποθήκευσης κατοικιδίου.'); }
+        } catch (e) {
+            console.error(e);
+            setError('Αποτυχία αποθήκευσης κατοικιδίου.');
+        }
     };
 
     const deletePet = async (id) => {
-        try { await fetch(`http://localhost:3001/pets/${id}`, { method: 'DELETE' }); setPets(prev => prev.filter(p => p.id !== id)); }
-        catch { setError('Αποτυχία διαγραφής.'); }
+        try {
+            await petsAPI.delete(id);
+            setPets(prev => prev.filter(p => p.id !== id));
+        } catch (e) {
+            console.error(e);
+            setError('Αποτυχία διαγραφής.');
+        }
     };
 
     return (
@@ -593,29 +599,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                                 Διαχειριστείτε τα κατοικίδιά σας ({pets.length} {pets.length === 1 ? 'κατοικίδιο' : 'κατοικίδια'})
                               </Typography>
                             </Box>
-                            <Button 
-                              variant="contained" 
-                              size="large"
-                              startIcon={<AddIcon />} 
-                              onClick={openAdd}
-                              sx={{
-                                bgcolor: '#1976d2',
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                px: 3,
-                                py: 1.5,
-                                borderRadius: 2,
-                                boxShadow: '0 4px 12px rgba(25,118,210,0.3)',
-                                '&:hover': {
-                                  bgcolor: '#1565c0',
-                                  boxShadow: '0 6px 16px rgba(25,118,210,0.4)',
-                                  transform: 'translateY(-2px)'
-                                },
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              Προσθήκη
-                            </Button>
+                            {/*Add-pet action removed: pet registration is vet-only via national registry */}
                           </Box>
 
                           {loading ? (
@@ -642,13 +626,12 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                                 Δεν υπάρχουν κατοικίδια
                               </Typography>
                               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                Ξεκινήστε προσθέτοντας το πρώτο σας κατοικίδιο
+                                Η καταχώριση κατοικιδίου γίνεται αποκλειστικά από κτηνίατρο μέσω του Εθνικού Μητρώου Κατοικιδίων. Επικοινωνήστε με κτηνίατρο για την καταχώριση.
                               </Typography>
                               <Button 
                                 variant="contained" 
                                 size="large"
-                                startIcon={<AddIcon />}
-                                onClick={openAdd}
+                                onClick={() => navigate('/owner/search')}
                                 sx={{ 
                                   bgcolor: '#1976d2',
                                   textTransform: 'none',
@@ -656,7 +639,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete }) => (
                                   px: 4
                                 }}
                               >
-                                Προσθήκη Πρώτου Κατοικιδίου
+                                Βρες Κτηνίατρο
                               </Button>
                             </Paper>
                           ) : (

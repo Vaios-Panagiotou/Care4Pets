@@ -7,6 +7,8 @@ import {
 } from '@mui/material';
 import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { lostPetsAPI } from '../services/api';
 
 // Icons
 import SearchIcon from '@mui/icons-material/Search';
@@ -18,6 +20,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import ShareIcon from '@mui/icons-material/Share';
 import InfoIcon from '@mui/icons-material/Info';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import TuneIcon from '@mui/icons-material/Tune';
 import CloseIcon from '@mui/icons-material/Close';
@@ -66,6 +69,68 @@ const heartbeat = keyframes`
   10%, 30% { transform: scale(0.9); }
   20%, 40% { transform: scale(1.1); }
 `;
+
+function buildOsmEmbedSrc(lat, lng) {
+  //created a small bbox around the point for a nice zoom
+  const d = 0.02; // ~2km
+  const left = (lng - d).toFixed(6);
+  const right = (lng + d).toFixed(6);
+  const top = (lat + d).toFixed(6);
+  const bottom = (lat - d).toFixed(6);
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
+
+function SimpleMapEmbed({ value, onChange }) {
+  const [query, setQuery] = useState('');
+  const lat = value?.lat ?? 37.9838; //athens default
+  const lng = value?.lng ?? 23.7275;
+  const src = buildOsmEmbedSrc(lat, lng);
+
+  const searchPlace = async () => {
+    if (!query.trim()) return;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const results = await res.json();
+      if (results && results[0]) {
+        const { lat, lon } = results[0];
+        const coords = { lat: parseFloat(lat), lng: parseFloat(lon) };
+        onChange?.(coords);
+      }
+    } catch (e) {
+      console.error('Geocoding failed', e);
+    }
+  };
+
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+        <TextField 
+          fullWidth 
+          placeholder="Αναζήτηση περιοχής (π.χ. Κυψέλη, Αθήνα)"
+          size="small"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') searchPlace(); }}
+        />
+        <Button variant="outlined" onClick={searchPlace}>Αναζήτηση</Button>
+      </Box>
+      <Box sx={{ height: 300, borderRadius: 2, overflow: 'hidden' }}>
+        <iframe
+          title="map-embed"
+          src={src}
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </Box>
+      {value?.lat && value?.lng && (
+        <Typography variant="caption" color="text.secondary">Συντεταγμένες: {value.lat.toFixed(5)}, {value.lng.toFixed(5)}</Typography>
+      )}
+    </Box>
+  );
+}
 
 // Counter animation hook
 const useCountUp = (end, duration = 2000, shouldStart = true) => {
@@ -198,7 +263,7 @@ const LOST_PETS = [
   { id: 7, name: 'Μίσυ', type: 'Γάτα', breed: 'Περσική', gender: 'Θηλυκό', age: '4 ετών', color: 'Λευκό', date: '17 Οκτ 2025', location: 'Κολωνάκι', img: 'https://images.unsplash.com/photo-1529778873920-4da4926a72c2?auto=format&fit=crop&w=400&q=80', reward: '150€', views: 445, urgent: true, description: 'Λευκή περσική γάτα με μπλε μάτια.' },
   { id: 8, name: 'Τσάρλι', type: 'Σκύλος', breed: 'Poodle', gender: 'Αρσενικό', age: '1 έτους', color: 'Καφέ', date: '23 Οκτ 2025', location: 'Καλλιθέα', img: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=400&q=80', reward: '40€', views: 198, urgent: false, description: 'Μικρόσωμος σκύλος, πολύ παιχνιδιάρης.' },
   { id: 9, name: 'Σόφι', type: 'Γάτα', breed: 'Σιαμέζα', gender: 'Θηλυκό', age: '3 ετών', color: 'Κρεμ/Καφέ', date: '16 Οκτ 2025', location: 'Παγκράτι', img: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=400&q=80', reward: null, views: 223, urgent: false, description: 'Σιαμέζα με χαρακτηριστικά γαλάζια μάτια.' },
-];
+].map(p => ({ ...p, isMock: true }));
 
 const STEPS = [
   { label: 'Στοιχεία Ζώου', icon: <PetsIcon />, description: 'Βασικές πληροφορίες' },
@@ -751,14 +816,20 @@ function LostPetsFormView({
                 </Box>
               )}
 
-              {/* ...steps2 & 3simplified for brevity,similar structure ...*/}
+              {/*steps2 & 3simplified for brevity,similar structure ...*/}
               {activeStep === 2 && (
                 <Grid container spacing={3}>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} md={6}>
                     <TextField fullWidth required label="Περιοχή" value={formData.location || ''} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+                    <Box sx={{ mt: 2 }}>
+                      <SimpleMapEmbed
+                        value={formData.coords}
+                        onChange={(coords) => setFormData({ ...formData, coords })}
+                      />
+                    </Box>
                   </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth multiline rows={4} label="Περιγραφή" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth multiline rows={10} label="Περιγραφή" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
                   </Grid>
                 </Grid>
               )}
@@ -792,6 +863,7 @@ function LostPetsFormView({
 }
 
 export default function LostPets() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [view, setView] = useState('search');
@@ -829,8 +901,24 @@ export default function LostPets() {
     e.stopPropagation();
   }, []);
 
+  const [userLostPets, setUserLostPets] = useState([]);
+
+  useEffect(() => {
+    const loadUserLostPets = async () => {
+      try {
+        const data = await lostPetsAPI.getAll();
+        setUserLostPets(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadUserLostPets();
+  }, []);
+
+  const allLostPets = useMemo(() => [...LOST_PETS, ...userLostPets], [userLostPets]);
+
   const filteredPets = useMemo(() => {
-    let filtered = [...LOST_PETS];
+    let filtered = [...allLostPets];
 
     // Search query filter
     if (searchQuery) {
@@ -898,15 +986,43 @@ export default function LostPets() {
     }
 
     return filtered;
-  }, [searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
+  }, [allLostPets, searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     //basic validation logic
     if (activeStep === 0 && !formData.name) { setFormErrors({ name: 'Required' }); return; }
     if (activeStep === 1 && uploadedImages.length === 0) { setFormErrors({ images: 'Required' }); return; }
     
     if (activeStep === STEPS.length - 1) {
-      setOpenSuccess(true);
+      // Persist to server and then show success
+      const payload = {
+        id: undefined,
+        name: formData.name || 'Χωρίς όνομα',
+        type: formData.type || 'Σκύλος',
+        breed: formData.breed || 'Άγνωστη',
+        gender: formData.gender || 'Άγνωστο',
+        age: formData.age || '',
+        color: formData.color || '',
+        date: new Date().toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' }),
+        location: formData.location || '',
+        img: (uploadedImages[0] && uploadedImages[0].url) || 'https://via.placeholder.com/400',
+        reward: formData.reward || null,
+        views: 0,
+        urgent: !!formData.urgent,
+        description: formData.description || '',
+        phone: formData.phone || '',
+        ownerId: user ? user.id : null,
+        lat: formData.coords?.lat ?? null,
+        lng: formData.coords?.lng ?? null,
+      };
+      try {
+        const created = await lostPetsAPI.create(payload);
+        setUserLostPets(prev => [created, ...prev]);
+        setOpenSuccess(true);
+      } catch (e) {
+        console.error(e);
+        alert('Αποτυχία καταχώρησης αγγελίας. Βεβαιώσου ότι τρέχει το json-server στο port 3001.');
+      }
     } else {
       setActiveStep(prev => prev + 1);
     }
@@ -1070,6 +1186,28 @@ export default function LostPets() {
                   </Grid>
                 </Grid>
 
+                {selectedPet.lat && selectedPet.lng && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                      Σημείο στον Χάρτη
+                    </Typography>
+                    <Box sx={{ height: 220, borderRadius: 2, overflow: 'hidden', mb: 1 }}>
+                      <iframe
+                        title="map-embed-preview"
+                        src={buildOsmEmbedSrc(selectedPet.lat, selectedPet.lng)}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Συντεταγμένες: {selectedPet.lat.toFixed(5)}, {selectedPet.lng.toFixed(5)}
+                    </Typography>
+                  </Box>
+                )}
+
                 {selectedPet.reward && (
                   <Alert 
                     icon={false}
@@ -1128,6 +1266,118 @@ export default function LostPets() {
             <Typography variant="h5" fontWeight="bold">Επιτυχία!</Typography>
             <Typography sx={{ mb: 3 }}>Η αγγελία καταχωρήθηκε.</Typography>
             <Button variant="contained" onClick={() => { setOpenSuccess(false); setView('search'); setActiveStep(0); }}>OK</Button>
+          </DialogContent>
+        </Dialog>
+
+        {/*how it works dialog*/}
+        <Dialog open={howItWorksDialogOpen} onClose={() => setHowItWorksDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogContent sx={{ p: 4 }}>
+            {/*Animated header area(lightweight animation instead of video) */}
+            <Box sx={{
+              mb: 2,
+              p: 2,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #004d40 0%, #00695c 100%)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              <Box sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                bgcolor: 'rgba(255,255,255,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                animation: `${pulse} 2s infinite`
+              }}>
+                <PlayCircleOutlineIcon sx={{ fontSize: 32, color: 'white' }} />
+              </Box>
+              <Box>
+                <Typography variant="h6" fontWeight={800}>Πώς Λειτουργεί η Αναζήτηση</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>Γρήγορος οδηγός 4 βημάτων με ζωντανά παραδείγματα.</Typography>
+              </Box>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Με 4 απλά βήματα καταχωρείτε αγγελία για το χαμένο κατοικίδιό σας.
+              Η αγγελία δημοσιεύεται άμεσα στην αναζήτηση και μπορείτε να την ενημερώνετε οποιαδήποτε στιγμή.
+            </Typography>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 2, borderLeft: '4px solid #00695c', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <Box sx={{ bgcolor: '#E0F2F1', color: '#00695c', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <NotificationsActiveIcon fontSize="small" />
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={700}>1) Δημιουργία Αγγελίας</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Πατήστε «Δήλωση Απώλειας», συμπληρώστε βασικά στοιχεία (όνομα, είδος, χρώμα/ράτσα), ανεβάστε καθαρές φωτογραφίες
+                    και επιλέξτε την τελευταία γνωστή τοποθεσία στον χάρτη ή μέσω αναζήτησης διεύθυνσης.
+                  </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 2, borderLeft: '4px solid #FFA726', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <Box sx={{ bgcolor: '#FFF3E0', color: '#FB8C00', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <CloudUploadIcon fontSize="small" />
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={700}>2) Δημοσίευση & Ορατότητα</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Με την υποβολή, η αγγελία δημοσιεύεται άμεσα και είναι ορατή στη σελίδα αναζήτησης.
+                    Μπορείτε να την επεξεργαστείτε ή να την ενημερώνετε όποτε χρειάζεται.
+                  </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 2, borderLeft: '4px solid #1976d2', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <Box sx={{ bgcolor: '#E3F2FD', color: '#1976d2', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <VisibilityIcon fontSize="small" />
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={700}>3) Ενημερώσεις & Εξελίξεις</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Ενημερώστε την αγγελία με νέες φωτογραφίες, περιγραφή ή σημείο στον χάρτη όταν έχετε νεότερα
+                    (π.χ. τελευταία θεάση). Έτσι αυξάνονται οι πιθανότητες εντοπισμού.
+                  </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 2, borderLeft: '4px solid #2E7D32', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <Box sx={{ bgcolor: '#E8F5E9', color: '#2E7D32', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <InfoIcon fontSize="small" />
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={700}>4) Επικοινωνία & Κλείσιμο</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Όποιος έχει πληροφορίες επικοινωνεί μαζί σας μέσω των στοιχείων που δώσατε. Όταν το κατοικίδιο βρεθεί,
+                    μαρκάρετε την αγγελία ως «Βρέθηκε» ή διαγράψτε την για να ενημερωθεί η κοινότητα.
+                  </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 1 }}>Χρήσιμες Συμβουλές</Typography>
+            <Box component="ul" sx={{ pl: 3, m: 0, color: 'text.secondary' }}>
+              <li>Ανεβάστε καθαρές φωτογραφίες που δείχνουν διακριτικά σημάδια (κολάρο, σημάδια, τρίχωμα).</li>
+              <li>Προσθέστε σαφή περιγραφή και τελευταία θεάση με όσο πιο ακριβή τοποθεσία γίνεται.</li>
+              <li>Μην κοινοποιείτε ευαίσθητα προσωπικά δεδομένα. Κανονίστε συναντήσεις σε δημόσιο χώρο.</li>
+              <li>Κοινοποιήστε την αγγελία στα κοινωνικά δίκτυα και σε τοπικές ομάδες.</li>
+              <li>Αν βρεθεί, ενημερώστε άμεσα την αγγελία για να αποφύγετε περιττές κλήσεις.</li>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
+              <Button variant="text" onClick={() => setHowItWorksDialogOpen(false)}>Κλείσιμο</Button>
+              <Button variant="contained" onClick={() => { setHowItWorksDialogOpen(false); setView('form'); }}>Ξεκινήστε</Button>
+            </Box>
           </DialogContent>
         </Dialog>
       </Box>

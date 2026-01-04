@@ -29,6 +29,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 // Import Header
 import PageHeader from './PageHeader';
 import DashboardSidebar from '../components/DashboardSidebar';
+import { appointmentsAPI } from '../services/api';
 
 const theme = createTheme({
   palette: {
@@ -69,6 +70,17 @@ const floatCard = keyframes`
   0% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
   100% { transform: translateY(0); }
+`;
+
+const fadeInUp = keyframes`
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+`;
+
+const bump = keyframes`
+  0% { transform: scale(0.98); }
+  60% { transform: scale(1.02); }
+  100% { transform: scale(1); }
 `;
 
 export default function VetSearch() {
@@ -162,11 +174,11 @@ export default function VetSearch() {
           </Container>
           <Container maxWidth="md" sx={{ py: 8 }}>
             <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
-              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Προσθέστε ένα κατοικίδιο</Typography>
+              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Καταχώριση Κατοικιδίου από Κτηνίατρο</Typography>
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                Για να αναζητήσετε κτηνίατρο, προσθέστε πρώτα το κατοικίδιό σας ώστε να γνωρίζουμε για ποιον κάνουμε κράτηση.
+                Η καταχώριση κατοικιδίου γίνεται αποκλειστικά από κτηνίατρο μέσω του Εθνικού Μητρώου Κατοικιδίων. Επικοινωνήστε με κτηνίατρο για να καταχωρήσει το κατοικίδιό σας πριν προχωρήσετε σε ραντεβού.
               </Typography>
-              <Button variant="contained" size="large" onClick={() => navigate('/owner/pets')} sx={{ px: 4, borderRadius: 3 }}>Μετάβαση στα Κατοικίδια</Button>
+              <Button variant="contained" size="large" onClick={() => navigate('/owner/search')} sx={{ px: 4, borderRadius: 3 }}>Βρες Κτηνίατρο</Button>
             </Paper>
           </Container>
         </Box>
@@ -176,15 +188,33 @@ export default function VetSearch() {
 
   // --- LOGIC ---
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (activeStep === 0 && !selectedVet) { alert("Παρακαλώ επιλέξτε έναν κτηνίατρο."); return; }
     if (activeStep === 1 && (!selectedDate || !selectedTime)) { alert("Παρακαλώ επιλέξτε ημερομηνία ΚΑΙ ώρα."); return; }
-    if (activeStep === 2) { alert("Παρακαλώ συνδεθείτε για να συνεχίσετε."); return; }
+    if (activeStep === 2 && !selectedPet) { alert("Παρακαλώ επιλέξτε κατοικίδιο."); return; }
     if (activeStep === 3 && !selectedPet) { setSelectedPet({ name: 'Kouvelaj', type: 'Golden Retriever', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80' }); }
     if (activeStep < STEPS.length - 1) {
         setActiveStep((prev) => prev + 1);
     } else {
-        setOpenSuccess(true);
+        // Create appointment on server
+        const payload = {
+          ownerId: user?.id || null,
+          ownerName: user?.fullname || user?.fullName || user?.email || 'Ιδιοκτήτης',
+          vetId: selectedVet?.id || null,
+          vetName: selectedVet?.name || 'Κτηνίατρος',
+          petName: selectedPet?.name || 'Κατοικίδιο',
+          time: selectedTime || '15:00',
+          date: selectedDate || new Date().toLocaleDateString('el-GR'),
+          status: 'confirmed',
+          type: 'Visit'
+        };
+        try {
+          await appointmentsAPI.create(payload);
+          setOpenSuccess(true);
+        } catch (e) {
+          console.error(e);
+          alert('Αποτυχία καταχώρησης ραντεβού. Βεβαιώσου ότι τρέχει το json-server στο port 3001.');
+        }
     }
   };
 
@@ -226,11 +256,11 @@ export default function VetSearch() {
           </Container>
           <Container maxWidth="md" sx={{ py: 8 }}>
             <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
-              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Προσθέστε ένα κατοικίδιο</Typography>
+              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Καταχώριση Κατοικιδίου από Κτηνίατρο</Typography>
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                Για να αναζητήσετε κτηνίατρο, προσθέστε πρώτα το κατοικίδιό σας ώστε να γνωρίζουμε για ποιον κάνουμε κράτηση.
+                Η καταχώριση κατοικιδίου γίνεται αποκλειστικά από κτηνίατρο μέσω του Εθνικού Μητρώου Κατοικιδίων. Επικοινωνήστε με κτηνίατρο για να καταχωρήσει το κατοικίδιό σας πριν προχωρήσετε σε ραντεβού.
               </Typography>
-              <Button variant="contained" size="large" onClick={() => navigate('/owner/pets')} sx={{ px: 4, borderRadius: 3 }}>Μετάβαση στα Κατοικίδια</Button>
+              <Button variant="contained" size="large" onClick={() => navigate('/owner/search')} sx={{ px: 4, borderRadius: 3 }}>Βρες Κτηνίατρο</Button>
             </Paper>
           </Container>
         </Box>
@@ -315,129 +345,187 @@ export default function VetSearch() {
     </Box>
   );
 
-  const StepCalendar = () => (
-    <Box sx={{ maxWidth: '1100px', mx: 'auto' }}>
-      <Typography variant="h5" fontWeight="bold" align="center" gutterBottom sx={{ mt: -2 }}>Ώρα και Μέρα</Typography>
-      <Divider sx={{ width: 60, height: 4, bgcolor: '#333', mx: 'auto', mb: 4, borderRadius: 2 }} />
+  const StepCalendar = () => {
+    const monthFormatter = new Intl.DateTimeFormat('el-GR', { month: 'long', year: 'numeric' });
+    const weekdayShort = ['Κυ','Δε','Τρ','Τε','Πε','Πα','Σα'];
+    const formatGreek = (d) => d.toLocaleDateString('el-GR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const today = startOfDay(todayRef);
 
-      <Paper elevation={0} sx={{ p: 2.5, mb: 4, borderRadius: 3, border: '1px solid #e0e0e0', bgcolor: '#f8fafc', display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <Chip label="Βήμα 2" color="primary" variant="outlined" />
-        <Typography fontWeight={700}>Διαλέξτε μέρα, πράξη και ώρα</Typography>
-        <Typography variant="body2" color="text.secondary">Η επιλογή σας κλειδώνει στο επόμενο βήμα.</Typography>
-        <Chip
-          label={`${selectedDate || 'Ημερομηνία;'} · ${selectedTime || 'Ώρα;'}`}
-          color={(selectedDate && selectedTime) ? 'success' : 'default'}
-          sx={{ ml: { xs: 0, md: 'auto' }, fontWeight: 'bold' }}
-        />
-      </Paper>
+    const monthStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+    const startOffset = monthStart.getDay(); // Sunday=0
+    const gridStart = new Date(monthStart);
+    gridStart.setDate(monthStart.getDate() - startOffset);
 
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={7}>
-          {/** assume current date ~ 6 for highlighting available days; disable past days visually */}
-          {/** todayDay used only for UI cue, not real-time logic */}
-          {(() => { const todayDay = 6; return null; })()}
-          <Paper elevation={0} sx={{ p: 4, border: '1px solid #e0e0e0', borderRadius: '24px', height: '100%', boxShadow: '0 10px 26px rgba(0,0,0,0.04)' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-              <IconButton size="small" sx={{ border: '1px solid #eee', bgcolor: 'white' }}><ChevronLeftIcon /></IconButton>
-              <Typography variant="h6" fontWeight="bold">Νοέμβριος 2025</Typography>
-              <IconButton size="small" sx={{ border: '1px solid #eee', bgcolor: 'white' }}><ChevronRightIcon /></IconButton>
-            </Box>
+    const days = Array.from({ length: 42 }, (_, i) => {
+      const d = new Date(gridStart);
+      d.setDate(gridStart.getDate() + i);
+      return d;
+    });
 
-            <Grid container spacing={2}>
-              {['Κυ','Δε','Τρ','Τε','Πε','Πα','Σα'].map(d => (
-                <Grid item xs={1.7} key={d} sx={{ textAlign: 'center' }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight="bold">{d}</Typography>
-                </Grid>
-              ))}
-            </Grid>
+    const isSameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
+    const isCurrentMonth = (d) => d.getMonth() === calendarDate.getMonth();
+    const isPast = (d) => startOfDay(d) < today;
 
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              {[...Array(30)].map((_, i) => {
-                const day = i + 1;
-                const todayDay = 6;
-                const isDisabled = day < todayDay;
-                const isSelected = selectedDate === `Noe ${day}`;
-                return (
-                  <Grid item xs={1.7} key={i}>
-                    <Tooltip title={isDisabled ? 'Μη διαθέσιμη ημέρα' : ''} disableHoverListener={!isDisabled}>
-                      <Box
-                        onClick={() => !isDisabled && setSelectedDate(`Noe ${day}`)}
-                        sx={{
-                          width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto',
-                          borderRadius: '50%', cursor: isDisabled ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease',
-                          bgcolor: isSelected ? '#00695c' : 'transparent',
-                          color: isDisabled ? '#cbd5e1' : (isSelected ? 'white' : '#111'),
-                          fontWeight: isSelected ? 'bold' : 'normal',
-                          border: isSelected ? 'none' : '1px solid #eceff1',
-                          opacity: isDisabled ? 0.5 : 1,
-                          '&:hover': { bgcolor: isDisabled ? 'transparent' : (isSelected ? '#00695c' : '#f5f5f5'), transform: isDisabled ? 'none' : 'translateY(-2px)' }
-                        }}
-                      >{day}</Box>
-                    </Tooltip>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          </Paper>
-        </Grid>
+    const quickPick = (type) => {
+      if (type === 'today') {
+        setSelectedDate(formatGreek(today));
+      } else if (type === 'tomorrow') {
+        const t = new Date(today); t.setDate(t.getDate() + 1); setSelectedDate(formatGreek(t));
+      } else if (type === 'nextWeek') {
+        const t = new Date(today); t.setDate(t.getDate() + 7); setSelectedDate(formatGreek(t));
+      } else if (type === 'clear') {
+        setSelectedDate(null); setSelectedTime(null);
+      } else if (type === 'nextAvailable') {
+        const target = days.find(d => !isPast(d) && isCurrentMonth(d)) || today;
+        setSelectedDate(formatGreek(target));
+        setSelectedTime(TIME_SLOTS[0]);
+      }
+    };
 
-        <Grid item xs={12} md={5}>
-          <Paper elevation={0} sx={{ p: 4, border: '1px solid #e0e0e0', borderRadius: '24px', height: '100%', display: 'flex', flexDirection: 'column', gap: 3, boxShadow: '0 10px 26px rgba(0,0,0,0.04)' }}>
-            <Box>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Επιλογή Πράξης</Typography>
-              <FormControl component="fieldset">
-                <RadioGroup defaultValue="medical">
-                  <FormControlLabel value="exam" control={<Radio color="primary" />} label="Καταγραφή Ζώου" />
-                  <FormControlLabel value="medical" control={<Radio color="primary" />} label="Ιατρική πράξη" />
-                </RadioGroup>
-              </FormControl>
-            </Box>
+    const groupedSlots = TIME_SLOTS.reduce((acc, t) => {
+      const h = parseInt(t.split(':')[0], 10);
+      if (h < 12) acc.morning.push(t);
+      else if (h < 17) acc.afternoon.push(t);
+      else acc.evening.push(t);
+      return acc;
+    }, { morning: [], afternoon: [], evening: [] });
 
-            <Divider />
+    // Keep UI steady on selection changes; no container re-mount or transform animations
 
-            <Box>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}><AccessTimeIcon fontSize="small"/> Διαθέσιμες Ώρες</Typography>
-              <Grid container spacing={1.5}>
-                {TIME_SLOTS.map((time) => {
-                  const picked = selectedTime === time;
+    return (
+      <Box sx={{ maxWidth: '980px', mx: 'auto' }}>
+        <Typography variant="h5" fontWeight="bold" align="center" gutterBottom sx={{ mt: -2 }}>Ώρα και Μέρα</Typography>
+        <Divider sx={{ width: 60, height: 4, bgcolor: '#333', mx: 'auto', mb: 3, borderRadius: 2 }} />
+
+        {/* Single interactive container */}
+        <Paper elevation={1} sx={{ p: 2, borderRadius: 2, border: '1px solid #e5e7eb' }}>
+          {/* Header with selection summary and quick picks */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+            <Chip label="Βήμα 2" color="primary" variant="outlined" />
+            <Typography fontWeight={700}>Διαλέξτε μέρα και ώρα</Typography>
+            <Chip
+              label={`${selectedDate || 'Ημερομηνία;'} · ${selectedTime || 'Ώρα;'}`}
+              color={(selectedDate && selectedTime) ? 'success' : 'default'}
+              sx={{ ml: { xs: 0, md: 'auto' }, fontWeight: 'bold' }}
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'row' }, alignItems: 'flex-start' }}>
+            {/* Calendar section */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.25, alignItems: 'center' }}>
+                <IconButton size="small" sx={{ border: '1px solid #eee', bgcolor: 'white' }} onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}><ChevronLeftIcon fontSize="small" /></IconButton>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ textTransform: 'capitalize' }}>{monthFormatter.format(calendarDate)}</Typography>
+                <IconButton size="small" sx={{ border: '1px solid #eee', bgcolor: 'white' }} onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}><ChevronRightIcon fontSize="small" /></IconButton>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.75 }}>
+                {weekdayShort.map(d => (
+                  <Box key={d} sx={{ textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight="bold">{d}</Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Box sx={{ mt: 0.5, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.75 }}>
+                {days.map((d, idx) => {
+                  const disabled = isPast(d);
+                  const muted = !isCurrentMonth(d);
+                  const selected = selectedDate && formatGreek(d) === selectedDate;
                   return (
-                    <Grid item xs={4} key={time}>
-                      <Button
-                        fullWidth
-                        variant={picked ? 'contained' : 'outlined'}
-                        color={picked ? 'success' : 'primary'}
-                        onClick={() => setSelectedTime(time)}
-                        sx={{
-                          borderRadius: 6,
-                          fontWeight: 'bold',
-                          bgcolor: picked ? '#00695c' : 'white',
-                          color: picked ? 'white' : '#111',
-                          borderColor: picked ? '#00695c' : '#e0e0e0',
-                          boxShadow: picked ? '0 10px 22px rgba(0,105,92,0.25)' : 'none',
-                          transition: 'all 0.18s ease',
-                          '&:hover': { bgcolor: picked ? '#005448' : '#f6f8fa', transform: 'translateY(-1px)' }
-                        }}
-                      >
-                        {time}
-                      </Button>
-                    </Grid>
+                    <Box key={idx} sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <Tooltip title={disabled ? 'Μη διαθέσιμη ημέρα' : ''} disableHoverListener={!disabled}>
+                        <Box
+                          onClick={() => !disabled && setSelectedDate(formatGreek(d))}
+                          sx={{
+                            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            borderRadius: '8px', cursor: disabled ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease',
+                            bgcolor: selected ? '#00695c' : 'transparent',
+                            color: disabled ? '#cbd5e1' : (selected ? 'white' : (muted ? '#94a3b8' : '#111')),
+                            fontWeight: selected ? 700 : 500,
+                            border: selected ? 'none' : '1px solid #eceff1',
+                            opacity: disabled ? 0.55 : 1,
+                            '&:hover': { bgcolor: disabled ? 'transparent' : (selected ? '#005448' : '#f5f5f5') }
+                          }}
+                        >{d.getDate()}</Box>
+                      </Tooltip>
+                    </Box>
                   );
                 })}
-              </Grid>
+              </Box>
+
+              <Box sx={{ mt: 1.25, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                <Chip size="small" label="Σήμερα" onClick={() => quickPick('today')} />
+                <Chip size="small" label="Αύριο" onClick={() => quickPick('tomorrow')} />
+                <Chip size="small" label="Επόμενη Εβδομάδα" onClick={() => quickPick('nextWeek')} />
+                <Chip size="small" label="Επόμενο διαθέσιμο" color="success" onClick={() => quickPick('nextAvailable')} />
+                <Chip size="small" label="Καθαρισμός" color="error" variant="outlined" onClick={() => quickPick('clear')} />
+              </Box>
             </Box>
 
-            <Paper elevation={0} sx={{ mt: 'auto', p: 2.5, borderRadius: 2, border: '1px dashed #b0bec5', bgcolor: '#f1f8e9' }}>
-              <Typography variant="body2" fontWeight="bold">Σύνοψη επιλογής</Typography>
-              <Typography variant="body2" color="text.secondary">{selectedDate || 'Ημερομηνία;'} • {selectedTime || 'Ώρα;'}</Typography>
-              {(!selectedDate || !selectedTime) && (
-                <Typography variant="caption" color="error.main">Επιλέξτε και ημερομηνία και ώρα για να συνεχίσετε.</Typography>
+            {/* Divider inside the same box on desktop */}
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' }, my: 0.5 }} />
+
+            {/* Times section */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><AccessTimeIcon fontSize="small"/> Διαθέσιμες Ώρες</Typography>
+              {/* Morning */}
+              {groupedSlots.morning.length > 0 && (
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="overline" sx={{ color: 'text.secondary', lineHeight: 1 }}>Πρωί</Typography>
+                  <Box sx={{ mt: 0.5, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                    {groupedSlots.morning.map((time) => {
+                      const picked = selectedTime === time;
+                      return (
+                        <Chip size="small" key={`m-${time}`} label={time} clickable onClick={() => setSelectedTime(time)} color={picked ? 'success' : 'default'} variant={picked ? 'filled' : 'outlined'} sx={{ fontWeight: 700 }} />
+                      );
+                    })}
+                  </Box>
+                </Box>
               )}
-            </Paper>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
-  );
+              {/* Afternoon */}
+              {groupedSlots.afternoon.length > 0 && (
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="overline" sx={{ color: 'text.secondary', lineHeight: 1 }}>Μεσημέρι</Typography>
+                  <Box sx={{ mt: 0.5, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                    {groupedSlots.afternoon.map((time) => {
+                      const picked = selectedTime === time;
+                      return (
+                        <Chip size="small" key={`a-${time}`} label={time} clickable onClick={() => setSelectedTime(time)} color={picked ? 'success' : 'default'} variant={picked ? 'filled' : 'outlined'} sx={{ fontWeight: 700 }} />
+                      );
+                    })}
+                  </Box>
+                </Box>
+              )}
+              {/* Evening */}
+              {groupedSlots.evening.length > 0 && (
+                <Box>
+                  <Typography variant="overline" sx={{ color: 'text.secondary', lineHeight: 1 }}>Απόγευμα</Typography>
+                  <Box sx={{ mt: 0.5, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                    {groupedSlots.evening.map((time) => {
+                      const picked = selectedTime === time;
+                      return (
+                        <Chip size="small" key={`e-${time}`} label={time} clickable onClick={() => setSelectedTime(time)} color={picked ? 'success' : 'default'} variant={picked ? 'filled' : 'outlined'} sx={{ fontWeight: 700 }} />
+                      );
+                    })}
+                  </Box>
+                </Box>
+              )}
+
+              <Paper elevation={0} sx={{ mt: 1.5, p: 1.5, borderRadius: 2, border: '1px dashed #b0bec5', bgcolor: '#f1f8e9', minHeight: 60 }}>
+                <Typography variant="body2" fontWeight="bold">Σύνοψη επιλογής</Typography>
+                <Typography variant="caption" color="text.secondary">{selectedDate || 'Ημερομηνία;'} • {selectedTime || 'Ώρα;'}</Typography>
+                {(!selectedDate || !selectedTime) && (
+                  <Typography variant="caption" color="error.main">Επιλέξτε και ημερομηνία και ώρα για να συνεχίσετε.</Typography>
+                )}
+              </Paper>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
+    );
+  };
 
   const StepSelectPet = () => (
     <Box sx={{ textAlign: 'center' }}>

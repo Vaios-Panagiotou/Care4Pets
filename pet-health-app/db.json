@@ -41,19 +41,60 @@
       "role": "vet"
     }
   ],
-  "pets": [
+  "pets": [],
+  "appointments": [
     {
-      "id": "a81e",
-      "name": "αλεχ",
-      "breed": "κανις",
-      "gender": "male",
-      "age": "15",
-      "weight": "20",
-      "img": "",
-      "ownerId": "1765141425145"
+      "id": "1767490230765",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": 1,
+      "vetName": "Δρ. Ιωάννης Σμυρνής",
+      "petName": "Pantiana",
+      "time": "13:00",
+      "date": "Τρίτη 6 Ιανουαρίου 2026",
+      "status": "confirmed",
+      "type": "Visit"
     }
   ],
-  "appointments": [],
-  "lostPets": [],
+  "lostPets": [
+    {
+      "id": "af81",
+      "name": "βαιος",
+      "type": "Γάτα",
+      "breed": "Άγνωστη",
+      "gender": "Άγνωστο",
+      "age": "",
+      "color": "",
+      "date": "04 Ιαν 2026",
+      "location": "das",
+      "img": "blob:http://localhost:3000/d9e29ba2-69cb-4e09-bf98-b712a6982e7f",
+      "reward": null,
+      "views": 0,
+      "urgent": false,
+      "description": "dasdasd",
+      "phone": "2109221221",
+      "ownerId": null
+    },
+    {
+      "id": "fc71",
+      "name": "βαιος",
+      "type": "Γάτα",
+      "breed": "Άγνωστη",
+      "gender": "Άγνωστο",
+      "age": "",
+      "color": "",
+      "date": "04 Ιαν 2026",
+      "location": "das",
+      "img": "blob:http://localhost:3000/4d71158f-27ad-4818-a1a8-7f1fa6722770",
+      "reward": null,
+      "views": 0,
+      "urgent": false,
+      "description": "dasdasd",
+      "phone": "2109221221",
+      "ownerId": null,
+      "lat": 37.9318893,
+      "lng": 23.7258307
+    }
+  ],
   "vets": []
 }

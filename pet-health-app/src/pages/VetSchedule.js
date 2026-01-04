@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
-  Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton 
+  Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, Collapse, Divider 
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 // Import PageHeader
 import PageHeader from './PageHeader';
 import DashboardSidebar from '../components/DashboardSidebar';
+import { appointmentsAPI } from '../services/api';
 
 const theme = createTheme({
   palette: {
@@ -52,6 +53,27 @@ const SCHEDULE = [
   { id: 103, time: '12:00', pet: 'Charlie', owner: 'Νίκος Σ.', status: 'confirmed', type: 'Vaccine', color: '#FFA000' },
   { id: 104, time: '14:00', pet: 'Lucy', owner: 'Άννα Π.', status: 'pending', type: 'Emergency', color: '#7B1FA2' },
 ];
+
+const MOCK_SCHEDULE = SCHEDULE.map(item => ({ ...item, isMock: true }));
+
+function mapApptToTimelineItem(appt) {
+  //attempt to map common fields; provide reasonable fallbacks
+  const petName = appt.petName || appt.pet?.name || 'Κατοικίδιο';
+  const ownerName = appt.ownerName || appt.owner?.name || 'Ιδιοκτήτης';
+  const time = appt.time || '15:00';
+  const status = appt.status || 'confirmed';
+  const type = appt.type || 'Visit';
+  const color = status === 'completed' ? '#2E7D32' : status === 'pending' ? '#7B1FA2' : '#00695c';
+  return {
+    id: appt.id,
+    time,
+    pet: petName,
+    owner: ownerName,
+    status,
+    type,
+    color,
+  };
+}
 
 // --- COMPONENTS ---
 
@@ -89,51 +111,61 @@ const RequestCard = ({ req }) => (
 );
 
 // 3. TIMELINE ITEM (Right Column)
-const TimelineItem = ({ item }) => (
-  <Box sx={{ display: 'flex', mb: 0 }}>
-    {/* Time Column */}
-    <Box sx={{ width: '70px', textAlign: 'center', mr: 2, position: 'relative' }}>
+const TimelineItem = ({ item }) => {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <Box sx={{ display: 'flex', mb: 1.5 }}>
+      {/* Time Column */}
+      <Box sx={{ width: '70px', textAlign: 'center', mr: 2, position: 'relative' }}>
         <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">{item.time}</Typography>
         {/* Vertical Line */}
-        <Box sx={{ 
-            position: 'absolute', top: 25, bottom: -10, left: '50%', width: '2px', bgcolor: '#eee', transform: 'translateX(-50%)',
-            display: 'block' 
-        }} />
-    </Box>
+        <Box sx={{ position: 'absolute', top: 25, bottom: -10, left: '50%', width: '2px', bgcolor: '#eee', transform: 'translateX(-50%)', display: 'block' }} />
+      </Box>
 
-    {/* Card */}
-    <Paper sx={{ 
-        flexGrow: 1, p: 2, mb: 3, borderRadius: '12px', 
+      {/*Card*/}
+      <Paper sx={{
+        flexGrow: 1, p: 1.5, borderRadius: '12px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderLeft: `5px solid ${item.color}`,
         bgcolor: item.status === 'completed' ? '#fafafa' : 'white',
-        opacity: item.status === 'completed' ? 0.8 : 1
-    }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar sx={{ bgcolor: item.color + '20', color: item.color, borderRadius: '8px' }}>
-                {item.pet[0]}
-            </Avatar>
-            <Box>
-                <Typography variant="subtitle1" fontWeight="bold">{item.pet}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <PersonIcon fontSize="inherit"/> {item.owner}
-                </Typography>
-            </Box>
+        opacity: item.status === 'completed' ? 0.9 : 1,
+        transition: 'background 120ms ease',
+        '&:hover': { bgcolor: '#f9fafb' }
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar sx={{ bgcolor: item.color + '20', color: item.color, borderRadius: '8px' }}>{item.pet[0]}</Avatar>
+          <Box>
+            <Typography variant="subtitle1" fontWeight="bold">{item.pet}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <PersonIcon fontSize="inherit"/> {item.owner}
+            </Typography>
+          </Box>
         </Box>
 
-        <Box sx={{ textAlign: 'right' }}>
-            <Chip 
-                label={item.type} 
-                size="small" 
-                sx={{ bgcolor: item.color + '20', color: item.color, fontWeight: 'bold', mb: 0.5 }} 
-            />
-            <Typography variant="caption" display="block" color="text.secondary">
-                {item.status === 'confirmed' ? 'Επιβεβαιωμένο' : (item.status === 'completed' ? 'Ολοκληρώθηκε' : 'Εκκρεμεί')}
-            </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip label={item.type} size="small" sx={{ bgcolor: item.color + '20', color: item.color, fontWeight: 'bold' }} />
+          <Chip label={item.status === 'confirmed' ? 'Επιβεβαιωμένο' : (item.status === 'completed' ? 'Ολοκληρώθηκε' : 'Εκκρεμεί')} size="small" variant="outlined" />
+          <Button size="small" variant="text" onClick={() => setOpen(v => !v)} sx={{ ml: 1 }}>
+            {open ? 'Λεπτομέρειες -' : 'Λεπτομέρειες +'}
+          </Button>
         </Box>
-    </Paper>
-  </Box>
-);
+      </Paper>
+
+      <Collapse in={open} timeout={150} unmountOnExit>
+        <Box sx={{ ml: '70px', mt: 1.25, mb: 2 }}>
+          <Paper sx={{ p: 1.5, borderRadius: 1.5, bgcolor: '#f8fafc' }}>
+            <Typography variant="caption" color="text.secondary">Τύπος: <strong>{item.type}</strong></Typography>
+            <Divider sx={{ my: 1 }} />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button size="small" variant="outlined" color="success" startIcon={<CheckCircleIcon fontSize="small" />}>Ολοκλήρωση</Button>
+              <Button size="small" variant="outlined" color="error" startIcon={<CancelIcon fontSize="small" />}>Ακύρωση</Button>
+            </Box>
+          </Paper>
+        </Box>
+      </Collapse>
+    </Box>
+  );
+};
 
 // 4. CALENDAR WIDGET
 const CalendarWidget = () => (
@@ -167,6 +199,33 @@ const CalendarWidget = () => (
 );
 
 export default function VetSchedule() {
+  const [serverAppointments, setServerAppointments] = useState([]);
+  const [requestsOpen, setRequestsOpen] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const data = await appointmentsAPI.getAll();
+        if (mounted) setServerAppointments(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error('Failed to load appointments from server (port 3001).', e);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const timeline = useMemo(() => {
+    const mapped = serverAppointments.map(mapApptToTimelineItem);
+    return [...MOCK_SCHEDULE, ...mapped];
+  }, [serverAppointments]);
+
+  const [filter, setFilter] = useState('all');
+  const filteredTimeline = useMemo(() => filter === 'all' ? timeline : timeline.filter(i => i.status === filter), [timeline, filter]);
+  const todayCount = timeline.length;
+  const pendingCount = timeline.filter(i => i.status === 'pending').length;
+  const completedCount = timeline.filter(i => i.status === 'completed').length;
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa', pb: 10, display: 'flex', flexDirection: 'column' }}>
@@ -179,70 +238,61 @@ export default function VetSchedule() {
           <DashboardSidebar />
           
           <Box sx={{ flex: 1, overflowY: 'auto' }}>
-            {/* HERO TITLE AREA */}
-            <Box sx={{ bgcolor: '#263238', py: 4, mb: -4, pb: 8, color: 'white', mr: -2 }}>
-                <Container maxWidth="lg">
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box>
-                            <Typography variant="h4" fontWeight="bold">Πρόγραμμα</Typography>
-                            <Typography variant="body2" sx={{ opacity: 0.7 }}>Διαχείριση ραντεβού και αιτημάτων.</Typography>
-                        </Box>
-                        <Button variant="contained" color="secondary" startIcon={<AccessTimeIcon />} sx={{ fontWeight: 'bold', borderRadius: '8px' }}>
-                            Νέο Ραντεβού
-                        </Button>
-                </Box>
-            </Container>
-        </Box>
+            {/*COMPACT TOOLBA*/}
+            <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e5e7eb', py: 1.5, mb: 2 }}>
+              <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton size="small"><ChevronLeftIcon /></IconButton>
+                <Chip icon={<CalendarMonthIcon />} label="Σήμερα" variant="outlined" />
+                <IconButton size="small"><ChevronRightIcon /></IconButton>
+                <Box sx={{ flex: 1 }} />
+                <Chip label="Όλα" color={filter==='all' ? 'primary' : 'default'} onClick={() => setFilter('all')} clickable />
+                <Chip label="Επιβεβαιωμένα" color={filter==='confirmed' ? 'primary' : 'default'} onClick={() => setFilter('confirmed')} clickable />
+                <Chip label="Εκκρεμή" color={filter==='pending' ? 'primary' : 'default'} onClick={() => setFilter('pending')} clickable />
+                <Chip label="Ολοκληρωμένα" color={filter==='completed' ? 'primary' : 'default'} onClick={() => setFilter('completed')} clickable />
+                <Button variant="contained" size="small" startIcon={<AccessTimeIcon />} sx={{ ml: 1 }}>Νέο Ραντεβού</Button>
+              </Container>
+            </Box>
 
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
-            
-            {/* STATS ROW */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} sm={4}>
-                    <StatCard title="ΣΗΜΕΡΙΝΑ ΡΑΝΤΕΒΟΥ" count="4" icon={<CalendarMonthIcon />} color="#00695c" bgcolor="#e0f2f1" />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <StatCard title="ΕΚΚΡΕΜΗ ΑΙΤΗΜΑΤΑ" count="2" icon={<PendingActionsIcon />} color="#FFA726" bgcolor="#FFF3E0" />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <StatCard title="ΟΛΟΚΛΗΡΩΜΕΝΑ" count="12" icon={<DoneAllIcon />} color="#2E7D32" bgcolor="#E8F5E9" />
-                </Grid>
-            </Grid>
+          <Paper sx={{ p: 3, borderRadius: '16px', bgcolor: 'white' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Πρόγραμμα</Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Chip label={`Σύνολο: ${todayCount}`} size="small" />
+                <Chip label={`Εκκρεμή: ${pendingCount}`} size="small" />
+                <Chip label={`Ολοκληρωμένα: ${completedCount}`} size="small" />
+              </Box>
+            </Box>
 
-            <Grid container spacing={4}>
-                
-                {/* LEFT COLUMN: CALENDAR & REQUESTS */}
-                <Grid item xs={12} md={4}>
-                    <CalendarWidget />
-                    
-                    <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 4, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <NotificationsActiveIcon color="secondary" fontSize="small" /> Νέα Αιτήματα
-                    </Typography>
-                    {REQUESTS.map(req => <RequestCard key={req.id} req={req} />)}
-                </Grid>
+            {/* Requests inside same flow */}
+            <Box sx={{ mt: 2, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <NotificationsActiveIcon color="secondary" fontSize="small" />
+              <Typography variant="subtitle2" fontWeight="bold">Νέα Αιτήματα</Typography>
+              <Chip size="small" label={REQUESTS.length} />
+              <Button size="small" onClick={() => setRequestsOpen(v => !v)} sx={{ ml: 'auto' }}>
+                {requestsOpen ? 'Απόκρυψη' : 'Προβολή'}
+              </Button>
+            </Box>
+            <Collapse in={requestsOpen} timeout={150} unmountOnExit>
+              <Grid container spacing={2}>
+                {REQUESTS.map(req => (
+                  <Grid item xs={12} md={6} key={req.id}><RequestCard req={req} /></Grid>
+                ))}
+              </Grid>
+              <Divider sx={{ my: 2 }} />
+            </Collapse>
 
-                {/* RIGHT COLUMN: TIMELINE SCHEDULE */}
-                <Grid item xs={12} md={8}>
-                    <Paper sx={{ p: 4, borderRadius: '16px', minHeight: '600px', bgcolor: 'white' }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, alignItems: 'center' }}>
-                            <Typography variant="h6">Σημερινό Πρόγραμμα</Typography>
-                            <Chip label="17 Νοεμβρίου 2025" sx={{ fontWeight: 'bold' }} />
-                        </Box>
+            {/*Timeline*/}
+            {filteredTimeline.map(item => <TimelineItem key={item.id} item={item} />)}
 
-                        {SCHEDULE.map(item => <TimelineItem key={item.id} item={item} />)}
-
-                        {/* Visual for Free Slot */}
-                        <Box sx={{ display: 'flex', mb: 3 }}>
-                            <Box sx={{ width: '70px', textAlign: 'center', mr: 2 }}><Typography variant="subtitle2" color="text.secondary">16:00</Typography></Box>
-                            <Box sx={{ flexGrow: 1, border: '2px dashed #eee', borderRadius: '12px', p: 1.5, textAlign: 'center', color: '#999' }}>
-                                <Typography variant="caption" fontWeight="bold">Διαθέσιμο Κενό</Typography>
-                            </Box>
-                        </Box>
-
-                    </Paper>
-                </Grid>
-
-            </Grid>
+            {/* Visual for Free Slot */}
+            <Box sx={{ display: 'flex', mb: 1.5 }}>
+              <Box sx={{ width: '70px', textAlign: 'center', mr: 2 }}><Typography variant="subtitle2" color="text.secondary">16:00</Typography></Box>
+              <Box sx={{ flexGrow: 1, border: '2px dashed #eee', borderRadius: '12px', p: 1.5, textAlign: 'center', color: '#999' }}>
+                <Typography variant="caption" fontWeight="bold">Διαθέσιμο Κενό</Typography>
+              </Box>
+            </Box>
+          </Paper>
         </Container>
           </Box>
         </Box>
