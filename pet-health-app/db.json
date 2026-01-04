@@ -54,6 +54,18 @@
       "date": "Τρίτη 6 Ιανουαρίου 2026",
       "status": "confirmed",
       "type": "Visit"
+    },
+    {
+      "id": "1767546058810",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": 1,
+      "vetName": "Δρ. Ιωάννης Σμυρνής",
+      "petName": "Pantiana",
+      "time": "10:00",
+      "date": "Κυριακή 4 Ιανουαρίου 2026",
+      "status": "confirmed",
+      "type": "Visit"
     }
   ],
   "lostPets": [

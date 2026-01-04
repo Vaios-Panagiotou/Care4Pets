@@ -20,6 +20,7 @@ export const usersAPI = {
   getAll: () => request('users'),
   getByEmail: async (email) => request(`users?email=${encodeURIComponent(email)}`),
   create: (user) => request('users', { method: 'POST', body: JSON.stringify({ id: toId(), ...user }) }),
+  update: (id, user) => request(`users/${id}`, { method: 'PUT', body: JSON.stringify(user) }),
 };
 
 export const petsAPI = {

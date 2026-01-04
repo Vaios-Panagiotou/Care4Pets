@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, 
   Divider, Pagination, TextField, Radio, RadioGroup, FormControlLabel, FormControl,
-  Dialog, DialogContent, Checkbox, Alert, Tooltip
+  Dialog, DialogContent, Checkbox, Alert, Tooltip, InputAdornment
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { keyframes } from '@mui/system';
@@ -25,6 +25,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import GoogleIcon from '@mui/icons-material/Google';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ClearIcon from '@mui/icons-material/Clear';
 
 // Import Header
 import PageHeader from './PageHeader';
@@ -85,7 +86,7 @@ const bump = keyframes`
 
 export default function VetSearch() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
   const { user } = useAuth();
   const [hasPets, setHasPets] = useState(true);
@@ -94,6 +95,8 @@ export default function VetSearch() {
   const [activeStep, setActiveStep] = useState(0);
   const [openSuccess, setOpenSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState(queryParam);
+  const [searchInput, setSearchInput] = useState(queryParam);
+  const searchRef = useRef(null);
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const todayRef = useMemo(() => new Date(), []);
   
@@ -106,6 +109,93 @@ export default function VetSearch() {
   // Pagination State
   const [page, setPage] = useState(1);
   const vetsPerPage = 3;
+  // Filters & View State (declare before effects that use them)
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'grid'
+  const specialties = useMemo(() => Array.from(new Set(ALL_VETS.map(v => v.specialty))), []);
+  const cities = useMemo(() => {
+    const guessCity = (addr) => {
+      if ((addr || '').includes('Αθήνα')) return 'Αθήνα';
+      if ((addr || '').includes('Θεσσαλονίκη')) return 'Θεσσαλονίκη';
+      return 'Άλλη';
+    };
+    return Array.from(new Set(ALL_VETS.map(v => guessCity(v.address))));
+  }, []);
+  const [selectedSpecialties, setSelectedSpecialties] = useState([]);
+  const [selectedCities, setSelectedCities] = useState([]);
+  const [minRating, setMinRating] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(100);
+  // Initialize from URL once (shareable filters/state)
+  useEffect(() => {
+    const q = searchParams.get('q') || '';
+    const cityParam = searchParams.get('city') || '';
+    const specParam = searchParams.get('spec') || '';
+    const ratingParam = Number(searchParams.get('rating') || 0);
+    const priceParam = Number(searchParams.get('price') || 100);
+    const pageParam = Number(searchParams.get('page') || 1);
+    const viewParam = searchParams.get('view') || 'list';
+    setSearchInput(q);
+    setSearchQuery(q);
+    setSelectedCities(cityParam ? cityParam.split(',').filter(Boolean) : []);
+    setSelectedSpecialties(specParam ? specParam.split(',').filter(Boolean) : []);
+    setMinRating(!isNaN(ratingParam) ? ratingParam : 0);
+    setMaxPrice(!isNaN(priceParam) ? priceParam : 100);
+    setPage(!isNaN(pageParam) && pageParam > 0 ? pageParam : 1);
+    setViewMode(viewParam === 'grid' ? 'grid' : 'list');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Helper: commit current or overridden state to URL (explicit actions only)
+  const commitURL = (overrides = {}) => {
+    const q = (overrides.searchQuery ?? searchQuery).trim();
+    const citiesVal = overrides.selectedCities ?? selectedCities;
+    const specsVal = overrides.selectedSpecialties ?? selectedSpecialties;
+    const ratingVal = overrides.minRating ?? minRating;
+    const priceVal = overrides.maxPrice ?? maxPrice;
+    const pageVal = overrides.page ?? page;
+    const viewVal = overrides.viewMode ?? viewMode;
+    const params = {};
+    if (q) params.q = q;
+    if (citiesVal && citiesVal.length) params.city = citiesVal.join(',');
+    if (specsVal && specsVal.length) params.spec = specsVal.join(',');
+    if (ratingVal > 0) params.rating = String(ratingVal);
+    if (priceVal !== 100) params.price = String(priceVal);
+    if (pageVal > 1) params.page = String(pageVal);
+    if (viewVal !== 'list') params.view = viewVal;
+    setSearchParams(params, { replace: true });
+  };
+
+  // Debounce search input to avoid jumpy list updates
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearchQuery(searchInput);
+      setPage(1);
+    }, 250);
+    return () => clearTimeout(id);
+  }, [searchInput]);
+
+  // Keep focus on the search field after state updates
+  useEffect(() => {
+    if (!filterOpen && searchRef.current) {
+      try { searchRef.current.focus(); } catch {}
+    }
+  }, [searchInput, searchQuery, filterOpen]);
+
+
+  // Draft states used inside the filter dialog so the list doesn't re-render until Apply
+  const [draftSelectedCities, setDraftSelectedCities] = useState([]);
+  const [draftSelectedSpecialties, setDraftSelectedSpecialties] = useState([]);
+  const [draftMinRating, setDraftMinRating] = useState(0);
+  const [draftMaxPrice, setDraftMaxPrice] = useState(100);
+
+  useEffect(() => {
+    if (filterOpen) {
+      setDraftSelectedCities(selectedCities);
+      setDraftSelectedSpecialties(selectedSpecialties);
+      setDraftMinRating(minRating);
+      setDraftMaxPrice(maxPrice);
+    }
+  }, [filterOpen]);
 
   useEffect(() => {
     let result = true;
@@ -128,16 +218,27 @@ export default function VetSearch() {
   
   // Filter vets based on search query
   const filteredVets = useMemo(() => {
-    if (!searchQuery.trim()) return ALL_VETS;
-    return ALL_VETS.filter(vet => 
-      vet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vet.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vet.address.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    const q = searchQuery.trim().toLowerCase();
+    const priceNum = (p) => parseInt(String(p).replace(/[^0-9]/g, ''), 10) || 0;
+    const withinFilters = (vet) => {
+      const cityMatches = selectedCities.length === 0 || selectedCities.some(c => (vet.address || '').includes(c) || (c === 'Άλλη' && !/(Αθήνα|Θεσσαλονίκη)/.test(vet.address || '')));
+      const specialtyMatches = selectedSpecialties.length === 0 || selectedSpecialties.includes(vet.specialty);
+      const ratingMatches = (vet.rating || 0) >= minRating;
+      const priceMatches = priceNum(vet.price) <= maxPrice;
+      return cityMatches && specialtyMatches && ratingMatches && priceMatches;
+    };
+    const base = q
+      ? ALL_VETS.filter(vet =>
+          (vet.name || '').toLowerCase().includes(q) ||
+          (vet.specialty || '').toLowerCase().includes(q) ||
+          (vet.address || '').toLowerCase().includes(q)
+        )
+      : ALL_VETS;
+    return base.filter(withinFilters);
+  }, [searchQuery, selectedCities, selectedSpecialties, minRating, maxPrice]);
   
   const pageCount = Math.ceil(filteredVets.length / vetsPerPage);
-  const handlePageChange = (event, value) => setPage(value);
+  const handlePageChange = (event, value) => { setPage(value); commitURL({ page: value }); };
   const displayedVets = filteredVets.slice((page - 1) * vetsPerPage, page * vetsPerPage);
 
   // --- ACCESS GUARDS ---
@@ -276,10 +377,19 @@ export default function VetSearch() {
           <TextField 
             placeholder="Αναζήτηση κτηνιάτρου..." 
             size="small"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            inputRef={searchRef}
+            InputProps={{
+              endAdornment: (
+                searchInput ? (
+                  <InputAdornment position="end">
+                    <IconButton size="small" aria-label="Καθαρισμός" onClick={() => { setSearchInput(''); setSearchQuery(''); setPage(1); commitURL({ searchQuery: '', page: 1 }); }}>
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null
+              )
             }}
             sx={{ flex: 1, minWidth: 240, maxWidth: 320, bgcolor: 'white', borderRadius: 2, boxShadow: '0 6px 18px rgba(15,23,42,0.06)' }}
           />
@@ -288,10 +398,10 @@ export default function VetSearch() {
             <Chip label={filteredVets.length} size="small" color="primary" variant="outlined" />
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button variant="outlined" endIcon={<FilterListIcon />} size="small" sx={{ color: '#333', borderColor: '#ccc', borderRadius: 2, '&:hover': { borderColor: '#00695c', color: '#00695c' } }}>Filter</Button>
-              <Box sx={{ border: '1px solid #ccc', borderRadius: 2, display: 'flex', overflow: 'hidden' }}>
-                  <IconButton size="small" sx={{ '&:hover': { bgcolor: '#f5f5f5' } }}><ViewListIcon /></IconButton>
-                  <IconButton size="small" sx={{ '&:hover': { bgcolor: '#f5f5f5' } }}><GridViewIcon /></IconButton>
+              <Button variant="outlined" endIcon={<FilterListIcon />} size="small" onClick={() => setFilterOpen(true)} sx={{ color: '#333', borderColor: '#ccc', borderRadius: 2, '&:hover': { borderColor: '#00695c', color: '#00695c' } }}>Filter</Button>
+                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, display: 'flex', overflow: 'hidden' }}>
+                  <IconButton size="small" onClick={() => { setViewMode('list'); commitURL({ viewMode: 'list' }); }} sx={{ bgcolor: viewMode==='list' ? '#f5f5f5' : 'transparent', '&:hover': { bgcolor: '#f5f5f5' } }}><ViewListIcon /></IconButton>
+                  <IconButton size="small" onClick={() => { setViewMode('grid'); commitURL({ viewMode: 'grid' }); }} sx={{ bgcolor: viewMode==='grid' ? '#f5f5f5' : 'transparent', '&:hover': { bgcolor: '#f5f5f5' } }}><GridViewIcon /></IconButton>
               </Box>
           </Box>
       </Box>
@@ -302,46 +412,125 @@ export default function VetSearch() {
           </Typography>
         </Paper>
       ) : (
-        displayedVets.map(vet => (
-          <Paper 
-            key={vet.id} 
-            elevation={selectedVet?.id === vet.id ? 8 : 1} 
-            onClick={() => setSelectedVet(vet)}
-            sx={{ 
-                position: 'relative',
-                p: 2.5, mb: 3, border: selectedVet?.id === vet.id ? '2px solid #00695c' : '1px solid #eee', 
-                borderRadius: '14px', display: 'flex', gap: 3, cursor: 'pointer',
-                bgcolor: selectedVet?.id === vet.id ? '#e0f2f1' : 'white',
-                transition: 'all 0.25s ease',
-                '&:hover': { borderColor: '#00695c', transform: 'translateY(-6px) scale(1.01)', boxShadow: '0 14px 32px rgba(0,0,0,0.1)' },
-                '&::after': {
-                  content: '""', position: 'absolute', inset: 0, borderRadius: '14px', pointerEvents: 'none',
-                  background: 'linear-gradient(120deg, rgba(0,105,92,0.08), rgba(255,167,38,0.06))', opacity: 0, transition: 'opacity 0.25s ease'
-                },
-                '&:hover::after': { opacity: 1 }
-            }}
-          >
-                 <Avatar src={vet.img} variant="rounded" sx={{ width: 100, height: 100, borderRadius: '8px' }} />
-                 <Box sx={{ flexGrow: 1 }}>
-                   <Typography variant="h6" sx={{ color: '#0277bd', mb: 1 }}>{vet.name}</Typography>
-                  <Typography variant="caption" display="block" color="text.secondary"><LocationOnIcon fontSize="inherit"/> {vet.address}</Typography>
-                  <Typography variant="caption" display="block" color="text.secondary"><MedicalServicesIcon fontSize="inherit"/> {vet.specialty}</Typography>
-                  <Typography variant="caption" display="block" color="text.primary" fontWeight="bold"><CalendarMonthIcon fontSize="inherit"/> {vet.availability}</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <IconButton size="small" sx={{ alignSelf: 'flex-end' }}><MoreVertIcon /></IconButton>
-                  <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                          <StarIcon sx={{ color: '#FFC107', fontSize: 18 }} />
-                          <Typography variant="body2" fontWeight="bold">{vet.rating}</Typography>
-                      </Box>
-                      <Typography variant="body2" sx={{ mt: 1, color: '#555' }}>Τιμή από: <span style={{ color: '#00695c', fontWeight: 'bold', fontSize: '1.1rem' }}>{vet.price}</span></Typography>
+        viewMode === 'grid' ? (
+          <Grid container spacing={2}>
+            {displayedVets.map(vet => (
+              <Grid item xs={12} sm={6} key={vet.id}>
+                <Paper
+                  elevation={selectedVet?.id === vet.id ? 8 : 1}
+                  onClick={() => setSelectedVet(vet)}
+                  sx={{ p: 2, borderRadius: '14px', border: selectedVet?.id === vet.id ? '2px solid #00695c' : '1px solid #eee', display: 'flex', gap: 2, cursor: 'pointer', bgcolor: selectedVet?.id === vet.id ? '#e0f2f1' : 'white' }}
+                >
+                  <Avatar src={vet.img} variant="rounded" sx={{ width: 80, height: 80, borderRadius: '8px' }} />
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="subtitle1" sx={{ color: '#0277bd' }}>{vet.name}</Typography>
+                    <Typography variant="caption" display="block" color="text.secondary"><LocationOnIcon fontSize="inherit"/> {vet.address}</Typography>
+                    <Typography variant="caption" display="block" color="text.secondary"><MedicalServicesIcon fontSize="inherit"/> {vet.specialty}</Typography>
                   </Box>
-              </Box>
-          </Paper>
-        ))
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                      <StarIcon sx={{ color: '#FFC107', fontSize: 18 }} />
+                      <Typography variant="body2" fontWeight="bold">{vet.rating}</Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ mt: 1, color: '#555' }}>από <span style={{ color: '#00695c', fontWeight: 'bold' }}>{vet.price}</span></Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          displayedVets.map(vet => (
+            <Paper 
+              key={vet.id} 
+              elevation={selectedVet?.id === vet.id ? 8 : 1} 
+              onClick={() => setSelectedVet(vet)}
+              sx={{ 
+                  position: 'relative',
+                  p: 2.5, mb: 3, border: selectedVet?.id === vet.id ? '2px solid #00695c' : '1px solid #eee', 
+                  borderRadius: '14px', display: 'flex', gap: 3, cursor: 'pointer',
+                  bgcolor: selectedVet?.id === vet.id ? '#e0f2f1' : 'white',
+                  transition: 'all 0.25s ease',
+                  '&:hover': { borderColor: '#00695c', transform: 'translateY(-6px) scale(1.01)', boxShadow: '0 14px 32px rgba(0,0,0,0.1)' },
+                  '&::after': {
+                    content: '""', position: 'absolute', inset: 0, borderRadius: '14px', pointerEvents: 'none',
+                    background: 'linear-gradient(120deg, rgba(0,105,92,0.08), rgba(255,167,38,0.06))', opacity: 0, transition: 'opacity 0.25s ease'
+                  },
+                  '&:hover::after': { opacity: 1 }
+              }}
+            >
+                   <Avatar src={vet.img} variant="rounded" sx={{ width: 100, height: 100, borderRadius: '8px' }} />
+                   <Box sx={{ flexGrow: 1 }}>
+                     <Typography variant="h6" sx={{ color: '#0277bd', mb: 1 }}>{vet.name}</Typography>
+                    <Typography variant="caption" display="block" color="text.secondary"><LocationOnIcon fontSize="inherit"/> {vet.address}</Typography>
+                    <Typography variant="caption" display="block" color="text.secondary"><MedicalServicesIcon fontSize="inherit"/> {vet.specialty}</Typography>
+                    <Typography variant="caption" display="block" color="text.primary" fontWeight="bold"><CalendarMonthIcon fontSize="inherit"/> {vet.availability}</Typography>
+                </Box>
+                <Box sx={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <IconButton size="small" sx={{ alignSelf: 'flex-end' }}><MoreVertIcon /></IconButton>
+                    <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                            <StarIcon sx={{ color: '#FFC107', fontSize: 18 }} />
+                            <Typography variant="body2" fontWeight="bold">{vet.rating}</Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ mt: 1, color: '#555' }}>Τιμή από: <span style={{ color: '#00695c', fontWeight: 'bold', fontSize: '1.1rem' }}>{vet.price}</span></Typography>
+                    </Box>
+                </Box>
+            </Paper>
+          ))
+        )
       )}
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><Pagination count={pageCount} page={page} onChange={handlePageChange} color="primary" shape="rounded" /></Box>
+
+      {/* Filter Dialog */}
+      <Dialog 
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        keepMounted
+        disableRestoreFocus
+        disableAutoFocus
+        disableEnforceFocus
+        transitionDuration={0}
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogContent sx={{ minWidth: 420 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Φίλτρα</Typography>
+          <Typography variant="subtitle2">Πόλη</Typography>
+          <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+            {cities.map(c => (
+              <FormControlLabel key={c} control={<Checkbox checked={draftSelectedCities.includes(c)} onChange={(e) => {
+                const checked = e.target.checked; setDraftSelectedCities(prev => checked ? [...prev, c] : prev.filter(x => x !== c));
+              }} />} label={c} />
+            ))}
+          </Box>
+          <Typography variant="subtitle2">Ειδικότητα</Typography>
+          <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+            {specialties.map(s => (
+              <FormControlLabel key={s} control={<Checkbox checked={draftSelectedSpecialties.includes(s)} onChange={(e) => {
+                const checked = e.target.checked; setDraftSelectedSpecialties(prev => checked ? [...prev, s] : prev.filter(x => x !== s));
+              }} />} label={s} />
+            ))}
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <TextField label="Ελάχιστη Αξιολόγηση" type="number" inputProps={{ min: 0, max: 5, step: 0.1 }} value={draftMinRating} onChange={(e) => setDraftMinRating(Number(e.target.value))} size="small" />
+            <TextField label="Μέγιστη Τιμή (€)" type="number" inputProps={{ min: 0, step: 5 }} value={draftMaxPrice} onChange={(e) => setDraftMaxPrice(Number(e.target.value))} size="small" />
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Button variant="text" color="error" onClick={() => { setDraftSelectedCities([]); setDraftSelectedSpecialties([]); setDraftMinRating(0); setDraftMaxPrice(100); }}>Καθαρισμός</Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button variant="outlined" onClick={() => setFilterOpen(false)}>Κλείσιμο</Button>
+              <Button variant="contained" onClick={() => { 
+                setSelectedCities(draftSelectedCities);
+                setSelectedSpecialties(draftSelectedSpecialties);
+                setMinRating(draftMinRating);
+                setMaxPrice(draftMaxPrice);
+                setPage(1);
+                setFilterOpen(false);
+                commitURL({ selectedCities: draftSelectedCities, selectedSpecialties: draftSelectedSpecialties, minRating: draftMinRating, maxPrice: draftMaxPrice, page: 1 });
+              }}>Εφαρμογή</Button>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 

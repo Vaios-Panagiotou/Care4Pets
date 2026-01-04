@@ -132,7 +132,7 @@ export default function Login() {
             </Button>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-              <Link href="#" variant="body2" sx={{ color: '#00695c' }}>
+              <Link href="/forgot" variant="body2" sx={{ color: '#00695c' }}>
                 Ξεχάσατε τον κωδικό;
               </Link>
               <Link href="/register" variant="body2" sx={{ color: '#00695c', fontWeight: 'bold' }}>

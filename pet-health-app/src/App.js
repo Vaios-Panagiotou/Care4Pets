@@ -3,6 +3,7 @@ import { Alert, Box, Button, Container, Typography } from "@mui/material";
 import Home from "./pages/home";
 import Login from "./pages/login";
 import Register from "./pages/register";
+import ForgotPassword from "./pages/ForgotPassword";
 import Contact from "./pages/contact";
 import LostPets from "./pages/lostpets";
 import OwnerDashboard from "./pages/OwnerDashboard";
@@ -101,6 +102,7 @@ function App() {
         {/* Δημόσιες Σελίδες */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/lost-pets" element={<LostPets />} />
@@ -247,7 +249,7 @@ function App() {
 // Conditionally render Navbar based on current route
 function NavWrapper() {
   const location = useLocation();
-  const hidePaths = ['/login', '/register'];
+  const hidePaths = ['/login', '/register', '/forgot'];
   const hide = hidePaths.includes(location.pathname);
   if (hide) return null;
   return (
