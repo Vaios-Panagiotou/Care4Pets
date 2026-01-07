@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Container, Grid, Typography, Button, Paper, Avatar, IconButton, TextField,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton, Tabs, Tab
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,9 @@ import FemaleIcon from '@mui/icons-material/Female';
 import PetsIcon from '@mui/icons-material/Pets';
 import SearchIcon from '@mui/icons-material/Search';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -46,13 +49,29 @@ const theme = createTheme({
 );
 
 const AppointmentCard = ({ appointment, onViewDetails, onCancel }) => (
-  <Paper sx={{ p: 2, mb: 2, borderLeft: appointment.status === 'confirmed' ? '4px solid #10b981' : '4px solid #ef4444', bgcolor: 'white' }}>
+  <Paper sx={{ 
+    p: 2, mb: 2, 
+    borderLeft: appointment.status === 'confirmed' 
+      ? '4px solid #10b981' 
+      : appointment.status === 'completed' 
+        ? '4px solid #0ea5e9' 
+        : '4px solid #ef4444', 
+    bgcolor: 'white' 
+  }}>
     <Typography variant="caption" sx={{ 
-      bgcolor: appointment.status === 'confirmed' ? '#d1fae5' : '#fee2e2',
-      color: appointment.status === 'confirmed' ? '#065f46' : '#991b1b',
+      bgcolor: appointment.status === 'confirmed' 
+        ? '#d1fae5' 
+        : appointment.status === 'completed' 
+          ? '#e0f2fe' 
+          : '#fee2e2',
+      color: appointment.status === 'confirmed' 
+        ? '#065f46' 
+        : appointment.status === 'completed' 
+          ? '#0c4a6e' 
+          : '#991b1b',
       px: 1, py: 0.5, borderRadius: 1, fontWeight: 600, fontSize: '0.7rem'
     }}>
-      {appointment.status === 'confirmed' ? 'Επιβεβαιωμένο' : 'Ακυρωμένο'}
+      {appointment.status === 'confirmed' ? 'Επιβεβαιωμένο' : appointment.status === 'completed' ? 'Ολοκληρωμένο' : 'Ακυρωμένο'}
     </Typography>
     <Typography variant="body2" fontWeight={700} sx={{ mt: 1, color: 'text.primary' }}>{appointment.date} • {appointment.time}</Typography>
     <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>📋 {appointment.vetName || appointment.doctor}</Typography>
@@ -60,6 +79,31 @@ const AppointmentCard = ({ appointment, onViewDetails, onCancel }) => (
     {appointment.location && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>
       <LocationOnIcon sx={{ fontSize: 14 }} /> {appointment.location}
     </Typography>}
+    {appointment.diagnosis && (
+      <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
+        🧪 Διάγνωση: {appointment.diagnosis}
+      </Typography>
+    )}
+    {appointment.treatment && (
+      <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
+        💊 Θεραπεία: {appointment.treatment}
+      </Typography>
+    )}
+    {appointment.nextVisit && (
+      <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
+        📅 Επόμενη Επίσκεψη: {appointment.nextVisit}
+      </Typography>
+    )}
+    {appointment.note && (
+      <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
+        📝 {appointment.note}
+      </Typography>
+    )}
+    {appointment.cancelReason && (
+      <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
+        ❗ Λόγος ακύρωσης: {appointment.cancelReason}
+      </Typography>
+    )}
     {appointment.phone && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
       <PhoneIcon sx={{ fontSize: 14 }} /> {appointment.phone}
     </Typography>}
@@ -489,6 +533,17 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [petDetailsDialogOpen, setPetDetailsDialogOpen] = useState(false);
     const [selectedPet, setSelectedPet] = useState(null);
+      const [apptTab, setApptTab] = useState(() => {
+        try {
+          const saved = localStorage.getItem('ownerApptTab');
+          return saved || 'confirmed';
+        } catch {
+          return 'confirmed';
+        }
+      });
+    useEffect(() => {
+      try { localStorage.setItem('ownerApptTab', apptTab); } catch {}
+    }, [apptTab]);
 
     useEffect(() => {
         const fetchPets = async () => {
@@ -736,33 +791,54 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                         </Box>
                     </Box>
 
-                    {/* Main Grid: Appointments & Calendar */}
+                    {/* Appointments with minimal tabs */}
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={8}>
-                            <Box sx={{ display: 'flex', gap: 3 }}>
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Επερχόμενα Ραντεβού</Typography>
-                                    {appointments.filter(a => a.status === 'confirmed').map(app => (
-                                        <AppointmentCard 
-                                            key={app.id} 
-                                            appointment={app}
-                                            onViewDetails={handleViewDetails}
-                                            onCancel={handleCancelAppointment}
-                                        />
-                                    ))}
-                                </Box>
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Ακυρωμένα</Typography>
-                                    {appointments.filter(a => a.status === 'cancelled').map(app => (
-                                        <AppointmentCard 
-                                            key={app.id} 
-                                            appointment={app}
-                                            onViewDetails={handleViewDetails}
-                                            onCancel={handleCancelAppointment}
-                                        />
-                                    ))}
-                                </Box>
+                          <Box sx={{ bgcolor: 'white', borderRadius: 3, border: '1px solid #e2e8f0', p: 2 }}>
+                            {(() => {
+                              const confirmedCount = appointments.filter(a => a.status === 'confirmed').length;
+                              const completedCount = appointments.filter(a => a.status === 'completed').length;
+                              const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
+                              return (
+                                <Tabs value={apptTab} onChange={(e, v) => setApptTab(v)} variant="fullWidth" sx={{ mb: 2 }}>
+                                  <Tab value="confirmed" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><EventAvailableIcon sx={{ fontSize: 18, color: '#10b981' }} /><Typography variant="body2" fontWeight={700}>Επερχόμενα</Typography><Chip size="small" label={confirmedCount} /></Box>} />
+                                  <Tab value="completed" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><DoneAllIcon sx={{ fontSize: 18, color: '#0ea5e9' }} /><Typography variant="body2" fontWeight={700}>Ολοκληρωμένα</Typography><Chip size="small" label={completedCount} /></Box>} />
+                                  <Tab value="cancelled" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><HighlightOffIcon sx={{ fontSize: 18, color: '#ef4444' }} /><Typography variant="body2" fontWeight={700}>Ακυρωμένα</Typography><Chip size="small" label={cancelledCount} /></Box>} />
+                                </Tabs>
+                              );
+                            })()}
+                            {appointments
+                              .filter(a => a.status === apptTab)
+                              .sort((a,b) => {
+                                const ax = typeof a.id === 'number' ? a.id : 0;
+                                const bx = typeof b.id === 'number' ? b.id : 0;
+                                const ta = a.updatedAt ? Date.parse(a.updatedAt) : ax;
+                                const tb = b.updatedAt ? Date.parse(b.updatedAt) : bx;
+                                return tb - ta; // newest first
+                              })
+                              .slice(0,5)
+                              .map(app => (
+                              <AppointmentCard
+                                key={app.id}
+                                appointment={app}
+                                onViewDetails={handleViewDetails}
+                                onCancel={handleCancelAppointment}
+                              />
+                            ))}
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, alignItems: 'center', gap: 1 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                Εμφανίζονται τα 5 πιο πρόσφατα.
+                              </Typography>
+                              <Button variant="text" size="small" onClick={() => navigate('/owner/history')} sx={{ textTransform: 'none', fontSize: '0.75rem', px: 0.5 }}>
+                                Δείτε όλα στο Ιστορικό
+                              </Button>
                             </Box>
+                            {appointments.filter(a => a.status === apptTab).length === 0 && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', py: 4 }}>
+                                Δεν υπάρχουν ραντεβού σε αυτήν την κατηγορία.
+                              </Typography>
+                            )}
+                          </Box>
                         </Grid>
                         <Grid item xs={12} md={4}>
                             <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Ημερολόγιο</Typography>
@@ -810,11 +886,36 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                                     <Typography variant="body1" sx={{ mb: 2 }}>
                                         <strong>Κατάσταση:</strong>{' '}
                                         <Chip 
-                                            label={selectedAppointment.status === 'confirmed' ? 'Επιβεβαιωμένο' : 'Ακυρωμένο'}
-                                            color={selectedAppointment.status === 'confirmed' ? 'success' : 'error'}
-                                            size="small"
+                                          label={selectedAppointment.status === 'confirmed' ? 'Επιβεβαιωμένο' : selectedAppointment.status === 'completed' ? 'Ολοκληρωμένο' : 'Ακυρωμένο'}
+                                          color={selectedAppointment.status === 'confirmed' ? 'success' : selectedAppointment.status === 'completed' ? 'info' : 'error'}
+                                          size="small"
                                         />
                                     </Typography>
+                                    {selectedAppointment.diagnosis && (
+                                      <Typography variant="body2" sx={{ mb: 2 }}>
+                                        <strong>Διάγνωση:</strong> {selectedAppointment.diagnosis}
+                                      </Typography>
+                                    )}
+                                    {selectedAppointment.treatment && (
+                                      <Typography variant="body2" sx={{ mb: 2 }}>
+                                        <strong>Θεραπεία:</strong> {selectedAppointment.treatment}
+                                      </Typography>
+                                    )}
+                                    {selectedAppointment.nextVisit && (
+                                      <Typography variant="body2" sx={{ mb: 2 }}>
+                                        <strong>Επόμενη Επίσκεψη:</strong> {selectedAppointment.nextVisit}
+                                      </Typography>
+                                    )}
+                                    {selectedAppointment.note && (
+                                      <Typography variant="body2" sx={{ mb: 2 }}>
+                                        <strong>Σημειώσεις:</strong> {selectedAppointment.note}
+                                      </Typography>
+                                    )}
+                                    {selectedAppointment.cancelReason && (
+                                      <Typography variant="body2" sx={{ mb: 2 }}>
+                                        <strong>Λόγος Ακύρωσης:</strong> {selectedAppointment.cancelReason}
+                                      </Typography>
+                                    )}
                                     {selectedAppointment.type && (
                                         <Typography variant="body1" sx={{ mb: 2 }}>
                                             <strong>Τύπος:</strong> {selectedAppointment.type}

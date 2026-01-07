@@ -5,7 +5,7 @@
       "fullname": "vaios",
       "email": "vaios@gmail.com",
       "password": "vaios123",
-      "afm": "",
+      "afm": "111544560",
       "role": "owner"
     },
     {
@@ -13,7 +13,7 @@
       "fullname": "vaios ktin",
       "email": "ktiniatros@gmail.com",
       "password": "123456",
-      "afm": "12345678",
+      "afm": "123456783",
       "role": "vet"
     },
     {
@@ -37,39 +37,11 @@
       "fullname": "giorgos",
       "email": "kati@gmail.com",
       "password": "123",
-      "afm": "12334",
+      "afm": "999999993",
       "role": "vet"
     }
   ],
   "pets": [
-    {
-      "id": "1767550000001",
-      "ownerId": "1765141425145",
-      "name": "Kouvelaj",
-      "type": "dog",
-      "breed": "Golden Retriever",
-      "gender": "male",
-      "age": "2",
-      "weight": "28",
-      "color": "Χρυσαφί",
-      "microchip": "GR-2022-001234",
-      "dateOfBirth": "2022-03-15",
-      "image": "https://images.unsplash.com/photo-1633722715463-d30f4f325e24?auto=format&fit=crop&w=400&q=80"
-    },
-    {
-      "id": "1767550000002",
-      "ownerId": "1765141425145",
-      "name": "Pantiana",
-      "type": "cat",
-      "breed": "Περσική",
-      "gender": "female",
-      "age": "3",
-      "weight": "4.5",
-      "color": "Λευκή",
-      "microchip": "GR-2021-005678",
-      "dateOfBirth": "2021-07-20",
-      "image": "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=400&q=80"
-    },
     {
       "name": "Max",
       "breed": "Σιβηρικό Χάσκι",
@@ -91,6 +63,18 @@
       "weight": "5",
       "color": "",
       "image": "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+      "id": "1767818061514",
+      "name": "mpoumpis",
+      "type": "dog",
+      "breed": "labrador",
+      "gender": "female",
+      "age": "2",
+      "microchip": "123456789132456",
+      "img": "",
+      "ownerId": "1765141425145",
+      "registeredAt": "2026-01-07T20:34:21.514Z"
     }
   ],
   "appointments": [
@@ -179,12 +163,132 @@
       "status": "confirmed",
       "type": "Visit",
       "reason": "r"
+    },
+    {
+      "id": "1767615008243",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "09:00",
+      "date": "Πέμπτη 15 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "cancelReason": "Δυστηχως ετυχε κατι και δεν θα μπορεσω να κανω το ραντεβου\n",
+      "updatedAt": "2026-01-05T13:13:22.666Z",
+      "note": "Ολα καλα , προσθεθηκε το ζοω στο εθνικο μητροο η επομενη φορα για check up ειναι στις 15/1",
+      "diagnosis": "προσθηκη ζωου στο μητροο",
+      "treatment": "-",
+      "nextVisit": "2026-01-15"
+    },
+    {
+      "id": "1767792484985",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetName": "vaios ktin",
+      "petName": "τεστ",
+      "time": "10:00",
+      "date": "Πέμπτη 8 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "cancelReason": "den mporo sugnwmh\n",
+      "updatedAt": "2026-01-07T14:03:20.442Z"
+    },
+    {
+      "id": "1767793008818",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetName": "vaios ktin",
+      "petName": "τεστ",
+      "time": "09:00",
+      "date": "Παρασκευή 16 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Registration",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "updatedAt": "2026-01-07T14:17:27.238Z",
+      "petId": null,
+      "completedAt": "2026-01-07T14:17:27.238Z"
+    },
+    {
+      "id": "1767793814480",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "Νέα Καταχώριση",
+      "time": "10:00",
+      "date": "Παρασκευή 9 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Registration",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "cancelReason": "akuro",
+      "updatedAt": "2026-01-07T14:03:28.137Z"
+    },
+    {
+      "id": "1767795876456",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "νικος",
+      "time": "10:00",
+      "date": "Πέμπτη 15 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Registration",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "updatedAt": "2026-01-07T14:49:05.771Z",
+      "petId": null,
+      "completedAt": "2026-01-07T14:49:05.771Z"
+    },
+    {
+      "id": "1767817958939",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "10:00",
+      "date": "Πέμπτη 8 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Registration",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "updatedAt": "2026-01-07T20:34:21.522Z",
+      "petId": "1767818061514",
+      "completedAt": "2026-01-07T20:34:21.522Z"
+    },
+    {
+      "id": "1767818427815",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "10:00",
+      "date": "Παρασκευή 9 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "iosi",
+      "updatedAt": "2026-01-07T20:42:10.503Z",
+      "cancelReason": "einai kala telika"
     }
   ],
   "healthRecords": [
     {
       "id": "1767560000001",
-      "petId": "1767550000001",
+      "petId": null,
       "petName": "Kouvelaj",
       "ownerId": "1765141425145",
       "vetId": "1765143289475",
@@ -198,7 +302,7 @@
     },
     {
       "id": "1767560000002",
-      "petId": "1767550000001",
+      "petId": null,
       "petName": "Kouvelaj",
       "ownerId": "1765141425145",
       "vetId": "1765143289475",
@@ -212,7 +316,7 @@
     },
     {
       "id": "1767560000003",
-      "petId": "1767550000002",
+      "petId": null,
       "petName": "Pantiana",
       "ownerId": "1765141425145",
       "vetId": "1766242819617",
@@ -228,7 +332,7 @@
   "vaccines": [
     {
       "id": "1767570000001",
-      "petId": "1767550000001",
+      "petId": null,
       "petName": "Kouvelaj",
       "name": "Εμβόλιο Λύσσας",
       "date": "2024-01-15",
@@ -239,7 +343,7 @@
     },
     {
       "id": "1767570000002",
-      "petId": "1767550000001",
+      "petId": null,
       "petName": "Kouvelaj",
       "name": "Πενταπλό (DHPP)",
       "date": "2024-02-20",
@@ -250,7 +354,7 @@
     },
     {
       "id": "1767570000003",
-      "petId": "1767550000001",
+      "petId": null,
       "petName": "Kouvelaj",
       "name": "Leishmaniasis",
       "date": "2024-03-10",
@@ -261,7 +365,7 @@
     },
     {
       "id": "1767570000004",
-      "petId": "1767550000002",
+      "petId": null,
       "petName": "Pantiana",
       "name": "Τριπλό (FVRCP)",
       "date": "2024-01-20",
@@ -274,7 +378,7 @@
   "prescriptions": [
     {
       "id": "1767580000001",
-      "petId": "1767550000001",
+      "petId": null,
       "petName": "Kouvelaj",
       "ownerId": "1765141425145",
       "ownerName": "vaios",
@@ -289,7 +393,7 @@
     },
     {
       "id": "1767580000002",
-      "petId": "1767550000002",
+      "petId": null,
       "petName": "Pantiana",
       "ownerId": "1765141425145",
       "ownerName": "vaios",
@@ -329,14 +433,27 @@
       "rating": 4,
       "comment": "Πολύ καλή εξυπηρέτηση και γρήγορη διάγνωση. Η γιατρός ήταν πολύ επαγγελματική. Μόνο το κόστος ήταν λίγο υψηλό αλλά άξιζε την ποιότητα.",
       "date": "2024-09-03"
+    },
+    {
+      "id": "1767818174375",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1765143289475",
+      "vetName": "vaios ktin",
+      "clinic": "—",
+      "appointmentId": "1767817958939",
+      "service": "Καταχώριση Κατοικιδίου",
+      "rating": 5,
+      "comment": "kalos alla einai xontros",
+      "date": "2026-01-07"
     }
   ],
   "vets": [
     {
-      "id": 1,
+      "id": "1",
       "userId": "1765143289475",
-      "name": "Δρ. Ιωάννης Σμυρνής",
-      "email": "i.smyrnis@vetcare.gr",
+      "name": "vaios ktin",
+      "email": "ktiniatros@gmail.com",
       "phone": "+30 210 6543210",
       "address": "Πανεπιστημίου 16 - Αθήνα",
       "specialty": "Παθολογία Ζώων",
@@ -362,7 +479,7 @@
       }
     },
     {
-      "id": 2,
+      "id": "2",
       "userId": "1766242819617",
       "name": "Δρ. Ελένη Καρρά",
       "email": "e.karra@vetcare.gr",
@@ -389,7 +506,7 @@
       }
     },
     {
-      "id": 3,
+      "id": "3",
       "name": "Δρ. Γιώργος Παπαδόπουλος",
       "email": "g.papa@vetclinic.gr",
       "phone": "+30 2310 234567",
@@ -416,7 +533,7 @@
       }
     },
     {
-      "id": 4,
+      "id": "4",
       "name": "Δρ. Μαρία Δημητρίου",
       "email": "m.dimitriou@petcare.gr",
       "phone": "+30 2310 345678",
@@ -442,7 +559,7 @@
       }
     },
     {
-      "id": 5,
+      "id": "5",
       "name": "Δρ. Κώστας Νικολάου",
       "email": "k.nikolaou@animalcare.gr",
       "phone": "+30 210 8765432",
@@ -523,7 +640,7 @@
   ],
   "news": [
     {
-      "id": 1,
+      "id": "1",
       "title": "Καλοκαίρι και Κατοικίδια: Ο Απόλυτος Οδηγός Επιβίωσης",
       "date": "24 Οκτ",
       "readTime": "4m",
@@ -535,7 +652,7 @@
       "fullContent": "Το καλοκαίρι μπορεί να είναι δύσκολη περίοδος για τα κατοικίδια ζώα. Οι υψηλές θερμοκρασίες μπορούν να οδηγήσουν σε αφυδάτωση και θερμοπληξία. Εδώ είναι μερικές βασικές συμβουλές:\n\n1. Πάντα φροντίστε να έχουν πρόσβαση σε δροσερό νερό\n2. Αποφύγετε τους περιπάτους στις πιο ζεστές ώρες της ημέρας\n3. Μην αφήνετε ποτέ το ζώο σας στο αυτοκίνητο\n4. Παρέχετε σκιά και δροσερό χώρο\n5. Προσέχετε τα σημάδια υπερθέρμανσης"
     },
     {
-      "id": 2,
+      "id": "2",
       "title": "5 Superfoods που λατρεύουν οι σκύλοι (και κάνουν καλό!)",
       "date": "22 Οκτ",
       "readTime": "5m",
@@ -547,7 +664,7 @@
       "fullContent": "Η σωστή διατροφή είναι κλειδί για την υγεία του σκύλου σας. Εδώ είναι 5 superfoods:\n\n1. Κολοκύθα - Εξαιρετική για το πεπτικό σύστημα\n2. Μύρτιλλα - Πλούσια σε αντιοξειδωτικά\n3. Γλυκοπατάτα - Πηγή βιταμινών και ινών\n4. Σολομός - Ωμέγα-3 λιπαρά οξέα\n5. Σπανάκι - Σίδηρος και βιταμίνες"
     },
     {
-      "id": 3,
+      "id": "3",
       "title": "Η μεγάλη γιορτή υιοθεσίας στο κέντρο της Αθήνας",
       "date": "20 Οκτ",
       "readTime": "3m",
@@ -559,7 +676,7 @@
       "fullContent": "Ο Δήμος Αθηναίων διοργανώνει μεγάλη γιορτή υιοθεσίας ζώων συντροφιάς. Περισσότερα από 50 σκυλιά και γάτες ψάχνουν το αιώνιο σπίτι τους. Η εκδήλωση θα πραγματοποιηθεί το Σάββατο 26 Οκτωβρίου από τις 10:00 έως τις 18:00 στο Πάρκο Ελευθερίας."
     },
     {
-      "id": 4,
+      "id": "4",
       "title": "Πώς ο Μαξ έσωσε την οικογένειά του από τη φωτιά",
       "date": "18 Οκτ",
       "readTime": "6m",
@@ -571,7 +688,7 @@
       "fullContent": "Ο Μαξ, ένας Golden Retriever 5 ετών, έγινε ήρωας όταν ξύπνησε την οικογένειά του στη μέση της νύχτας λόγω πυρκαγιάς. Χάρη στην ταχεία του αντίδραση, όλα τα μέλη της οικογένειας κατάφεραν να βγουν έγκαιρα από το σπίτι. Η ιστορία του Μαξ μας θυμίζει πόσο πολύτιμοι είναι οι τετράποδοι φίλοι μας."
     },
     {
-      "id": 5,
+      "id": "5",
       "title": "Εκπαίδευση: Σταματήστε το τράβηγμα στο λουρί",
       "date": "15 Οκτ",
       "readTime": "8m",
@@ -621,6 +738,60 @@
       "ownerId": null,
       "lat": 37.9318893,
       "lng": 23.7258307
+    },
+    {
+      "id": "3c11",
+      "name": "nigger",
+      "type": "Γάτα",
+      "breed": "Άγνωστη",
+      "gender": "Άγνωστο",
+      "age": "",
+      "color": "nigger",
+      "date": "07 Ιαν 2026",
+      "location": "Αγωνιστών Πολυτεχνείου, Ασύρματος, Άγιος Δημήτριος, Δήμος Αγίου Δημητρίου, Περιφερειακή Ενότητα Νοτίου Τομέα Αθηνών, Περιφέρεια Αττικής, Αποκεντρωμένη Διοίκηση Αττικής, 173 41, Ελλάδα",
+      "img": "blob:http://localhost:3000/dffc91b4-67c8-4ef8-8913-e5b3a1ff20a9",
+      "reward": null,
+      "views": 0,
+      "urgent": false,
+      "description": "εχασα τον μαυρο σκυλο μου",
+      "phone": "6988821231",
+      "altPhone": "6990121341",
+      "email": "nigger@nigga.com",
+      "preferredContact": "Τηλέφωνο",
+      "contactHours": "9:00-10:00",
+      "socialLink": "instagram.com",
+      "contactNotes": "an exw pethanei rip",
+      "showPhone": true,
+      "ownerId": null,
+      "lat": 37.9339278,
+      "lng": 23.7235837
+    },
+    {
+      "id": "3b93",
+      "name": "mpoympis",
+      "type": "Σκύλος",
+      "breed": "Άγνωστη",
+      "gender": "Άγνωστο",
+      "age": "",
+      "color": "nigger",
+      "date": "07 Ιαν 2026",
+      "location": "Αγωνιστών Πολυτεχνείου, Ασύρματος, Άγιος Δημήτριος, Δήμος Αγίου Δημητρίου, Περιφερειακή Ενότητα Νοτίου Τομέα Αθηνών, Περιφέρεια Αττικής, Αποκεντρωμένη Διοίκηση Αττικής, 173 41, Ελλάδα",
+      "img": "blob:http://localhost:3000/7de613d3-8892-4c45-87a9-627b45c2d4e3",
+      "reward": null,
+      "views": 0,
+      "urgent": false,
+      "description": "χαθηκα αχριστε",
+      "phone": "6988541057",
+      "altPhone": "2130295439",
+      "email": "vaioshello@gmail.com",
+      "preferredContact": "Τηλέφωνο",
+      "contactHours": "09:00 - 10:00",
+      "socialLink": "instagram.com",
+      "contactNotes": "",
+      "showPhone": true,
+      "ownerId": "1765143289475",
+      "lat": 37.9339278,
+      "lng": 23.7235837
     }
   ]
 }

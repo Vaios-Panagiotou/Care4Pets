@@ -30,7 +30,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 // Import Header
 import PageHeader from './PageHeader';
 import DashboardSidebar from '../components/DashboardSidebar';
-import { appointmentsAPI } from '../services/api';
+import { appointmentsAPI, vetsAPI, usersAPI } from '../services/api';
 
 const theme = createTheme({
   palette: {
@@ -49,13 +49,13 @@ const theme = createTheme({
   shape: { borderRadius: 8 }
 });
 
-// --- DATA ---
-const ALL_VETS = [
-  { id: 1, name: 'Δρ. Ιωάννης Σμυρνής', address: 'Πανεπιστημίου 16 - Αθήνα', specialty: 'Παθολογία Ζώων', availability: 'Παρ, 24 Ιαν 2025', views: '1.873', rating: 4.9, likes: 280, price: '50€', img: 'https://randomuser.me/api/portraits/men/32.jpg' },
-  { id: 2, name: 'Δρ. Ελένη Καρρά', address: 'Λεωφόρος Βουλιαγμένης 289', specialty: 'Κτηνιατρική Καρδιολογία', availability: 'Πεμ, 30 Ιαν 2025', views: '732', rating: 4.8, likes: 130, price: '30€', img: 'https://randomuser.me/api/portraits/women/44.jpg' },
-  { id: 3, name: 'Δρ. Γιώργος Παπαδόπουλος', address: 'Ερμού 45 - Θεσσαλονίκη', specialty: 'Ορθοπεδική', availability: 'Δευ, 27 Ιαν 2025', views: '540', rating: 4.7, likes: 210, price: '45€', img: 'https://randomuser.me/api/portraits/men/45.jpg' },
-  { id: 4, name: 'Δρ. Μαρία Δημητρίου', address: 'Τσιμισκή 12 - Θεσσαλονίκη', specialty: 'Δερματολογία', availability: 'Τρι, 28 Ιαν 2025', views: '890', rating: 4.9, likes: 340, price: '60€', img: 'https://randomuser.me/api/portraits/women/68.jpg' },
-  { id: 5, name: 'Δρ. Κώστας Νικολάου', address: 'Πατησίων 100 - Αθήνα', specialty: 'Χειρουργική', availability: 'Τετ, 29 Ιαν 2025', views: '620', rating: 4.6, likes: 180, price: '55€', img: 'https://randomuser.me/api/portraits/men/22.jpg' },
+// Fallback mock vets (used only if server fails)
+const FALLBACK_VETS = [
+  { id: 1, name: 'Δρ. Ιωάννης Σμυρνής', address: 'Πανεπιστημίου 16 - Αθήνα', specialty: 'Παθολογία Ζώων', availability: 'Παρ, 24 Ιαν 2025', views: 1873, rating: 4.9, likes: 280, price: 50, image: 'https://randomuser.me/api/portraits/men/32.jpg' },
+  { id: 2, name: 'Δρ. Ελένη Καρρά', address: 'Λεωφόρος Βουλιαγμένης 289', specialty: 'Κτηνιατρική Καρδιολογία', availability: 'Πεμ, 30 Ιαν 2025', views: 732, rating: 4.8, likes: 130, price: 30, image: 'https://randomuser.me/api/portraits/women/44.jpg' },
+  { id: 3, name: 'Δρ. Γιώργος Παπαδόπουλος', address: 'Ερμού 45 - Θεσσαλονίκη', specialty: 'Ορθοπεδική', availability: 'Δευ, 27 Ιαν 2025', views: 540, rating: 4.7, likes: 210, price: 45, image: 'https://randomuser.me/api/portraits/men/45.jpg' },
+  { id: 4, name: 'Δρ. Μαρία Δημητρίου', address: 'Τσιμισκή 12 - Θεσσαλονίκη', specialty: 'Δερματολογία', availability: 'Τρι, 28 Ιαν 2025', views: 890, rating: 4.9, likes: 340, price: 60, image: 'https://randomuser.me/api/portraits/women/68.jpg' },
+  { id: 5, name: 'Δρ. Κώστας Νικολάου', address: 'Πατησίων 100 - Αθήνα', specialty: 'Χειρουργική', availability: 'Τετ, 29 Ιαν 2025', views: 620, rating: 4.6, likes: 180, price: 55, image: 'https://randomuser.me/api/portraits/men/22.jpg' },
 ];
 
 const STEPS = ['Επιλογή Κτηνιάτρου', 'Επιλογή Ώρας/Μέρας', 'Επιλογή Κατοικιδίου', 'Προεπισκόπηση'];
@@ -88,9 +88,14 @@ export default function VetSearch() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
+  const allowFindWithoutPet = searchParams.get('find') === '1';
   const { user } = useAuth();
   const [hasPets, setHasPets] = useState(true);
   const userLabel = user?.name || user?.fullName || user?.email || 'τον λογαριασμό σας';
+  // Vets data (server + derived from users + fallback)
+  const [allVets, setAllVets] = useState([]);
+  const [vetUsers, setVetUsers] = useState([]);
+  const [vetsLoaded, setVetsLoaded] = useState(false);
   
   // Pet management state
   const [userPets, setUserPets] = useState([]);
@@ -138,6 +143,7 @@ export default function VetSearch() {
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
   const [appointmentReason, setAppointmentReason] = useState('');
+  const [registerAppointment, setRegisterAppointment] = useState(false);
   
   // Stable callback for reason TextField to prevent re-renders
   const handleReasonChange = useCallback((e) => {
@@ -150,15 +156,7 @@ export default function VetSearch() {
   // Filters & View State (declare before effects that use them)
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'grid'
-  const specialties = useMemo(() => Array.from(new Set(ALL_VETS.map(v => v.specialty))), []);
-  const cities = useMemo(() => {
-    const guessCity = (addr) => {
-      if ((addr || '').includes('Αθήνα')) return 'Αθήνα';
-      if ((addr || '').includes('Θεσσαλονίκη')) return 'Θεσσαλονίκη';
-      return 'Άλλη';
-    };
-    return Array.from(new Set(ALL_VETS.map(v => guessCity(v.address))));
-  }, []);
+  // specialties/cities derived later after building sourceVets
   const [selectedSpecialties, setSelectedSpecialties] = useState([]);
   const [selectedCities, setSelectedCities] = useState([]);
   const [minRating, setMinRating] = useState(0);
@@ -182,6 +180,100 @@ export default function VetSearch() {
     setViewMode(viewParam === 'grid' ? 'grid' : 'list');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load vets from server
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await vetsAPI.getAll();
+        if (mounted) {
+          setAllVets(Array.isArray(data) ? data : []);
+        }
+      } catch (e) {
+        console.warn('Falling back to mock vets; failed to load from server.', e);
+        if (mounted) setAllVets([]); // will use FALLBACK_VETS below
+      } finally {
+        if (mounted) setVetsLoaded(true);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Load users with role vet to ensure registered vets appear too
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const users = await usersAPI.getAll();
+        const vetsOnly = Array.isArray(users) ? users.filter(u => (u.role === 'vet')) : [];
+        if (mounted) setVetUsers(vetsOnly);
+      } catch (e) {
+        console.warn('Could not load users to derive vets.', e);
+        if (mounted) setVetUsers([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Build combined vet source: fallback + server vets + derived from users (no duplicate userId)
+  const sourceVets = useMemo(() => {
+    const dbVets = Array.isArray(allVets) ? allVets : [];
+    const byUserId = new Set(dbVets.map(v => String(v.userId ?? '')));
+    const dbIds = new Set(dbVets.map(v => String(v.id ?? '')));
+    const dbNames = new Set(dbVets.map(v => (v.name || '').trim().toLowerCase()));
+
+    // Fallback vets: include only those not already present in DB by id or name
+    const fallbackFiltered = FALLBACK_VETS.filter(fb => {
+      const idHit = dbIds.has(String(fb.id));
+      const nameHit = dbNames.has((fb.name || '').trim().toLowerCase());
+      return !(idHit || nameHit);
+    });
+
+    // Derive vet entries from users with role=vet IF they don't already have a vet profile
+    const derivedFromUsers = (vetUsers || []).filter(u => !byUserId.has(String(u.id))).map(u => ({
+      id: String(u.id),
+      userId: String(u.id),
+      name: u.fullname || u.fullName || u.name || u.email || 'Κτηνίατρος',
+      email: u.email || '',
+      address: u.address || '—',
+      specialty: 'Κτηνιατρικές Υπηρεσίες',
+      rating: 4.8,
+      views: 0,
+      likes: 0,
+      price: 40,
+      image: 'https://images.unsplash.com/photo-1522693668201-5b88340c1bd7?auto=format&fit=crop&w=200&q=60',
+      availability: ''
+    }));
+    // Merge and de-duplicate by id or name
+    const combined = [...dbVets, ...fallbackFiltered, ...derivedFromUsers];
+    const seen = new Set();
+    const unique = [];
+    for (const v of combined) {
+      const keyId = String(v.id || '').trim();
+      const keyName = (v.name || '').trim().toLowerCase();
+      const key = keyId || `name:${keyName}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(v);
+      }
+    }
+    return unique;
+  }, [allVets, vetUsers]);
+
+  // Derive specialties and cities from the combined source (deduped)
+  const specialties = useMemo(
+    () => Array.from(new Set((sourceVets || []).map(v => v.specialty).filter(Boolean))),
+    [sourceVets]
+  );
+  const cities = useMemo(() => {
+    const guessCity = (addr) => {
+      if ((addr || '').includes('Αθήνα')) return 'Αθήνα';
+      if ((addr || '').includes('Θεσσαλονίκη')) return 'Θεσσαλονίκη';
+      return 'Άλλη';
+    };
+    return Array.from(new Set((sourceVets || []).map(v => guessCity(v.address))));
+  }, [sourceVets]);
 
   // Helper: commit current or overridden state to URL (explicit actions only)
   const commitURL = (overrides = {}) => {
@@ -256,8 +348,9 @@ export default function VetSearch() {
   
   // Filter vets based on search query
   const filteredVets = useMemo(() => {
+    const SOURCE = sourceVets;
     const q = searchQuery.trim().toLowerCase();
-    const priceNum = (p) => parseInt(String(p).replace(/[^0-9]/g, ''), 10) || 0;
+    const priceNum = (p) => typeof p === 'number' ? p : (parseInt(String(p).replace(/[^0-9]/g, ''), 10) || 0);
     const withinFilters = (vet) => {
       const cityMatches = selectedCities.length === 0 || selectedCities.some(c => (vet.address || '').includes(c) || (c === 'Άλλη' && !/(Αθήνα|Θεσσαλονίκη)/.test(vet.address || '')));
       const specialtyMatches = selectedSpecialties.length === 0 || selectedSpecialties.includes(vet.specialty);
@@ -266,14 +359,14 @@ export default function VetSearch() {
       return cityMatches && specialtyMatches && ratingMatches && priceMatches;
     };
     const base = q
-      ? ALL_VETS.filter(vet =>
+      ? SOURCE.filter(vet =>
           (vet.name || '').toLowerCase().includes(q) ||
           (vet.specialty || '').toLowerCase().includes(q) ||
           (vet.address || '').toLowerCase().includes(q)
         )
-      : ALL_VETS;
+      : SOURCE;
     return base.filter(withinFilters);
-  }, [searchQuery, selectedCities, selectedSpecialties, minRating, maxPrice]);
+  }, [searchQuery, selectedCities, selectedSpecialties, minRating, maxPrice, sourceVets]);
   
   const pageCount = Math.ceil(filteredVets.length / vetsPerPage);
   const handlePageChange = (event, value) => { setPage(value); commitURL({ page: value }); };
@@ -304,7 +397,7 @@ export default function VetSearch() {
     );
   }
 
-  if (hasPets === false) {
+  if (hasPets === false && !allowFindWithoutPet) {
     return (
       <ThemeProvider theme={theme}>
         <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
@@ -317,7 +410,7 @@ export default function VetSearch() {
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
                 Η καταχώριση κατοικιδίου γίνεται αποκλειστικά από κτηνίατρο μέσω του Εθνικού Μητρώου Κατοικιδίων. Επικοινωνήστε με κτηνίατρο για να καταχωρήσει το κατοικίδιό σας πριν προχωρήσετε σε ραντεβού.
               </Typography>
-              <Button variant="contained" size="large" onClick={() => navigate('/owner/search')} sx={{ px: 4, borderRadius: 3 }}>Βρες Κτηνίατρο</Button>
+              <Button variant="contained" size="large" onClick={() => navigate('/owner/search?find=1')} sx={{ px: 4, borderRadius: 3 }}>Βρες Κτηνίατρο</Button>
             </Paper>
           </Container>
         </Box>
@@ -330,23 +423,41 @@ export default function VetSearch() {
   const handleNext = async () => {
     if (activeStep === 0 && !selectedVet) { alert("Παρακαλώ επιλέξτε έναν κτηνίατρο."); return; }
     if (activeStep === 1 && (!selectedDate || !selectedTime)) { alert("Παρακαλώ επιλέξτε ημερομηνία ΚΑΙ ώρα."); return; }
-    if (activeStep === 2 && !selectedPet) { alert("Παρακαλώ επιλέξτε κατοικίδιο."); return; }
+    if (activeStep === 2 && !selectedPet && !registerAppointment) { alert("Παρακαλώ επιλέξτε κατοικίδιο ή επιλέξτε ραντεβού για καταχώριση κατοικιδίου."); return; }
     if (activeStep === 3 && !selectedPet) { setSelectedPet({ name: 'Kouvelaj', type: 'Golden Retriever', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80' }); }
     if (activeStep < STEPS.length - 1) {
         setActiveStep((prev) => prev + 1);
     } else {
-        // Create appointment on server
+        // Before creating, enforce single-slot-per-vet constraint
+        try {
+          const all = await appointmentsAPI.getAll();
+          const clash = (Array.isArray(all) ? all : []).find(a => 
+            String(a.vetId) === String(selectedVet?.id || '') &&
+            String(a.date) === String(selectedDate || '') &&
+            String(a.time) === String(selectedTime || '') &&
+            a.status !== 'cancelled'
+          );
+          if (clash) {
+            alert('Υπάρχει ήδη ραντεβού για τον κτηνίατρο σε αυτή την ώρα. Επιλέξτε άλλη ώρα.');
+            return;
+          }
+        } catch(e) {
+          console.warn('Αδυναμία ελέγχου διαθεσιμότητας. Θα επιχειρηθεί δημιουργία.');
+        }
+        // Create appointment on server (as pending; vet confirms later)
         const payload = {
           ownerId: user?.id || null,
           ownerName: user?.fullname || user?.fullName || user?.email || 'Ιδιοκτήτης',
           vetId: selectedVet?.id || null,
+          vetUserId: selectedVet?.userId || selectedVet?.id || null,
+          vetEmail: selectedVet?.email || selectedVet?.userEmail || null,
           vetName: selectedVet?.name || 'Κτηνίατρος',
-          petName: selectedPet?.name || 'Κατοικίδιο',
+          petName: selectedPet?.name || (registerAppointment ? 'Νέα Καταχώριση' : 'Κατοικίδιο'),
           time: selectedTime || '15:00',
           date: selectedDate || new Date().toLocaleDateString('el-GR'),
-          status: 'confirmed',
-          type: 'Visit',
-          reason: appointmentReason || 'Τακτικός Έλεγχος'
+          status: 'pending',
+          type: registerAppointment ? 'Registration' : 'Visit',
+          reason: appointmentReason || (registerAppointment ? 'Καταχώριση Κατοικιδίου' : 'Τακτικός Έλεγχος')
         };
         try {
           await appointmentsAPI.create(payload);
@@ -387,7 +498,7 @@ export default function VetSearch() {
     );
   }
 
-  if (hasPets === false) {
+  if (hasPets === false && !allowFindWithoutPet) {
     return (
       <ThemeProvider theme={theme}>
         <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
@@ -400,7 +511,7 @@ export default function VetSearch() {
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
                 Η καταχώριση κατοικιδίου γίνεται αποκλειστικά από κτηνίατρο μέσω του Εθνικού Μητρώου Κατοικιδίων. Επικοινωνήστε με κτηνίατρο για να καταχωρήσει το κατοικίδιό σας πριν προχωρήσετε σε ραντεβού.
               </Typography>
-              <Button variant="contained" size="large" onClick={() => navigate('/owner/search')} sx={{ px: 4, borderRadius: 3 }}>Βρες Κτηνίατρο</Button>
+              <Button variant="contained" size="large" onClick={() => navigate('/owner/search?find=1')} sx={{ px: 4, borderRadius: 3 }}>Βρες Κτηνίατρο</Button>
             </Paper>
           </Container>
         </Box>
@@ -460,7 +571,7 @@ export default function VetSearch() {
                   onClick={() => setSelectedVet(vet)}
                   sx={{ p: 2, borderRadius: '14px', border: selectedVet?.id === vet.id ? '2px solid #00695c' : '1px solid #eee', display: 'flex', gap: 2, cursor: 'pointer', bgcolor: selectedVet?.id === vet.id ? '#e0f2f1' : 'white' }}
                 >
-                  <Avatar src={vet.img} variant="rounded" sx={{ width: 80, height: 80, borderRadius: '8px' }} />
+                  <Avatar src={vet.img || vet.image} variant="rounded" sx={{ width: 80, height: 80, borderRadius: '8px' }} />
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography variant="subtitle1" sx={{ color: '#0277bd' }}>{vet.name}</Typography>
                     <Typography variant="caption" display="block" color="text.secondary"><LocationOnIcon fontSize="inherit"/> {vet.address}</Typography>
@@ -471,7 +582,7 @@ export default function VetSearch() {
                       <StarIcon sx={{ color: '#FFC107', fontSize: 18 }} />
                       <Typography variant="body2" fontWeight="bold">{vet.rating}</Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ mt: 1, color: '#555' }}>από <span style={{ color: '#00695c', fontWeight: 'bold' }}>{vet.price}</span></Typography>
+                    <Typography variant="body2" sx={{ mt: 1, color: '#555' }}>από <span style={{ color: '#00695c', fontWeight: 'bold' }}>{typeof vet.price === 'number' ? `${vet.price}€` : vet.price}</span></Typography>
                   </Box>
                 </Paper>
               </Grid>
@@ -497,7 +608,7 @@ export default function VetSearch() {
                   '&:hover::after': { opacity: 1 }
               }}
             >
-                   <Avatar src={vet.img} variant="rounded" sx={{ width: 100, height: 100, borderRadius: '8px' }} />
+                   <Avatar src={vet.img || vet.image} variant="rounded" sx={{ width: 100, height: 100, borderRadius: '8px' }} />
                    <Box sx={{ flexGrow: 1 }}>
                      <Typography variant="h6" sx={{ color: '#0277bd', mb: 1 }}>{vet.name}</Typography>
                     <Typography variant="caption" display="block" color="text.secondary"><LocationOnIcon fontSize="inherit"/> {vet.address}</Typography>
@@ -511,7 +622,7 @@ export default function VetSearch() {
                             <StarIcon sx={{ color: '#FFC107', fontSize: 18 }} />
                             <Typography variant="body2" fontWeight="bold">{vet.rating}</Typography>
                         </Box>
-                        <Typography variant="body2" sx={{ mt: 1, color: '#555' }}>Τιμή από: <span style={{ color: '#00695c', fontWeight: 'bold', fontSize: '1.1rem' }}>{vet.price}</span></Typography>
+                        <Typography variant="body2" sx={{ mt: 1, color: '#555' }}>Τιμή από: <span style={{ color: '#00695c', fontWeight: 'bold', fontSize: '1.1rem' }}>{typeof vet.price === 'number' ? `${vet.price}€` : vet.price}</span></Typography>
                     </Box>
                 </Box>
             </Paper>
@@ -763,119 +874,58 @@ export default function VetSearch() {
       {userPets.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            Δεν έχετε κατοικίδια. Παρακαλώ προσθέστε ένα κατοικίδιο πρώτα.
+            Δεν βρέθηκε κατοικίδιο στο προφίλ σας.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Θέλετε να κλείσετε ραντεβού για δήλωση/καταχώριση κατοικιδίου;
           </Typography>
           <Button 
-            variant="contained" 
-            onClick={() => setShowNewPetForm(!showNewPetForm)}
+            variant="contained"
             sx={{ bgcolor: '#00695c' }}
+            onClick={() => {
+              setRegisterAppointment(true);
+              setSelectedPet(null);
+              if (!appointmentReason) setAppointmentReason('Καταχώριση Κατοικιδίου');
+              setActiveStep((prev) => prev + 1);
+            }}
           >
-            {showNewPetForm ? 'Ακύρωση' : 'Δημιουργία Κατοικιδίου'}
+            Κλείσε Ραντεβού για Δήλωση Κατοικιδίου
           </Button>
-          
-          {showNewPetForm && (
-            <Box sx={{ mt: 4, p: 3, border: '1px solid #ccc', borderRadius: 2, maxWidth: 400, mx: 'auto' }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Στοιχεία Νέου Κατοικιδίου</Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                <TextField
-                  label="Όνομα"
-                  value={newPetForm.name}
-                  onChange={(e) => setNewPetForm({...newPetForm, name: e.target.value})}
-                  size="small"
-                />
-                <TextField
-                  select
-                  label="Τύπος"
-                  value={newPetForm.type}
-                  onChange={(e) => setNewPetForm({...newPetForm, type: e.target.value})}
-                  size="small"
-                >
-                  <MenuItem value="dog">Σκύλος</MenuItem>
-                  <MenuItem value="cat">Γάτα</MenuItem>
-                  <MenuItem value="other">Άλλο</MenuItem>
-                </TextField>
-                <TextField
-                  label="Φυλή"
-                  value={newPetForm.breed}
-                  onChange={(e) => setNewPetForm({...newPetForm, breed: e.target.value})}
-                  size="small"
-                />
-                <TextField
-                  select
-                  label="Φύλο"
-                  value={newPetForm.gender}
-                  onChange={(e) => setNewPetForm({...newPetForm, gender: e.target.value})}
-                  size="small"
-                >
-                  <MenuItem value="male">Αρσενικό</MenuItem>
-                  <MenuItem value="female">Θηλυκό</MenuItem>
-                </TextField>
-                <TextField
-                  label="Ηλικία"
-                  value={newPetForm.age}
-                  onChange={(e) => setNewPetForm({...newPetForm, age: e.target.value})}
-                  size="small"
-                />
-                <TextField
-                  label="Βάρος (kg)"
-                  value={newPetForm.weight}
-                  onChange={(e) => setNewPetForm({...newPetForm, weight: e.target.value})}
-                  size="small"
-                />
-              </Box>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{ mt: 2, bgcolor: '#00695c' }}
-                onClick={() => {
-                  if (!newPetForm.name) {
-                    alert('Παρακαλώ εισάγετε όνομα κατοικιδίου');
-                    return;
-                  }
-                  const payload = {
-                    ownerId: user?.id,
-                    name: newPetForm.name,
-                    type: newPetForm.type,
-                    breed: newPetForm.breed,
-                    gender: newPetForm.gender,
-                    age: newPetForm.age,
-                    weight: newPetForm.weight,
-                    color: newPetForm.color,
-                    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
-                  };
-                  
-                  fetch('http://localhost:3001/pets', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                  })
-                  .then(res => res.json())
-                  .then(pet => {
-                    setSelectedPet({
-                      id: pet.id,
-                      name: pet.name,
-                      type: pet.type,
-                      breed: pet.breed,
-                      image: pet.image
-                    });
-                    setShowNewPetForm(false);
-                    // Reload user pets
-                    fetch(`http://localhost:3001/pets?ownerId=${user?.id}`)
-                      .then(r => r.json())
-                      .then(pets => setUserPets(pets));
-                    alert('Κατοικίδιο δημιουργήθηκε!');
-                  })
-                  .catch(err => alert('Σφάλμα: ' + err.message));
-                }}
-              >
-                Δημιουργία & Συνέχεια
-              </Button>
-            </Box>
-          )}
         </Box>
       ) : (
         <Box>
           <Grid container spacing={4} justifyContent="center">
+            {/* Extra option: allow booking a Registration even if pets exist */}
+            <Grid item xs={12} sm={5} key="new-registration">
+              <Paper
+                elevation={registerAppointment ? 4 : 0}
+                onClick={() => {
+                  const next = !registerAppointment;
+                  setRegisterAppointment(next);
+                  if (next) {
+                    setSelectedPet(null);
+                    if (!appointmentReason) setAppointmentReason('Καταχώριση Κατοικιδίου');
+                  }
+                }}
+                sx={{
+                  p: 2,
+                  border: registerAppointment ? '2px solid #00695c' : '2px dashed #00695c',
+                  borderRadius: '12px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  bgcolor: registerAppointment ? '#e0f2f1' : '#f8fbfb',
+                  '&:hover': { bgcolor: '#f1f8e9' }
+                }}
+              >
+                <Typography variant="h6" fontWeight="bold">Δήλωση Νέου Κατοικιδίου</Typography>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Επιλέξτε αυτό αν θέλετε να καταχωρήσετε νέο ζώο στο μητρώο κατά την επίσκεψη.
+                </Typography>
+                <Button fullWidth variant={registerAppointment ? 'contained' : 'outlined'} size="small" sx={{ mt: 2, bgcolor: registerAppointment ? '#00695c' : 'transparent', color: registerAppointment ? 'white' : 'inherit' }}>
+                  {registerAppointment ? 'Επιλεγμένη Καταχώριση' : 'Επιλογή Καταχώρισης'}
+                </Button>
+              </Paper>
+            </Grid>
             {userPets.map((pet, i) => (
               <Grid item xs={12} sm={5} key={pet.id}>
                 <Paper 
@@ -898,129 +948,22 @@ export default function VetSearch() {
                     </Box>
                     <Avatar src={pet.image} variant="rounded" sx={{ width: 60, height: 60 }} />
                   </Box>
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" display="block" color="text.secondary">
+                      Τύπος: {pet.type || '—'}{pet.age ? ` • Ηλικία: ${pet.age}` : ''}{pet.weight ? ` • Βάρος: ${pet.weight}kg` : ''}
+                    </Typography>
+                    {(pet.microchip || pet.color) && (
+                      <Typography variant="caption" display="block" color="text.secondary">
+                        {pet.microchip ? `Microchip: ${pet.microchip}` : ''}{pet.microchip && pet.color ? ' • ' : ''}{pet.color ? `Χρώμα: ${pet.color}` : ''}
+                      </Typography>
+                    )}
+                  </Box>
                   <Button fullWidth variant="contained" size="small" sx={{ mt: 2, bgcolor: '#333' }}>Επιλογή</Button>
                 </Paper>
               </Grid>
             ))}
           </Grid>
-          
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button 
-              variant="outlined" 
-              onClick={() => setShowNewPetForm(!showNewPetForm)}
-              sx={{ 
-                borderColor: '#00695c',
-                color: '#00695c',
-                '&:hover': {
-                  borderColor: '#00695c',
-                  bgcolor: '#e0f2f1'
-                }
-              }}
-            >
-              {showNewPetForm ? 'Ακύρωση' : '+ Προσθήκη Νέου Κατοικιδίου'}
-            </Button>
-          </Box>
-          
-          {showNewPetForm && (
-            <Box sx={{ mt: 4, p: 3, border: '1px solid #ccc', borderRadius: 2, maxWidth: 400, mx: 'auto' }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Στοιχεία Νέου Κατοικιδίου</Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                <TextField
-                  label="Όνομα"
-                  value={newPetForm.name}
-                  onChange={(e) => setNewPetForm({...newPetForm, name: e.target.value})}
-                  size="small"
-                />
-                <TextField
-                  select
-                  label="Τύπος"
-                  value={newPetForm.type}
-                  onChange={(e) => setNewPetForm({...newPetForm, type: e.target.value})}
-                  size="small"
-                >
-                  <MenuItem value="dog">Σκύλος</MenuItem>
-                  <MenuItem value="cat">Γάτα</MenuItem>
-                  <MenuItem value="other">Άλλο</MenuItem>
-                </TextField>
-                <TextField
-                  label="Φυλή"
-                  value={newPetForm.breed}
-                  onChange={(e) => setNewPetForm({...newPetForm, breed: e.target.value})}
-                  size="small"
-                />
-                <TextField
-                  select
-                  label="Φύλο"
-                  value={newPetForm.gender}
-                  onChange={(e) => setNewPetForm({...newPetForm, gender: e.target.value})}
-                  size="small"
-                >
-                  <MenuItem value="male">Αρσενικό</MenuItem>
-                  <MenuItem value="female">Θηλυκό</MenuItem>
-                </TextField>
-                <TextField
-                  label="Ηλικία"
-                  value={newPetForm.age}
-                  onChange={(e) => setNewPetForm({...newPetForm, age: e.target.value})}
-                  size="small"
-                />
-                <TextField
-                  label="Βάρος (kg)"
-                  value={newPetForm.weight}
-                  onChange={(e) => setNewPetForm({...newPetForm, weight: e.target.value})}
-                  size="small"
-                />
-              </Box>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{ mt: 2, bgcolor: '#00695c' }}
-                onClick={() => {
-                  if (!newPetForm.name) {
-                    alert('Παρακαλώ εισάγετε όνομα κατοικιδίου');
-                    return;
-                  }
-                  const payload = {
-                    ownerId: user?.id,
-                    name: newPetForm.name,
-                    type: newPetForm.type,
-                    breed: newPetForm.breed,
-                    gender: newPetForm.gender,
-                    age: newPetForm.age,
-                    weight: newPetForm.weight,
-                    color: newPetForm.color,
-                    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
-                  };
-                  
-                  fetch('http://localhost:3001/pets', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                  })
-                  .then(res => res.json())
-                  .then(pet => {
-                    setSelectedPet({
-                      id: pet.id,
-                      name: pet.name,
-                      type: pet.type,
-                      breed: pet.breed,
-                      image: pet.image
-                    });
-                    setShowNewPetForm(false);
-                    setNewPetForm({ name: '', type: 'dog', breed: '', gender: 'male', age: '', weight: '', color: '' });
-                    // Reload user pets
-                    fetch(`http://localhost:3001/pets?ownerId=${user?.id}`)
-                      .then(r => r.json())
-                      .then(pets => setUserPets(pets));
-                    alert('Κατοικίδιο δημιουργήθηκε!');
-                  })
-                  .catch(err => alert('Σφάλμα: ' + err.message));
-                }}
-              >
-                Δημιουργία & Συνέχεια
-              </Button>
-            </Box>
-          )}
+
           
           <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
             <TextField
@@ -1054,7 +997,7 @@ export default function VetSearch() {
     <Box sx={{ textAlign: 'center' }}>
       <Typography variant="h5" fontWeight="bold">Στοιχεία Κτηνίατρου</Typography>
       <Paper elevation={0} sx={{ p: 2, border: '1px solid #ccc', maxWidth: 500, mx: 'auto', mt: 2, mb: 4, display: 'flex', gap: 2 }}>
-          <Avatar src={selectedVet?.img || "https://randomuser.me/api/portraits/men/32.jpg"} sx={{ width: 60, height: 60 }} />
+          <Avatar src={selectedVet?.image || selectedVet?.img || "https://randomuser.me/api/portraits/men/32.jpg"} sx={{ width: 60, height: 60 }} />
           <Box sx={{ textAlign: 'left' }}>
               <Typography variant="subtitle2" fontWeight="bold">{selectedVet?.name || "Δρ. Ιωάννης Σμυρνής"}</Typography>
               <Typography variant="caption">{selectedVet?.specialty || "Παθολογία"}</Typography>
@@ -1068,10 +1011,17 @@ export default function VetSearch() {
       </Paper>
 
       <Typography variant="h5" fontWeight="bold">Στοιχεία Κατοικιδίου</Typography>
-      <Paper elevation={0} sx={{ p: 2, border: '1px solid #333', maxWidth: 300, mx: 'auto', mt: 2, textAlign: 'left' }}>
+      {registerAppointment ? (
+        <Paper elevation={0} sx={{ p: 2, border: '1px solid #333', maxWidth: 420, mx: 'auto', mt: 2, textAlign: 'left', bgcolor: '#fffde7' }}>
+          <Typography variant="h6" fontWeight="bold">Ραντεβού για Καταχώριση Κατοικιδίου</Typography>
+          <Typography variant="caption" color="text.secondary" display="block">Δεν έχει επιλεγεί υπάρχον κατοικίδιο. Η επίσκεψη αφορά δημιουργία νέου.</Typography>
+        </Paper>
+      ) : (
+        <Paper elevation={0} sx={{ p: 2, border: '1px solid #333', maxWidth: 300, mx: 'auto', mt: 2, textAlign: 'left' }}>
           <Typography variant="h6">{selectedPet?.name || "Kouvelaj"} 🐕</Typography>
           <Typography variant="caption">{selectedPet?.type || "Golden Retriever"}</Typography>
-      </Paper>
+        </Paper>
+      )}
     </Box>
   );
 

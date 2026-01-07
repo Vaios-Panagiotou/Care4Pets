@@ -20,10 +20,13 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PetsIcon from '@mui/icons-material/Pets';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
 // Import PageHeader
 import PageHeader from './PageHeader';
 import Footer from '../components/Footer';
+import RoleHelpHint from '../components/RoleHelpHint';
 
 const theme = createTheme({
   palette: {
@@ -73,6 +76,7 @@ export default function VetDashboard() {
         {/* --- PAGE HEADER --- */}
         <Container maxWidth="xl">
             <PageHeader />
+          <RoleHelpHint role="vet" />
         </Container>
 
         {/* FULL WIDTH HERO */}
@@ -166,83 +170,83 @@ export default function VetDashboard() {
             </Typography>
             <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
               <Grid item xs={12} sm={6}>
-                <Paper 
-                  elevation={0} 
-                  onClick={() => navigate('/vet/schedule')}
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: 4, 
-                    bgcolor: '#f0f9f8',
-                    border: '2px solid #00897B',
+                <Paper
+                  elevation={0}
+                  onClick={() => navigate('/vet/history')}
+                  sx={{
+                    p: 3,
+                    borderRadius: 4,
+                    bgcolor: '#fff',
+                    border: '2px solid #FFA726',
                     cursor: 'pointer',
                     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': { 
+                    '&:hover': {
                       transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 24px rgba(0,137,123,0.3)',
-                      bgcolor: '#e0f2f1'
+                      boxShadow: '0 12px 24px rgba(245,124,0,0.25)',
+                      bgcolor: '#fff8e1'
                     }
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box sx={{ fontSize: '32px' }}>📅</Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#00897B' }}>
-                      Σημερινά Ραντεβού
+                    <RateReviewIcon sx={{ color: '#F57C00' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#F57C00' }}>
+                      Κριτικές Πελατών
                     </Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Δείτε τα προγραμματισμένα ραντεβού σας για σήμερα
+                    Δείτε τι λένε οι πελάτες σας για το ιατρείο
                   </Typography>
-                  <Button 
-                    variant="contained" 
-                    size="small" 
-                    onClick={() => navigate('/vet/schedule')}
-                    sx={{ 
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => navigate('/vet/history')}
+                    sx={{
                       borderRadius: 2,
-                      bgcolor: '#00897B',
+                      bgcolor: '#F57C00',
                       textTransform: 'none',
                       fontSize: '14px',
                       fontWeight: 600,
                       '&:hover': {
-                        bgcolor: '#00695c'
+                        bgcolor: '#E65100'
                       }
                     }}
                   >
-                    Προβολή
+                    Μετάβαση
                   </Button>
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Paper 
-                  elevation={0} 
-                  onClick={() => navigate('/vet/clinic')}
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: 4, 
-                    bgcolor: '#f0f9f8',
+                <Paper
+                  elevation={0}
+                  onClick={() => navigate('/contact')}
+                  sx={{
+                    p: 3,
+                    borderRadius: 4,
+                    bgcolor: '#fff',
                     border: '2px solid #00897B',
                     cursor: 'pointer',
                     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': { 
+                    '&:hover': {
                       transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 24px rgba(0,137,123,0.3)',
+                      boxShadow: '0 12px 24px rgba(0,137,123,0.25)',
                       bgcolor: '#e0f2f1'
                     }
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box sx={{ fontSize: '32px' }}>🏥</Box>
+                    <SupportAgentIcon sx={{ color: '#00897B' }} />
                     <Typography variant="h6" sx={{ fontWeight: 700, color: '#00897B' }}>
-                      Το Ιατρείο μου
+                      Επικοινωνία Υποστήριξης
                     </Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Διαχείριση πληροφοριών ιατρείου
+                    Χρειάζεστε βοήθεια; Επικοινωνήστε μαζί μας
                   </Typography>
-                  <Button 
-                    variant="contained" 
-                    size="small" 
-                    onClick={() => navigate('/vet/clinic')}
-                    sx={{ 
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => navigate('/contact')}
+                    sx={{
                       borderRadius: 2,
                       bgcolor: '#00897B',
                       textTransform: 'none',
@@ -253,7 +257,7 @@ export default function VetDashboard() {
                       }
                     }}
                   >
-                    Προβολή
+                    Μετάβαση
                   </Button>
                 </Paper>
               </Grid>

@@ -80,7 +80,7 @@ function buildOsmEmbedSrc(lat, lng) {
   return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lng}`;
 }
 
-function SimpleMapEmbed({ value, onChange }) {
+function SimpleMapEmbed({ value, onChange, onLocationChange }) {
   const [query, setQuery] = useState('');
   const lat = value?.lat ?? 37.9838; //athens default
   const lng = value?.lng ?? 23.7275;
@@ -89,12 +89,13 @@ function SimpleMapEmbed({ value, onChange }) {
   const searchPlace = async () => {
     if (!query.trim()) return;
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=el&q=${encodeURIComponent(query)}`);
       const results = await res.json();
       if (results && results[0]) {
         const { lat, lon } = results[0];
         const coords = { lat: parseFloat(lat), lng: parseFloat(lon) };
         onChange?.(coords);
+        onLocationChange?.(results[0].display_name || query);
       }
     } catch (e) {
       console.error('Geocoding failed', e);
@@ -109,7 +110,10 @@ function SimpleMapEmbed({ value, onChange }) {
           placeholder="Αναζήτηση περιοχής (π.χ. Κυψέλη, Αθήνα)"
           size="small"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { 
+            setQuery(e.target.value);
+            onLocationChange?.(e.target.value);
+          }}
           onKeyDown={(e) => { if (e.key === 'Enter') searchPlace(); }}
         />
         <Button variant="outlined" onClick={searchPlace}>Αναζήτηση</Button>
@@ -611,7 +615,7 @@ function LostPetsSearchView({
 
 function LostPetsFormView({
   activeStep, setActiveStep, setView, formData, setFormData,
-  formErrors, uploadedImages, setUploadedImages, handleImageUpload, removeImage, handleNext
+  formErrors, setFormErrors, uploadedImages, setUploadedImages, handleImageUpload, removeImage, handleNext
 }) {
   const progress = ((activeStep + 1) / STEPS.length) * 100;
   const [isDragging, setIsDragging] = useState(false);
@@ -663,179 +667,238 @@ function LostPetsFormView({
 
             <Box sx={{ minHeight: '400px' }}>
                 {activeStep === 0 && (
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField fullWidth required label="Όνομα Ζώου" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} error={!!formErrors.name} helperText={formErrors.name} />
+                  <Grid container spacing={3} alignItems="stretch">
+                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12}>
+                            <TextField 
+                              fullWidth 
+                              required 
+                              label="Όνομα Ζώου" 
+                              value={formData.name || ''} 
+                              onChange={(e) => { 
+                                setFormData({ ...formData, name: e.target.value });
+                                setFormErrors(prev => ({ ...prev, name: null }));
+                              }} 
+                              error={!!formErrors.name} 
+                              helperText={formErrors.name} 
+                            />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <FormControl fullWidth required sx={{ minWidth: 200 }}>
+                              <InputLabel id="type-label">Είδος</InputLabel>
+                              <Select
+                                labelId="type-label"
+                                label="Είδος"
+                                value={formData.type || ''}
+                                onChange={(e) =>
+                                  setFormData({ ...formData, type: e.target.value })
+                                }
+                              >
+                                <MenuItem value="Σκύλος">🐕 Σκύλος</MenuItem>
+                                <MenuItem value="Γάτα">🐱 Γάτα</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        </Grid>
+                      </Paper>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth required sx={{ minWidth: 200 }}>
-                        <InputLabel id="type-label">Είδος</InputLabel>
-                        <Select
-                          labelId="type-label"
-                          label="Είδος"
-                          value={formData.type || ''}
-                          onChange={(e) =>
-                            setFormData({ ...formData, type: e.target.value })
-                          }
-                        >
-                          <MenuItem value="Σκύλος">🐕 Σκύλος</MenuItem>
-                          <MenuItem value="Γάτα">🐱 Γάτα</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} />
+                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12}>
+                            <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} />
+                          </Grid>
+                        </Grid>
+                      </Paper>
                     </Grid>
                   </Grid>
                 )}
 
               {activeStep === 1 && (
-                <Box>
-                  <Alert severity="warning" icon={<PhotoCameraIcon />} sx={{ mb: 3 }} {...(formErrors.images && { severity: "error" })}>
-                    {formErrors.images || 'Προσθέστε τουλάχιστον μία καθαρή φωτογραφία του κατοικιδίου σας'}
-                  </Alert>
-                  
-                  {/*upload area - διορθωμένο layout */}
-                  <Paper 
-                    component="label"
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    elevation={0}
-                    sx={{ 
-                      p: 6, //περισσότερος χώρος εσωτερικά
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: 320, //σταθερό ύψος για να μη φαίνεται"πατημένο"
-                      border: '2px dashed', //διακεκομμένη γραμμή
-                      borderColor: isDragging ? 'primary.main' : (formErrors.images ? 'error.main' : 'grey.300'),
-                      bgcolor: isDragging ? 'action.hover' : '#fafafa', //ελαφρύ γκρι φόντο
-                      borderRadius: 4, 
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderColor: 'primary.main',
-                        bgcolor: 'grey.50',
-                        transform: 'translateY(-2px)'
-                      }
-                    }}
-                  >
-                    <input type="file" hidden accept="image/*" multiple onChange={handleImageUpload} />
-                    
-                    {/*εικονίδιο uploa-μεγάλο και κεντραρισμένο */}
-                    <Box sx={{ 
-                      mb: 3,
-                      p: 2,
-                      borderRadius: '50%',
-                      bgcolor: 'primary.50',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <CloudUploadIcon sx={{ 
-                        fontSize: 64, 
-                        color: 'primary.main',
-                        transform: isDragging ? 'scale(1.1)' : 'scale(1)', 
-                        transition: 'transform 0.2s' 
-                      }} />
-                    </Box>
-
-                    <Typography variant="h5" fontWeight="bold" gutterBottom color="text.primary">
-                      Σύρετε φωτογραφίες εδώ
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                      ή κάντε κλικ για επιλογή αρχείων
-                    </Typography>
-                    
-                    <Chip 
-                      label="JPG, PNG • Έως 5MB" 
-                      size="small" 
-                      variant="outlined" 
-                      sx={{ color: 'text.secondary', borderColor: 'grey.300' }} 
-                    />
-                  </Paper>
-
-                  {/*προεπισκόπηση εικόνων (previews) */}
-                  {uploadedImages.length > 0 && (
-                    <Fade in>
-                      <Box sx={{ mt: 4 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                          <Typography variant="h6" fontWeight="bold">
-                            Επιλεγμένες ({uploadedImages.length})
-                          </Typography>
-                          <Button size="small" color="error" onClick={() => setUploadedImages([])}>
-                            Καθαρισμός
-                          </Button>
+                <Grid container spacing={3} alignItems="stretch">
+                  <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <Alert severity="warning" icon={<PhotoCameraIcon />} sx={{ mb: 3 }} {...(formErrors.images && { severity: "error" })}>
+                        {formErrors.images || 'Προσθέστε τουλάχιστον μία καθαρή φωτογραφία του κατοικιδίου σας'}
+                      </Alert>
+                      {/*upload area*/}
+                      <Box 
+                        component="label"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        sx={{ 
+                          p: 6,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minHeight: 260,
+                          border: '2px dashed',
+                          borderColor: isDragging ? 'primary.main' : (formErrors.images ? 'error.main' : 'grey.300'),
+                          bgcolor: isDragging ? 'action.hover' : '#fafafa',
+                          borderRadius: 4, 
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            borderColor: 'primary.main',
+                            bgcolor: 'grey.50',
+                            transform: 'translateY(-2px)'
+                          }
+                        }}
+                      >
+                        <input type="file" hidden accept="image/*" multiple onChange={handleImageUpload} />
+                        <Box sx={{ 
+                          mb: 3,
+                          p: 2,
+                          borderRadius: '50%',
+                          bgcolor: 'primary.50',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <CloudUploadIcon sx={{ 
+                            fontSize: 64, 
+                            color: 'primary.main',
+                            transform: isDragging ? 'scale(1.1)' : 'scale(1)', 
+                            transition: 'transform 0.2s' 
+                          }} />
                         </Box>
-                        
-                        <Grid container spacing={2}>
-                          {uploadedImages.map((img) => (
-                            <Grid item xs={6} sm={4} md={3} key={img.id}>
-                              <Paper sx={{ 
-                                position: 'relative', 
-                                borderRadius: 3, 
-                                overflow: 'hidden',
-                                height: 140,
-                                boxShadow: 2,
-                                transition: 'transform 0.2s',
-                                '&:hover': { transform: 'scale(1.02)' }
-                              }}>
-                                <img 
-                                  src={img.url} 
-                                  alt="preview" 
-                                  style={{ 
-                                    width: '100%', 
-                                    height: '100%', 
-                                    objectFit: 'cover', //γεμίζει το κουτάκι χωρίς να παραμορφώνει
-                                  }} 
-                                />
-                                {/*κουμπί διαγραφής πάνω στη φώτο */}
-                                <IconButton 
-                                  onClick={() => removeImage(img.id)} 
-                                  size="small"
-                                  sx={{ 
-                                    position: 'absolute', 
-                                    top: 6, 
-                                    right: 6, 
-                                    bgcolor: 'rgba(255,255,255,0.9)', 
-                                    boxShadow: 1,
-                                    '&:hover': { bgcolor: 'error.main', color: 'white' } 
-                                  }}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Paper>
-                            </Grid>
-                          ))}
-                        </Grid>
+                        <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary">
+                          Σύρετε φωτογραφίες εδώ
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                          ή κάντε κλικ για επιλογή αρχείων
+                        </Typography>
+                        <Chip 
+                          label="JPG, PNG • Έως 5MB" 
+                          size="small" 
+                          variant="outlined" 
+                          sx={{ color: 'text.secondary', borderColor: 'grey.300' }} 
+                        />
                       </Box>
-                    </Fade>
-                  )}
-                </Box>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      {/*προεπισκόπηση εικόνων*/}
+                      {uploadedImages.length > 0 ? (
+                        <Fade in>
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                              <Typography variant="h6" fontWeight="bold">
+                                Επιλεγμένες ({uploadedImages.length})
+                              </Typography>
+                              <Button size="small" color="error" onClick={() => setUploadedImages([])}>
+                                Καθαρισμός
+                              </Button>
+                            </Box>
+                            
+                            <Grid container spacing={2}>
+                              {uploadedImages.map((img) => (
+                                <Grid item xs={6} sm={4} md={4} key={img.id}>
+                                  <Paper sx={{ 
+                                    position: 'relative', 
+                                    borderRadius: 3, 
+                                    overflow: 'hidden',
+                                    height: 140,
+                                    boxShadow: 2,
+                                    transition: 'transform 0.2s',
+                                    '&:hover': { transform: 'scale(1.02)' }
+                                  }}>
+                                    <img 
+                                      src={img.url} 
+                                      alt="preview" 
+                                      style={{ 
+                                        width: '100%', 
+                                        height: '100%', 
+                                        objectFit: 'cover',
+                                      }} 
+                                    />
+                                    <IconButton 
+                                      onClick={() => removeImage(img.id)} 
+                                      size="small"
+                                      sx={{ 
+                                        position: 'absolute', 
+                                        top: 6, 
+                                        right: 6, 
+                                        bgcolor: 'rgba(255,255,255,0.9)', 
+                                        boxShadow: 1,
+                                        '&:hover': { bgcolor: 'error.main', color: 'white' } 
+                                      }}
+                                    >
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                  </Paper>
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </Box>
+                        </Fade>
+                      ) : (
+                        <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
+                          Δεν έχουν επιλεγεί εικόνες ακόμη.
+                        </Box>
+                      )}
+                    </Paper>
+                  </Grid>
+                </Grid>
               )}
 
               {/*steps2 & 3simplified for brevity,similar structure ...*/}
               {activeStep === 2 && (
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField fullWidth required label="Περιοχή" value={formData.location || ''} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-                    <Box sx={{ mt: 2 }}>
-                      <SimpleMapEmbed
-                        value={formData.coords}
-                        onChange={(coords) => setFormData({ ...formData, coords })}
+                <Grid container spacing={3} alignItems="stretch">
+                  <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <TextField 
+                        fullWidth 
+                        required 
+                        label="Περιοχή" 
+                        value={formData.location || ''} 
+                        onChange={(e) => { 
+                          setFormData({ ...formData, location: e.target.value });
+                          setFormErrors(prev => ({ ...prev, location: null }));
+                        }}
+                        error={!!formErrors.location}
+                        helperText={formErrors.location}
                       />
-                    </Box>
+                      <Box sx={{ mt: 2 }}>
+                        <SimpleMapEmbed
+                          value={formData.coords}
+                          onChange={(coords) => setFormData(prev => ({ ...prev, coords }))}
+                          onLocationChange={(text) => setFormData(prev => ({ ...prev, location: text }))}
+                        />
+                      </Box>
+                    </Paper>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField fullWidth multiline rows={10} label="Περιγραφή" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                  <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <TextField 
+                        fullWidth 
+                        required 
+                        multiline 
+                        rows={10} 
+                        label="Περιγραφή" 
+                        value={formData.description || ''} 
+                        onChange={(e) => { 
+                          setFormData({ ...formData, description: e.target.value });
+                          setFormErrors(prev => ({ ...prev, description: null }));
+                        }}
+                        error={!!formErrors.description}
+                        helperText={formErrors.description}
+                      />
+                    </Paper>
                   </Grid>
                 </Grid>
               )}
               {activeStep === 3 && (
                 <Grid container spacing={3}>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} md={6}>
                     <TextField 
                       fullWidth 
                       required 
@@ -843,8 +906,80 @@ function LostPetsFormView({
                       placeholder="6912345678"
                       value={formData.phone || ''} 
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
-                      error={formData.phone && !/^[0-9]{10}$/.test(formData.phone.replace(/[\s-]/g, ''))}
-                      helperText={formData.phone && !/^[0-9]{10}$/.test(formData.phone.replace(/[\s-]/g, '')) ? 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)' : ''}
+                      error={formData.phone && !/^[0-9]{10}$/.test((formData.phone || '').replace(/[\s-]/g, ''))}
+                      helperText={formData.phone && !/^[0-9]{10}$/.test((formData.phone || '').replace(/[\s-]/g, '')) ? 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)' : ''}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Εναλλακτικό Τηλέφωνο" 
+                      placeholder="2101234567"
+                      value={formData.altPhone || ''} 
+                      onChange={(e) => setFormData({ ...formData, altPhone: e.target.value })} 
+                      error={Boolean(formData.altPhone) && !/^[0-9]{10}$/.test((formData.altPhone || '').replace(/[\s-]/g, ''))}
+                      helperText={Boolean(formData.altPhone) && !/^[0-9]{10}$/.test((formData.altPhone || '').replace(/[\s-]/g, '')) ? '10 ψηφία (ελληνικός αριθμός)' : ''}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Email" 
+                      type="email"
+                      placeholder="name@example.com"
+                      value={formData.email || ''} 
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                      error={Boolean(formData.email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)}
+                      helperText={Boolean(formData.email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'Παρακαλώ εισάγετε έγκυρο email' : ''}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Προτιμώμενος Τρόπος Επικοινωνίας</InputLabel>
+                      <Select
+                        label="Προτιμώμενος Τρόπος Επικοινωνίας"
+                        value={formData.preferredContact || 'Τηλέφωνο'}
+                        onChange={(e) => setFormData({ ...formData, preferredContact: e.target.value })}
+                      >
+                        <MenuItem value="Τηλέφωνο">Τηλέφωνο</MenuItem>
+                        <MenuItem value="SMS">SMS</MenuItem>
+                        <MenuItem value="Viber/WhatsApp">Viber/WhatsApp</MenuItem>
+                        <MenuItem value="Email">Email</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Ώρες Επικοινωνίας" 
+                      placeholder="π.χ. 09:00 - 21:00 ή Όλη μέρα"
+                      value={formData.contactHours || ''} 
+                      onChange={(e) => setFormData({ ...formData, contactHours: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Σύνδεσμος Επικοινωνίας (Facebook/Instagram)"
+                      placeholder="https://instagram.com/yourprofile"
+                      value={formData.socialLink || ''} 
+                      onChange={(e) => setFormData({ ...formData, socialLink: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField 
+                      fullWidth 
+                      multiline rows={4}
+                      label="Σημειώσεις για επικοινωνία (προαιρετικό)"
+                      placeholder="π.χ. Αν δεν απαντήσω, στείλτε SMS ή μήνυμα στο Viber."
+                      value={formData.contactNotes || ''} 
+                      onChange={(e) => setFormData({ ...formData, contactNotes: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel 
+                      control={<Checkbox checked={!!formData.showPhone} onChange={(e) => setFormData({ ...formData, showPhone: e.target.checked })} />} 
+                      label="Εμφάνιση τηλεφώνου δημόσια στην αγγελία"
                     />
                   </Grid>
                 </Grid>
@@ -992,7 +1127,35 @@ export default function LostPets() {
     //basic validation logic
     if (activeStep === 0 && !formData.name) { setFormErrors({ name: 'Required' }); return; }
     if (activeStep === 1 && uploadedImages.length === 0) { setFormErrors({ images: 'Required' }); return; }
+    if (activeStep === 2) {
+      const locValid = Boolean((formData.location || '').trim());
+      const descValid = Boolean((formData.description || '').trim());
+      if (!locValid || !descValid) {
+        setFormErrors(prev => ({
+          ...prev,
+          location: locValid ? null : 'Required',
+          description: descValid ? null : 'Required'
+        }));
+        return;
+      }
+    }
     
+    // Contact validation: require at least one valid contact method
+    if (activeStep === 3) {
+      const hasValidPhone = formData.phone && /^[0-9]{10}$/.test(String(formData.phone).replace(/[\s-]/g, ''));
+      const emailValid = formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(formData.email));
+      const prefersEmail = (formData.preferredContact || 'Τηλέφωνο') === 'Email';
+      if (prefersEmail && !emailValid) {
+        setFormErrors({ email: 'Invalid' });
+        alert('Επιλέξατε Email ως τρόπο επικοινωνίας. Παρακαλώ εισάγετε έγκυρο email.');
+        return;
+      }
+      if (!hasValidPhone && !emailValid) {
+        alert('Παρακαλώ συμπληρώστε τουλάχιστον ένα έγκυρο μέσο επικοινωνίας (τηλέφωνο ή email).');
+        return;
+      }
+    }
+
     if (activeStep === STEPS.length - 1) {
       // Persist to server and then show success
       const payload = {
@@ -1011,6 +1174,13 @@ export default function LostPets() {
         urgent: !!formData.urgent,
         description: formData.description || '',
         phone: formData.phone || '',
+        altPhone: formData.altPhone || '',
+        email: formData.email || '',
+        preferredContact: formData.preferredContact || 'Τηλέφωνο',
+        contactHours: formData.contactHours || '',
+        socialLink: formData.socialLink || '',
+        contactNotes: formData.contactNotes || '',
+        showPhone: !!formData.showPhone,
         ownerId: user ? user.id : null,
         lat: formData.coords?.lat ?? null,
         lng: formData.coords?.lng ?? null,
@@ -1077,6 +1247,7 @@ export default function LostPets() {
             formData={formData}
             setFormData={setFormData}
             formErrors={formErrors}
+            setFormErrors={setFormErrors}
             uploadedImages={uploadedImages}
             setUploadedImages={setUploadedImages}
             handleImageUpload={handleImageUpload}

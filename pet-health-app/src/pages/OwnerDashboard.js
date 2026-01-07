@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 // Import PageHeader
 import PageHeader from './PageHeader'; 
 import Footer from '../components/Footer';
+import RoleHelpHint from '../components/RoleHelpHint';
 
 // --- THEME ---
 const theme = createTheme({
@@ -117,6 +118,7 @@ export default function OwnerDashboard() {
         {/* PAGE HEADER */}
         <Container maxWidth="xl" sx={{ pt: 2 }}>
             <PageHeader />
+          <RoleHelpHint role="owner" />
         </Container>
 
         {/* FULL WIDTH HERO */}
@@ -233,7 +235,8 @@ export default function OwnerDashboard() {
             <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto' }}>
               <Grid item xs={12} sm={6}>
                 <Paper 
-                  elevation={0} 
+                  elevation={0}
+                  onClick={() => navigate('/owner/history')}
                   sx={{ 
                     p: 3, 
                     borderRadius: 4, 
@@ -249,20 +252,35 @@ export default function OwnerDashboard() {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box sx={{ fontSize: '32px' }}>📅</Box>
+                    <Box sx={{ fontSize: '32px' }}>📘</Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                      Επόμενα Ραντεβού
+                      Ιστορικό Επισκέψεων
                     </Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Δεν υπάρχουν προγραμματισμένα ραντεβού
+                    Δείτε όλες τις επισκέψεις και ιατρικές πράξεις
                   </Typography>
+                  <Button 
+                    variant="contained" 
+                    size="small"
+                    onClick={() => navigate('/owner/history')}
+                    sx={{ 
+                      borderRadius: 2,
+                      bgcolor: '#1976d2',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      '&:hover': { bgcolor: '#1565c0' }
+                    }}
+                  >
+                    Μετάβαση →
+                  </Button>
                 </Paper>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Paper 
                   elevation={0} 
-                  onClick={() => navigate('/owner/pets')}
+                  onClick={() => navigate('/lost-pets')}
                   sx={{ 
                     p: 3, 
                     borderRadius: 4, 
@@ -279,65 +297,17 @@ export default function OwnerDashboard() {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box sx={{ fontSize: '32px' }}>🐾</Box>
+                    <Box sx={{ fontSize: '32px' }}>🔎</Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                      Τα Κατοικίδιά μου
+                      Χαμένα Κατοικίδια
                     </Typography>
                   </Box>
-                  {loading ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Φόρτωση...
-                    </Typography>
-                  ) : !isAuthenticated ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Συνδεθείτε για να δείτε τα κατοικίδιά σας
-                    </Typography>
-                  ) : pets.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Δεν έχετε προσθέσει κατοικίδια ακόμα
-                    </Typography>
-                  ) : (
-                    <>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        Έχετε {pets.length} {pets.length === 1 ? 'κατοικίδιο' : 'κατοικίδια'}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                        {pets.slice(0, 3).map((pet) => (
-                          <Box 
-                            key={pet.id}
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: 0.5,
-                              bgcolor: 'white',
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1,
-                              border: '1px solid #e0e0e0'
-                            }}
-                          >
-                            <Avatar 
-                              src={pet.img} 
-                              sx={{ width: 20, height: 20, bgcolor: '#1976d2' }}
-                            >
-                              {!pet.img && pet.name?.[0]}
-                            </Avatar>
-                            <Typography variant="caption" fontWeight={600}>
-                              {pet.name}
-                            </Typography>
-                          </Box>
-                        ))}
-                        {pets.length > 3 && (
-                          <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
-                            +{pets.length - 3} ακόμα
-                          </Typography>
-                        )}
-                      </Box>
-                    </>
-                  )}
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Δημιουργήστε ή αναζητήστε αγγελίες απολεσθέντων ζώων
+                  </Typography>
                   <Button 
                     variant="contained" 
-                    onClick={() => navigate('/owner/pets')}
+                    onClick={() => navigate('/lost-pets')}
                     sx={{ 
                       borderRadius: 2,
                       bgcolor: '#1976d2',

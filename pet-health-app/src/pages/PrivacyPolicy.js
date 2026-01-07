@@ -23,68 +23,57 @@ export default function PrivacyPolicy() {
           </Typography>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-            Τελευταία ενημέρωση: 22 Δεκεμβρίου 2025
+            Τελευταία ενημέρωση: 6 Ιανουαρίου 2026
           </Typography>
 
           <Box sx={{ '& > *': { mb: 3 } }}>
             <Box>
               <Typography variant="h6" gutterBottom fontWeight="600">
-                1. Εισαγωγή
+                1. Τι καλύπτουμε
               </Typography>
               <Typography variant="body1" paragraph>
-                Η Care4Pets σέβεται την ιδιωτικότητά σας και δεσμεύεται να προστατεύσει τα προσωπικά σας δεδομένα. 
-                Η παρούσα πολιτική απορρήτου εξηγεί πώς συλλέγουμε, χρησιμοποιούμε και προστατεύουμε τις πληροφορίες σας.
+                Χρησιμοποιούμε τα απολύτως απαραίτητα δεδομένα για να λειτουργεί η εφαρμογή: στοιχεία λογαριασμού, προφίλ κατοικιδίων και ιστορικά ραντεβού/κριτικών.
               </Typography>
             </Box>
 
             <Box>
               <Typography variant="h6" gutterBottom fontWeight="600">
-                2. Συλλογή Δεδομένων
+                2. Τι συλλέγουμε
               </Typography>
               <Typography variant="body1" paragraph>
-                Συλλέγουμε τα ακόλουθα είδη πληροφοριών:
+                Συλλέγουμε:
               </Typography>
               <Typography variant="body1" component="div">
                 <ul>
-                  <li>Στοιχεία ταυτοποίησης (όνομα, email, τηλέφωνο)</li>
-                  <li>Πληροφορίες κατοικιδίων (όνομα, είδος, ιατρικό ιστορικό)</li>
-                  <li>Τεχνικά δεδομένα (IP address, browser, συσκευή)</li>
-                  <li>Δεδομένα χρήσης (αλληλεπιδράσεις με την πλατφόρμα)</li>
+                  <li>Όνομα, email (και προαιρετικά τηλέφωνο)</li>
+                  <li>Στοιχεία κατοικιδίων (όνομα, είδος, βασικές σημειώσεις)</li>
+                  <li>Απλά τεχνικά δεδομένα για ασφάλεια και βελτίωση (π.χ. τύπος browser)</li>
                 </ul>
               </Typography>
             </Box>
 
             <Box>
               <Typography variant="h6" gutterBottom fontWeight="600">
-                3. Χρήση Δεδομένων
+                3. Πώς τα χρησιμοποιούμε
               </Typography>
               <Typography variant="body1" paragraph>
-                Χρησιμοποιούμε τα δεδομένα σας για:
+                Χρήσεις:
               </Typography>
               <Typography variant="body1" component="div">
                 <ul>
-                  <li>Παροχή και βελτίωση των υπηρεσιών μας</li>
-                  <li>Επικοινωνία σχετικά με το λογαριασμό και τις υπηρεσίες</li>
-                  <li>Εξατομίκευση της εμπειρίας χρήσης</li>
-                  <li>Αποστολή ειδοποιήσεων και ενημερώσεων</li>
-                  <li>Ανάλυση και βελτίωση της πλατφόρμας</li>
+                  <li>Σύνδεση/ταυτοποίηση χρήστη</li>
+                  <li>Διαχείριση κατοικιδίων και ραντεβού</li>
+                  <li>Εμφάνιση κριτικών και ιστορικού</li>
                 </ul>
               </Typography>
             </Box>
 
             <Box>
               <Typography variant="h6" gutterBottom fontWeight="600">
-                4. Κοινοποίηση Δεδομένων
+                4. Κοινοποίηση
               </Typography>
               <Typography variant="body1" paragraph>
-                Δεν πουλάμε ούτε μοιραζόμαστε τα προσωπικά σας δεδομένα με τρίτους, εκτός εάν:
-              </Typography>
-              <Typography variant="body1" component="div">
-                <ul>
-                  <li>Έχουμε τη συγκατάθεσή σας</li>
-                  <li>Απαιτείται από το νόμο</li>
-                  <li>Είναι απαραίτητο για την παροχή των υπηρεσιών μας</li>
-                </ul>
+                Δεν πουλάμε δεδομένα. Κοινοποιούμε μόνο όπου απαιτείται από τον νόμο ή για να λειτουργήσει η υπηρεσία (π.χ. αποθήκευση).
               </Typography>
             </Box>
 
@@ -93,25 +82,21 @@ export default function PrivacyPolicy() {
                 5. Ασφάλεια
               </Typography>
               <Typography variant="body1" paragraph>
-                Εφαρμόζουμε κατάλληλα τεχνικά και οργανωτικά μέτρα για την προστασία των δεδομένων σας από 
-                μη εξουσιοδοτημένη πρόσβαση, απώλεια ή καταστροφή.
+                Υπάρχουν βασικά τεχνικά μέτρα και περιορισμένη πρόσβαση. Αν κάτι δεν χρειάζεται, δεν το κρατάμε.
               </Typography>
             </Box>
 
             <Box>
               <Typography variant="h6" gutterBottom fontWeight="600">
-                6. Τα Δικαιώματά Σας
+                6. Τα δικαιώματά σας
               </Typography>
               <Typography variant="body1" paragraph>
-                Έχετε το δικαίωμα:
+                Μπορείτε να ζητήσετε:
               </Typography>
               <Typography variant="body1" component="div">
                 <ul>
-                  <li>Πρόσβασης στα δεδομένα σας</li>
-                  <li>Διόρθωσης ανακριβών πληροφοριών</li>
-                  <li>Διαγραφής των δεδομένων σας</li>
-                  <li>Εναντίωσης στην επεξεργασία</li>
-                  <li>Φορητότητας των δεδομένων</li>
+                  <li>Πρόσβαση/αντίγραφο</li>
+                  <li>Διόρθωση ή διαγραφή</li>
                 </ul>
               </Typography>
             </Box>
@@ -121,7 +106,7 @@ export default function PrivacyPolicy() {
                 7. Επικοινωνία
               </Typography>
               <Typography variant="body1" paragraph>
-                Για ερωτήσεις σχετικά με την πολιτική απορρήτου, επικοινωνήστε: support@care4pets.gr
+                Για οτιδήποτε σχετικό με τα δεδομένα σας, στείλτε email στο support@care4pets.gr.
               </Typography>
             </Box>
           </Box>

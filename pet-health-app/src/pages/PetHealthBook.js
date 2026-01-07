@@ -17,6 +17,7 @@ import PetsIcon from '@mui/icons-material/Pets';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import TimelineIcon from '@mui/icons-material/Timeline';
+import PrintIcon from '@mui/icons-material/Print';
 import { useAuth } from '../context/AuthContext';
 
 export default function PetHealthBook() {
@@ -113,6 +114,12 @@ export default function PetHealthBook() {
         
         <Box sx={{ flex: 1, overflowY: 'auto' }}>
           <Container maxWidth="lg">
+            {/* Actions */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+              <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()}>
+                Εκτύπωση Βιβλιαρίου
+              </Button>
+            </Box>
             
             {/* Enhanced Pet Info Header Card */}
             <Paper 

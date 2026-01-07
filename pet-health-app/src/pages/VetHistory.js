@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, Container, Typography, Paper, Chip, Tabs, Tab, List, 
   Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton,
@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DashboardSidebar from '../components/DashboardSidebar';
+import { useAuth } from '../context/AuthContext';
 
 // Icons
 import HistoryIcon from '@mui/icons-material/History';
@@ -62,6 +63,10 @@ export default function VetHistory() {
   const [selectedReview, setSelectedReview] = useState(null);
   const [visitDialogOpen, setVisitDialogOpen] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewError, setReviewError] = useState('');
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -77,7 +82,34 @@ export default function VetHistory() {
     setReviewDialogOpen(true);
   };
 
-  const averageRating = (VET_HISTORY_DATA.reviews.reduce((acc, r) => acc + r.rating, 0) / VET_HISTORY_DATA.reviews.length).toFixed(1);
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!user?.id) return;
+      setLoadingReviews(true);
+      setReviewError('');
+      try {
+        const res = await fetch(`http://localhost:3001/reviews?vetId=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setReviews(data || []);
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (e) {
+        console.error('Error fetching vet reviews:', e);
+        setReviewError('Σφάλμα φόρτωσης κριτικών. Εμφανίζονται δείγμα δεδομένων.');
+        setReviews(VET_HISTORY_DATA.reviews);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    fetchReviews();
+  }, [user]);
+
+  const averageRating = (reviews.length > 0 
+    ? (reviews.reduce((acc, r) => acc + (Number(r.rating) || 0), 0) / reviews.length) 
+    : (VET_HISTORY_DATA.reviews.reduce((acc, r) => acc + r.rating, 0) / VET_HISTORY_DATA.reviews.length)
+  ).toFixed(1);
 
   return (
     <ThemeProvider theme={theme}>
@@ -165,9 +197,10 @@ export default function VetHistory() {
             {/*tab 1:Κριτικές */}
             {tabValue === 1 && (
               <Box>
-                <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>Κριτικές Πελατών ({VET_HISTORY_DATA.reviews.length})</Typography>
+                <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>Κριτικές Πελατών ({reviews.length})</Typography>
+                {reviewError && (<Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>{reviewError}</Typography>)}
                 <Grid container spacing={3}>
-                  {VET_HISTORY_DATA.reviews.map((review) => (
+                  {reviews.map((review) => (
                     <Grid item xs={12} md={6} key={review.id}>
                       <Card 
                         sx={{ 
@@ -185,15 +218,15 @@ export default function VetHistory() {
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                             <Box>
                               <Typography variant="h6" fontWeight="bold">{review.ownerName}</Typography>
-                              <Typography variant="caption" color="text.secondary">Κατοικίδιο: {review.petName}</Typography>
+                              {review.petName && (<Typography variant="caption" color="text.secondary">Κατοικίδιο: {review.petName}</Typography>)}
                             </Box>
                             <Chip label={review.date} size="small" />
                           </Box>
-                          <Rating value={review.rating} readOnly sx={{ mb: 1 }} />
+                          <Rating value={Number(review.rating)} readOnly sx={{ mb: 1 }} />
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                            {review.comment.length > 120 ? `${review.comment.substring(0, 120)}...` : review.comment}
+                            {review.comment && review.comment.length > 120 ? `${review.comment.substring(0, 120)}...` : review.comment}
                           </Typography>
-                          <Chip label={review.service} size="small" color="primary" variant="outlined" />
+                          {review.service && (<Chip label={review.service} size="small" color="primary" variant="outlined" />)}
                         </CardContent>
                       </Card>
                     </Grid>

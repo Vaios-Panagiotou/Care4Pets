@@ -25,6 +25,8 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CookiesPolicy from "./pages/CookiesPolicy";
 import GDPR from "./pages/GDPR";
+import OwnerHelp from "./pages/OwnerHelp";
+import VetHelp from "./pages/VetHelp";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
@@ -163,6 +165,14 @@ function App() {
           }
         />
         <Route
+          path="/owner/help"
+          element={
+            <PrivateRoute role="owner">
+              <OwnerHelp />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/owner/book"
           element={
             <PrivateRoute role="owner">
@@ -233,6 +243,14 @@ function App() {
           element={
             <PrivateRoute role="vet">
               <VetRecords />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/vet/help"
+          element={
+            <PrivateRoute role="vet">
+              <VetHelp />
             </PrivateRoute>
           }
         />

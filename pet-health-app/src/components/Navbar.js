@@ -15,6 +15,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import PageviewIcon from '@mui/icons-material/Pageview';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 // News data for search suggestions
 import { NEWS_DATA } from '../pages/News';
@@ -184,6 +185,18 @@ export default function Navbar() {
                 )}
                 PopperComponent={(props) => <Popper {...props} sx={{ '& .MuiAutocomplete-listbox': { maxHeight: '400px' } }} />}
               />
+
+              {/* Quick Help (only for logged-in users) */}
+              {user && (
+                <IconButton
+                  aria-label="help"
+                  onClick={() => navigate(user?.role === 'vet' ? '/vet/help' : user ? '/owner/help' : '/news')}
+                  sx={{ color: 'primary.main', bgcolor: '#e8f5e9', '&:hover': { bgcolor: '#d0f0d6' } }}
+                  title="Οδηγός Χρήσης"
+                >
+                  <HelpOutlineIcon />
+                </IconButton>
+              )}
 
               {/* Conditionally render auth or profile buttons */}
               {!user ? (

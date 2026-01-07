@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, Container, Typography, Paper, Chip, Tabs, Tab, List, ListItem, 
   ListItemIcon, ListItemText, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton,
@@ -7,6 +7,7 @@ import {
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import DashboardSidebar from '../components/DashboardSidebar';
+import { useAuth } from '../context/AuthContext';
 
 // Icons
 import HistoryIcon from '@mui/icons-material/History';
@@ -138,6 +139,76 @@ export default function History() {
   const [reviewComment, setReviewComment] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [appointments, setAppointments] = useState([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [apptError, setApptError] = useState('');
+  const [ownerReviews, setOwnerReviews] = useState([]);
+  const [loadingOwnerReviews, setLoadingOwnerReviews] = useState(false);
+  const [ownerReviewsError, setOwnerReviewsError] = useState('');
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!user?.id) return;
+      setLoadingAppointments(true);
+      setApptError('');
+      try {
+        const res = await fetch(`http://localhost:3001/appointments?ownerId=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          // sort newest first by updatedAt/id
+          const sorted = [...(data || [])].sort((a,b) => {
+            const ax = typeof a.id === 'number' ? a.id : 0;
+            const bx = typeof b.id === 'number' ? b.id : 0;
+            const ta = a.updatedAt ? Date.parse(a.updatedAt) : ax;
+            const tb = b.updatedAt ? Date.parse(b.updatedAt) : bx;
+            return tb - ta;
+          });
+          setAppointments(sorted);
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (e) {
+        console.error('Error fetching history appointments:', e);
+        setApptError('Σφάλμα φόρτωσης ραντεβού ιστορικού. Βεβαιώσου ότι τρέχει το json-server στο 3001.');
+        // fallback to mock data on error
+        setAppointments(HISTORY_DATA.appointments);
+      } finally {
+        setLoadingAppointments(false);
+      }
+    };
+    fetchAppointments();
+  }, [user]);
+
+  // Fetch owner's reviews for the Reviews tab
+  useEffect(() => {
+    const fetchOwnerReviews = async () => {
+      if (!user?.id) return;
+      setLoadingOwnerReviews(true);
+      setOwnerReviewsError('');
+      try {
+        const res = await fetch(`http://localhost:3001/reviews?ownerId=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          const sorted = [...(data || [])].sort((a,b) => {
+            const ta = a.date ? Date.parse(a.date) : 0;
+            const tb = b.date ? Date.parse(b.date) : 0;
+            return tb - ta; // newest first
+          });
+          setOwnerReviews(sorted);
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (e) {
+        console.error('Error fetching owner reviews:', e);
+        setOwnerReviewsError('Σφάλμα φόρτωσης κριτικών. Εμφανίζονται δείγμα δεδομένων.');
+        setOwnerReviews(HISTORY_DATA.reviews);
+      } finally {
+        setLoadingOwnerReviews(false);
+      }
+    };
+    fetchOwnerReviews();
+  }, [user]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -176,14 +247,51 @@ export default function History() {
       setSnackbar({ open: true, message: 'Παρακαλώ γράψτε ένα σχόλιο', severity: 'warning' });
       return;
     }
-    // Here you would typically send the review to your backend
-    console.log('Review submitted:', { 
-      appointment: reviewData, 
-      rating: reviewRating, 
-      comment: reviewComment 
-    });
-    setSnackbar({ open: true, message: 'Η κριτική σας καταχωρήθηκε επιτυχώς!', severity: 'success' });
-    handleCloseReviewDialog();
+    // Persist review to JSON Server so vet can see it
+    (async () => {
+      try {
+        // Map appointment vetId to vet userId if needed
+        let targetVetId = reviewData?.vetId;
+        try {
+          if (targetVetId) {
+            const mapRes = await fetch(`http://localhost:3001/vets?id=${targetVetId}`);
+            if (mapRes.ok) {
+              const vets = await mapRes.json();
+              if (Array.isArray(vets) && vets[0]?.userId) {
+                targetVetId = vets[0].userId;
+              }
+            }
+          }
+        } catch {}
+
+        const payload = {
+          id: String(Date.now()),
+          ownerId: user?.id,
+          ownerName: user?.fullname || '—',
+          vetId: targetVetId || user?.id, // fallback to current user id if missing
+          vetName: reviewData?.vetName || 'Κτηνίατρος',
+          clinic: '—',
+          appointmentId: reviewData?.id,
+          service: reviewData?.reason || reviewData?.type || 'Επίσκεψη',
+          rating: reviewRating,
+          comment: reviewComment,
+          date: new Date().toISOString().slice(0, 10)
+        };
+        const resp = await fetch('http://localhost:3001/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (resp.ok) {
+          setOwnerReviews(prev => [payload, ...prev]);
+        }
+        setSnackbar({ open: true, message: 'Η κριτική σας καταχωρήθηκε επιτυχώς!', severity: 'success' });
+        handleCloseReviewDialog();
+      } catch (e) {
+        console.error('Error submitting review:', e);
+        setSnackbar({ open: true, message: 'Σφάλμα καταχώρισης κριτικής.', severity: 'error' });
+      }
+    })();
   };
 
   return (
@@ -251,17 +359,23 @@ export default function History() {
             {/*TAB 0:APPOINTMENTS */}
             {tabValue === 0 && (
                 <Box>
-                    <Typography variant="h6" sx={{ mb: 2 }}>Ολοκληρωμένα & Ακυρωμένα Ραντεβού</Typography>
-                    {HISTORY_DATA.appointments.map((item) => (
+                <Typography variant="h6" sx={{ mb: 1 }}>Όλα τα Ραντεβού</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                  Εμφανίζονται όλα τα ραντεβού (Επερχόμενα, Ολοκληρωμένα, Ακυρωμένα).
+                </Typography>
+                {apptError && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>{apptError}</Alert>
+                )}
+                {(loadingAppointments ? [] : appointments).map((item) => (
                         <HistoryItem 
                             key={item.id}
-                            icon={item.status === 'completed' ? <CheckCircleIcon /> : <CancelIcon />}
-                            title={item.title}
-                            subtitle={`${item.vet} • ${item.pet}`}
-                            date={item.date}
-                            status={item.status}
-                            statusLabel={item.status === 'completed' ? 'Ολοκληρώθηκε' : 'Ακυρώθηκε'}
-                            showReviewButton={item.status === 'completed'}
+                    icon={item.status === 'completed' ? <CheckCircleIcon /> : item.status === 'cancelled' ? <CancelIcon /> : <AccessTimeIcon />}
+                    title={item.title || `${item.petName || item.pet} • ${item.vetName || item.vet || 'Κτηνίατρος'}`}
+                    subtitle={`${item.vetName || item.vet || '—'} • ${item.petName || item.pet || '—'}`}
+                    date={item.date || item.dateISO || '—'}
+                    status={item.status}
+                    statusLabel={item.status === 'completed' ? 'Ολοκληρωμένο' : item.status === 'cancelled' ? 'Ακυρωμένο' : 'Επιβεβαιωμένο'}
+                    showReviewButton={item.status === 'completed'}
                             onReviewClick={() => handleOpenReviewDialog(item)}
                             onClick={() => handleOpenDialog({
                                 type: 'appointment',
@@ -272,7 +386,7 @@ export default function History() {
                                     phone: '210 1234567',
                                     duration: '45 λεπτά',
                                     cost: '€65',
-                                    payment: item.status === 'completed' ? 'Πληρώθηκε - Κάρτα' : 'Δεν χρεώθηκε',
+                        payment: item.status === 'completed' ? 'Πληρώθηκε - Κάρτα' : item.status === 'cancelled' ? 'Δεν χρεώθηκε' : '—',
                                     notes: item.status === 'completed' 
                                         ? 'Το ραντεβού ολοκληρώθηκε επιτυχώς. Το ζώο εξετάστηκε και δεν διαπιστώθηκαν προβλήματα υγείας. Συνιστάται επανεξέταση σε 6 μήνες.'
                                         : 'Το ραντεβού ακυρώθηκε από τον ιδιοκτήτη 2 ώρες πριν την προγραμματισμένη ώρα. Δεν επιβλήθηκε χρέωση ακύρωσης.',
@@ -281,6 +395,9 @@ export default function History() {
                             })}
                         />
                     ))}
+                {loadingAppointments && (
+                  <Typography color="text.secondary" align="center" sx={{ py: 4 }}>Φόρτωση ραντεβού…</Typography>
+                )}
                 </Box>
             )}
 
@@ -332,9 +449,12 @@ export default function History() {
             {/*TAB 3:REVIEWS*/}
             {tabValue === 3 && (
                 <Box>
-                    <Typography variant="h6" sx={{ mb: 2 }}>Οι Κριτικές μου για Κτηνιάτρους</Typography>
-                    {HISTORY_DATA.reviews.length > 0 ? (
-                        HISTORY_DATA.reviews.map((item) => (
+                <Typography variant="h6" sx={{ mb: 1 }}>Οι Κριτικές μου για Κτηνιάτρους</Typography>
+                {ownerReviewsError && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>{ownerReviewsError}</Alert>
+                )}
+                {(loadingOwnerReviews ? [] : ownerReviews).length > 0 ? (
+                  (loadingOwnerReviews ? [] : ownerReviews).map((item) => (
                             <Paper 
                                 key={item.id} 
                                 sx={{ 
@@ -348,13 +468,7 @@ export default function History() {
                                     type: 'review',
                                     data: item,
                                     details: {
-                                        clinicAddress: item.clinic === 'Κτηνιατρική Κλινική Αθηνών' 
-                                            ? 'Λεωφ. Κηφισίας 123, Αθήνα' 
-                                            : item.clinic === 'VetCare Γλυφάδας'
-                                            ? 'Αγ. Κωνσταντίνου 45, Γλυφάδα'
-                                            : item.clinic === 'Πετ Κλινική Χαλανδρίου'
-                                            ? 'Πεντέλης 78, Χαλάνδρι'
-                                            : 'Μεσογείων 234, Αθήνα',
+                          clinicAddress: item.clinic || '—',
                                         clinicPhone: '210 1234567',
                                         helpful: Math.floor(Math.random() * 20) + 5,
                                         verified: true
@@ -363,29 +477,29 @@ export default function History() {
                             >
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                                     <Box sx={{ flex: 1 }}>
-                                        <Typography variant="h6" fontWeight="bold" sx={{ mb: 0.5 }}>
-                                            {item.vetName}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                            {item.clinic} • {item.service}
-                                        </Typography>
+                          <Typography variant="h6" fontWeight="bold" sx={{ mb: 0.5 }}>
+                            {item.vetName || 'Κτηνίατρος'}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                            {(item.clinic || '—')} • {(item.service || 'Υπηρεσία')}
+                          </Typography>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                             {[...Array(5)].map((_, i) => (
                                                 <StarIcon 
                                                     key={i} 
                                                     sx={{ 
                                                         fontSize: 20, 
-                                                        color: i < item.rating ? '#FFA726' : '#e0e0e0' 
+                                  color: i < Number(item.rating) ? '#FFA726' : '#e0e0e0' 
                                                     }} 
                                                 />
                                             ))}
                                             <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
-                                                ({item.rating}/5)
+                              ({Number(item.rating)}/5)
                                             </Typography>
                                         </Box>
                                     </Box>
                                     <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', ml: 2 }}>
-                                        {item.date}
+                          {item.date}
                                     </Typography>
                                 </Box>
                                 <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.6 }}>

@@ -14,12 +14,14 @@ import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import DescriptionIcon from '@mui/icons-material/Description';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 const OWNER_NAV = [
   { id: 'pets', label: 'Τα Κατοικίδια', icon: PetsIcon, path: '/owner/pets' },
   { id: 'history', label: 'Ιστορικό', icon: HistoryIcon, path: '/owner/history' },
   { id: 'search', label: 'Εύρεση Ιατρού', icon: SearchIcon, path: '/owner/search' },
   { id: 'profile', label: 'Προφίλ', icon: Person2Icon, path: '/owner/profile' },
+  { id: 'help', label: 'Οδηγός Χρήσης', icon: HelpOutlineIcon, path: '/owner/help' },
 ];
 
 const VET_NAV = [
@@ -27,6 +29,7 @@ const VET_NAV = [
   { id: 'schedule', label: 'Πρόγραμμα', icon: EventAvailableIcon, path: '/vet/schedule' },
   { id: 'clinic', label: 'Το Ιατρείο', icon: MedicalServicesIcon, path: '/vet/clinic' },
   { id: 'records', label: 'Καταγραφές', icon: DescriptionIcon, path: '/vet/records' },
+  { id: 'help', label: 'Οδηγός Χρήσης', icon: HelpOutlineIcon, path: '/vet/help' },
 ];
 
 export default function DashboardSidebar() {
@@ -47,6 +50,7 @@ export default function DashboardSidebar() {
         flexShrink: 0,
         bgcolor: 'white',
         borderRadius: 4,
+        border: '2px solid #cfd8dc',
         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         overflowY: 'auto',
         overflowX: 'hidden', // prevent horizontal scrollbar/controls

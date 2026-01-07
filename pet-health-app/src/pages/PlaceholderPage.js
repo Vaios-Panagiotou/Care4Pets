@@ -11,10 +11,10 @@ export default function PlaceholderPage({ title }) {
       <Box sx={{ mt: 6 }}>
         <ConstructionIcon sx={{ fontSize: 80, color: '#00695c', mb: 2 }} />
       <Typography variant="h4" fontWeight="bold" gutterBottom>
-        {title || "Υπό Κατασκευή"}
+        {title || "Υπό κατασκευή"}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Αυτή η λειτουργία θα είναι σύντομα διαθέσιμη στην πλατφόρμα Care4Pets.
+        Ετοιμάζουμε κάτι νέο εδώ. Ευχαριστούμε για την υπομονή — επιστρέφουμε σύντομα με ενημέρωση.
       </Typography>
       </Box>
     </Container>

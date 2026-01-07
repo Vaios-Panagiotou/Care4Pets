@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box, Container, Grid, Typography, Paper, Tabs, Tab, TextField, Button,
   FormControl, InputLabel, Select, MenuItem, Chip, Dialog, DialogTitle,
@@ -6,7 +6,10 @@ import {
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DashboardSidebar from '../components/DashboardSidebar';
+import { useNavigate } from 'react-router-dom';
 import PageHeader from './PageHeader';
+import { petsAPI, usersAPI, appointmentsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // Icons
 import PetsIcon from '@mui/icons-material/Pets';
@@ -40,14 +43,20 @@ const PRESCRIPTIONS = [
   { id: 3, date: '15 Δεκ 2024', petName: 'Ρεξ', ownerName: 'Νίκος Αθανασίου', medicine: 'Pain Relief', dosage: '1x ημερησίως', duration: '5 ημέρες', notes: 'Σε περίπτωση πόνου' },
 ];
 
-const NEW_PETS = [
-  { id: 1, name: 'Μπόμπι', type: 'Σκύλος', breed: 'Golden Retriever', age: '2 έτη', owner: 'Γιάννης Παπαδόπουλος', microchip: 'GR-2023-001234', date: '20 Δεκ 2024' },
-  { id: 2, name: 'Λούλα', type: 'Γάτα', breed: 'Περσική', age: '3 έτη', owner: 'Μαρία Γεωργίου', microchip: 'GR-2023-005678', date: '18 Δεκ 2024' },
-  { id: 3, name: 'Ρεξ', type: 'Σκύλος', breed: 'Labrador', age: '4 έτη', owner: 'Νίκος Αθανασίου', microchip: 'GR-2023-009012', date: '15 Δεκ 2024' },
+// Fallback data in case server is unavailable
+const NEW_PETS_FALLBACK = [
+  { id: 'fallback-1', name: 'Μπόμπι', type: 'Σκύλος', breed: 'Golden Retriever', age: '2 έτη', owner: 'Γιάννης Παπαδόπουλος', microchip: 'GR-2023-001234', date: '20 Δεκ 2024' },
+  { id: 'fallback-2', name: 'Λούλα', type: 'Γάτα', breed: 'Περσική', age: '3 έτη', owner: 'Μαρία Γεωργίου', microchip: 'GR-2023-005678', date: '18 Δεκ 2024' },
+  { id: 'fallback-3', name: 'Ρεξ', type: 'Σκύλος', breed: 'Labrador', age: '4 έτη', owner: 'Νίκος Αθανασίου', microchip: 'GR-2023-009012', date: '15 Δεκ 2024' },
 ];
 
 export default function VetRecords() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [tabValue, setTabValue] = useState(0);
+  const [recentPets, setRecentPets] = useState([]);
+  const [loadingPets, setLoadingPets] = useState(false);
+  const [pendingRegCount, setPendingRegCount] = useState(0);
   
   // Prescription Dialog
   const [openPrescription, setOpenPrescription] = useState(false);
@@ -129,6 +138,80 @@ export default function VetRecords() {
     setSuccessDialog(true);
   };
 
+  // Load pets from server and compose "new animals" cards
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoadingPets(true);
+      try {
+        const [pets, users] = await Promise.all([
+          petsAPI.getAll(),
+          usersAPI.getAll()
+        ]);
+        if (!mounted) return;
+        const ownerMap = new Map((Array.isArray(users) ? users : []).map(u => [String(u.id), u]));
+        const toGreekType = (t) => t === 'dog' ? 'Σκύλος' : t === 'cat' ? 'Γάτα' : 'Ζώο';
+        const fmtDate = (iso) => {
+          try {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' });
+          } catch { return '—'; }
+        };
+        const rows = (Array.isArray(pets) ? pets : []).map(p => ({
+          id: String(p.id),
+          name: p.name || '—',
+          type: toGreekType(p.type),
+          breed: p.breed || '—',
+          age: p.age ? `${p.age} έτη` : '—',
+          owner: ownerMap.get(String(p.ownerId))?.fullname || ownerMap.get(String(p.ownerId))?.fullName || '—',
+          microchip: p.microchip || '—',
+          date: fmtDate(p.registeredAt),
+          registeredAt: p.registeredAt || null
+        }));
+        // Sort newest first using registeredAt or fallback to id (timestamp-like)
+        rows.sort((a, b) => {
+          const ta = a.registeredAt ? new Date(a.registeredAt).getTime() : Number(a.id) || 0;
+          const tb = b.registeredAt ? new Date(b.registeredAt).getTime() : Number(b.id) || 0;
+          return tb - ta;
+        });
+        setRecentPets(rows.slice(0, 12));
+      } catch (e) {
+        console.warn('Failed to load pets; using fallback.', e);
+        if (!mounted) return;
+        setRecentPets(NEW_PETS_FALLBACK);
+      } finally {
+        if (mounted) setLoadingPets(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Minimal indicator: count open Registration appointments for this vet (pending or confirmed)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await appointmentsAPI.getAll();
+        const list = Array.isArray(data) ? data : [];
+        const userId = String(user?.id || '');
+        const email = (user?.email || '').toLowerCase();
+        const name = (user?.fullname || user?.fullName || user?.name || '').toLowerCase();
+        const mine = list.filter(a => (
+          String(a.vetUserId || '') === userId ||
+          String(a.vetId || '') === userId ||
+          (a.vetEmail && a.vetEmail.toLowerCase() === email) ||
+          (a.vetName && a.vetName.toLowerCase() === name)
+        ));
+        const openRegs = mine.filter(a => String(a.type).toLowerCase() === 'registration' && a.status !== 'completed' && a.status !== 'cancelled');
+        if (mounted) setPendingRegCount(openRegs.length);
+      } catch (e) {
+        if (mounted) setPendingRegCount(0);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user]);
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: '#f9f9f9', pb: 8, display: 'flex', flexDirection: 'column' }}>
@@ -165,6 +248,24 @@ export default function VetRecords() {
               >
                 Νέα Συνταγή
               </Button>
+              <Button 
+                variant="contained" 
+                color="secondary" 
+                startIcon={<PetsIcon />}
+                onClick={() => navigate('/vet/new-record')}
+                sx={{ px: 3, py: 1.5 }}
+              >
+                Νέα Καταγραφή
+              </Button>
+              {pendingRegCount > 0 && (
+                <Chip 
+                  size="medium" 
+                  color="primary" 
+                  label={`Ανοικτές Καταχωρίσεις: ${pendingRegCount}`}
+                  onClick={() => navigate('/vet/schedule')}
+                  sx={{ alignSelf: 'center', fontWeight: 'bold' }}
+                />
+              )}
             </Box>
 
             {/* TABS */}
@@ -245,7 +346,7 @@ export default function VetRecords() {
               <Box>
                 <Typography variant="h6" sx={{ mb: 3 }}>Πρόσφατα Καταγεγραμμένα Ζώα</Typography>
                 <Grid container spacing={3}>
-                  {NEW_PETS.map((item) => (
+                  {(loadingPets ? NEW_PETS_FALLBACK : recentPets).map((item) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                       <Paper sx={{ p: 3, borderRadius: 3, '&:hover': { boxShadow: 4 }, transition: '0.3s' }}>
                         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
@@ -254,9 +355,7 @@ export default function VetRecords() {
                           </Avatar>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="h6" fontWeight="bold">{item.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {item.breed} • {item.age}
-                            </Typography>
+                            <Typography variant="body2" color="text.secondary">{item.breed} • {item.age}</Typography>
                             <Chip label={item.type} size="small" color="primary" sx={{ mt: 0.5 }} />
                           </Box>
                         </Box>
