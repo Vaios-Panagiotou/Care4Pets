@@ -75,7 +75,7 @@ export default function DashboardSidebar() {
 
       <List dense>
         <ListItemButton
-          selected={isActive(dashboardPath)}
+          selected={location.pathname === dashboardPath}
           onClick={() => navigate(dashboardPath)}
           sx={{ borderRadius: 2 }}
         >
