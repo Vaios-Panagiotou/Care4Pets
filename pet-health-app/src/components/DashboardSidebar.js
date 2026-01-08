@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Tooltip } from '@mui/material';
+import { Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,6 +15,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import DescriptionIcon from '@mui/icons-material/Description';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 const OWNER_NAV = [
   { id: 'pets', label: 'Τα Κατοικίδια', icon: PetsIcon, path: '/owner/pets' },
@@ -43,69 +44,72 @@ export default function DashboardSidebar() {
   // Check if current path matches
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
 
+  const dashboardPath = user?.role === 'vet' ? '/vet' : '/owner';
+  const rolePrimary = user?.role === 'vet' ? '#00897B' : '#1976d2';
+  const roleTint = user?.role === 'vet' ? '#e0f2f1' : '#e3f2fd';
+
   return (
     <Box
       sx={{
-        width: '60px',
+        width: { xs: '100%', sm: 240 },
         flexShrink: 0,
         bgcolor: 'white',
         borderRadius: 4,
         border: '2px solid #cfd8dc',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
+        p: 2,
+        position: 'sticky',
+        top: 24,
+        alignSelf: 'flex-start',
+        maxHeight: 'calc(100vh - 120px)',
         overflowY: 'auto',
-        overflowX: 'hidden', // prevent horizontal scrollbar/controls
-        py: 1.25,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 0.4,
-        position: 'fixed',
-        left: '24px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        maxHeight: '80vh',
-        zIndex: 1000,
       }}
     >
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(item.path);
-        
-        return (
-          <Tooltip key={item.id} title={item.label} placement="right" arrow>
-            <Box
+      <Typography variant="subtitle2" sx={{ color: '#607d8b', mb: 1, textAlign: 'center' }}>
+        {user?.role === 'vet' ? 'Μενού Κτηνιάτρου' : 'Μενού Ιδιοκτήτη'}
+      </Typography>
+      <Typography variant="h6" sx={{ fontWeight: 700, color: rolePrimary, mb: 1, textAlign: 'center' }}>
+        Γρήγορη Πλοήγηση
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+
+      <List dense>
+        <ListItemButton
+          selected={isActive(dashboardPath)}
+          onClick={() => navigate(dashboardPath)}
+          sx={{ borderRadius: 2 }}
+        >
+          <ListItemIcon>
+            <DashboardIcon sx={{ color: rolePrimary }} />
+          </ListItemIcon>
+          <ListItemText primary="Πίνακας Ελέγχου" secondary={user?.role === 'vet' ? 'Αρχική σελίδα κτηνιάτρου' : 'Αρχική σελίδα ιδιοκτήτη'} />
+        </ListItemButton>
+
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.path);
+          return (
+            <ListItemButton
+              key={item.id}
+              selected={active}
               onClick={() => navigate(item.path)}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 0.75,
-                mx: 0.25,
-                borderRadius: 2,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                width: '42px',
-                height: '42px',
-                position: 'relative',
-                // Active state styling
-                bgcolor: active ? (user?.role === 'vet' ? '#e0f2f1' : '#e3f2fd') : 'transparent',
-                border: active ? `2px solid ${user?.role === 'vet' ? '#00897B' : '#1976d2'}` : '2px solid transparent',
-                color: active ? (user?.role === 'vet' ? '#00897B' : '#1976d2') : '#90a4ae',
-                // Hover effects
-                '&:hover': {
-                  bgcolor: user?.role === 'vet' ? '#e0f2f1' : '#e3f2fd',
-                  transform: 'scale(1.01)',
-                  boxShadow: `0 3px 10px ${user?.role === 'vet' ? 'rgba(0,137,123,0.16)' : 'rgba(25,118,210,0.16)'}`,
-                  color: user?.role === 'vet' ? '#00897B' : '#1976d2',
-                },
-              }}
+              sx={{ borderRadius: 2 }}
             >
-              <Icon sx={{ fontSize: '19px' }} />
-            </Box>
-          </Tooltip>
-        );
-      })}
+              <ListItemIcon>
+                <Icon sx={{ color: rolePrimary }} />
+              </ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          );
+        })}
+      </List>
+
+      <Divider sx={{ my: 2 }} />
+      <Box sx={{ p: 2, bgcolor: roleTint, borderRadius: 2, border: `1px solid ${rolePrimary}` }}>
+        <Typography variant="body2" sx={{ color: '#455a64' }}>
+          Χρησιμοποιήστε το μενού για άμεση πρόσβαση στις βασικές ενότητες. Το πλαϊνό παραμένει σταθερό καθώς κάνετε κύλιση.
+        </Typography>
+      </Box>
     </Box>
   );
 }
