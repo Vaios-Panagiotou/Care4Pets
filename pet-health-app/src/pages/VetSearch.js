@@ -144,6 +144,26 @@ export default function VetSearch() {
   const [selectedPet, setSelectedPet] = useState(null);
   const [appointmentReason, setAppointmentReason] = useState('');
   const [registerAppointment, setRegisterAppointment] = useState(false);
+
+  // Restore progress if coming from auth
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('vetSearchProgress');
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p) {
+          if (p.searchQuery) { setSearchQuery(p.searchQuery); setSearchInput(p.searchQuery); }
+          if (p.selectedVet) { setSelectedVet(p.selectedVet); }
+          if (p.selectedDate) { setSelectedDate(p.selectedDate); }
+          if (p.selectedTime) { setSelectedTime(p.selectedTime); }
+          if (typeof p.registerAppointment === 'boolean') { setRegisterAppointment(p.registerAppointment); }
+          if (p.reason) { setAppointmentReason(p.reason); }
+          if (typeof p.step === 'number') { setActiveStep(Math.min(Math.max(p.step, 0), STEPS.length - 1)); }
+        }
+        sessionStorage.removeItem('vetSearchProgress');
+      }
+    } catch (_) {}
+  }, []);
   
   // Stable callback for reason TextField to prevent re-renders
   const handleReasonChange = useCallback((e) => {
@@ -372,30 +392,7 @@ export default function VetSearch() {
   const handlePageChange = (event, value) => { setPage(value); commitURL({ page: value }); };
   const displayedVets = filteredVets.slice((page - 1) * vetsPerPage, page * vetsPerPage);
 
-  // --- ACCESS GUARDS ---
-  if (!user) {
-    return (
-      <ThemeProvider theme={theme}>
-        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
-          <Container maxWidth="xl" sx={{ pt: 2 }}>
-            <PageHeader />
-          </Container>
-          <Container maxWidth="md" sx={{ py: 8 }}>
-            <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
-              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Συνδεθείτε για να συνεχίσετε</Typography>
-              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                Για να κλείσετε ραντεβού με κτηνίατρο πρέπει πρώτα να συνδεθείτε στον λογαριασμό σας.
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
-                <Button variant="contained" size="large" onClick={() => navigate('/login')} sx={{ px: 4, borderRadius: 3 }}>Σύνδεση</Button>
-                <Button variant="outlined" size="large" onClick={() => navigate('/register')} sx={{ px: 4, borderRadius: 3 }}>Εγγραφή</Button>
-              </Box>
-            </Paper>
-          </Container>
-        </Box>
-      </ThemeProvider>
-    );
-  }
+  // Guests can browse; login will be required before booking
 
   if (hasPets === false && !allowFindWithoutPet) {
     return (
@@ -423,6 +420,30 @@ export default function VetSearch() {
   const handleNext = async () => {
     if (activeStep === 0 && !selectedVet) { alert("Παρακαλώ επιλέξτε έναν κτηνίατρο."); return; }
     if (activeStep === 1 && (!selectedDate || !selectedTime)) { alert("Παρακαλώ επιλέξτε ημερομηνία ΚΑΙ ώρα."); return; }
+    // Before reaching pet-selection step, require authentication
+    if (!user && activeStep >= 1) {
+      try {
+        const payload = {
+          step: activeStep + 1, // next step the user attempted to go to
+          searchQuery,
+          selectedVet: selectedVet ? {
+            id: selectedVet.id,
+            userId: selectedVet.userId,
+            name: selectedVet.name,
+            email: selectedVet.email
+          } : null,
+          selectedDate,
+          selectedTime,
+          registerAppointment,
+          reason: appointmentReason
+        };
+        sessionStorage.setItem('vetSearchProgress', JSON.stringify(payload));
+        sessionStorage.setItem('postAuthRedirect', '/find-vet?find=1');
+      } catch (_) {}
+      alert('Παρακαλώ συνδεθείτε ή εγγραφείτε για να συνεχίσετε.');
+      navigate('/login?redirect=find-vet');
+      return;
+    }
     if (activeStep === 2 && !selectedPet && !registerAppointment) { alert("Παρακαλώ επιλέξτε κατοικίδιο ή επιλέξτε ραντεβού για καταχώριση κατοικιδίου."); return; }
     if (activeStep === 3 && !selectedPet) { setSelectedPet({ name: 'Kouvelaj', type: 'Golden Retriever', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80' }); }
     if (activeStep < STEPS.length - 1) {
@@ -443,6 +464,25 @@ export default function VetSearch() {
           }
         } catch(e) {
           console.warn('Αδυναμία ελέγχου διαθεσιμότητας. Θα επιχειρηθεί δημιουργία.');
+        }
+        // Require authentication before creating appointment
+        if (!user) {
+          try {
+            const payload = {
+              step: activeStep, // preview step
+              searchQuery,
+              selectedVet,
+              selectedDate,
+              selectedTime,
+              registerAppointment,
+              reason: appointmentReason
+            };
+            sessionStorage.setItem('vetSearchProgress', JSON.stringify(payload));
+            sessionStorage.setItem('postAuthRedirect', '/find-vet?find=1');
+          } catch (_) {}
+          alert('Παρακαλώ συνδεθείτε για να ολοκληρώσετε την κράτηση.');
+          navigate('/login?redirect=find-vet');
+          return;
         }
         // Create appointment on server (as pending; vet confirms later)
         const payload = {
@@ -473,30 +513,7 @@ export default function VetSearch() {
     if (activeStep > 0) setActiveStep((prev) => prev - 1);
   };
 
-  // --- ACCESS GUARDS ---
-  if (!user) {
-    return (
-      <ThemeProvider theme={theme}>
-        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
-          <Container maxWidth="xl" sx={{ pt: 2 }}>
-            <PageHeader />
-          </Container>
-          <Container maxWidth="md" sx={{ py: 8 }}>
-            <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 4, bgcolor: 'white' }}>
-              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#0f172a' }}>Συνδεθείτε για να συνεχίσετε</Typography>
-              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                Για να κλείσετε ραντεβού με κτηνίατρο πρέπει πρώτα να συνδεθείτε στον λογαριασμό σας.
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
-                <Button variant="contained" size="large" onClick={() => navigate('/login')} sx={{ px: 4, borderRadius: 3 }}>Σύνδεση</Button>
-                <Button variant="outlined" size="large" onClick={() => navigate('/register')} sx={{ px: 4, borderRadius: 3 }}>Εγγραφή</Button>
-              </Box>
-            </Paper>
-          </Container>
-        </Box>
-      </ThemeProvider>
-    );
-  }
+  // Guests can browse; login guard handled during progression
 
   if (hasPets === false && !allowFindWithoutPet) {
     return (

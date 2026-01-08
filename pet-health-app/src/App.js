@@ -114,6 +114,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/cookies" element={<CookiesPolicy />} />
         <Route path="/gdpr" element={<GDPR />} />
+        {/* Public Vet Search route for guests */}
+        <Route path="/find-vet" element={<VetSearch />} />
 
         {/* Σελίδες Συνδεδεμένων Χρηστών (Owner) */}
         <Route

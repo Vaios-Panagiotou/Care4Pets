@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, Checkbox, FormControlLabel, Grid, Link, TextField, Typography, Paper, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import GoogleIcon from '@mui/icons-material/Google';
 import PetsIcon from '@mui/icons-material/Pets';
 import PageHeader from './PageHeader';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -28,12 +29,27 @@ export default function Login() {
             const user = users[0];
             login(user);
 
+            // Post-auth redirect support
+            try {
+              const redirectParam = searchParams.get('redirect');
+              const stored = sessionStorage.getItem('postAuthRedirect');
+              if (stored) {
+                sessionStorage.removeItem('postAuthRedirect');
+                navigate(stored);
+                return;
+              }
+              if (redirectParam === 'find-vet') {
+                navigate('/find-vet?find=1');
+                return;
+              }
+            } catch (_) {}
+            // Default role-based navigation
             if (user.role === 'owner') {
-                navigate('/owner');
+              navigate('/owner');
             } else if (user.role === 'vet') {
-                navigate('/vet');
+              navigate('/vet');
             } else {
-                navigate('/');
+              navigate('/');
             }
         } else {
             setError('Λάθος email ή κωδικός πρόσβασης.');

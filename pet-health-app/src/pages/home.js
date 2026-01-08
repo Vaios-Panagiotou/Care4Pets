@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Typography, Button, Box, Container, Grid,
   Paper, Card, CardContent, AppBar, Toolbar,
   Menu, MenuItem, TextField, Autocomplete,
-  InputAdornment, Popper
+  InputAdornment, Popper, IconButton, Tooltip
 } from '@mui/material';
+import Chip from '@mui/material/Chip';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { keyframes } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
 
 // --- ICONS IMPORTS ---
@@ -14,9 +16,13 @@ import PetsIcon from '@mui/icons-material/Pets';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 // IMPORT NEWS COMPONENT
-import { NewsCard, NEWS_DATA } from './News';
+// Replace News with Top Rated Vets section
+import StarIcon from '@mui/icons-material/Star';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { vetsAPI, usersAPI } from '../services/api';
 
 // Search data configuration
 const SEARCH_DATA = [
@@ -387,42 +393,168 @@ const StepsSection = () => (
   </Box>
 );
 
-// New Section for News (Moved inside a component to use navigate)
-const NewsSection = () => {
-    const navigate = useNavigate();
-    return (
-        <Container maxWidth="lg" sx={{ py: 10 }}>
-            <Box sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography variant="h4" fontWeight="bold" gutterBottom>Νέα & Ενημερώσεις</Typography>
-                <Typography variant="body1" color="text.secondary">
-                Μείνετε ενημερωμένοι για την υγεία και τη φροντίδα των αγαπημένων σας φίλων.
-                </Typography>
-                <Box sx={{ width: 80, height: 4, bgcolor: '#00695c', mx: 'auto', mt: 2, borderRadius: 2 }} />
-            </Box>
+// Top Rated Vets Section
+const TopVetsSection = () => {
+  const navigate = useNavigate();
+  const [vets, setVets] = useState([]);
+  const [selectedVetId, setSelectedVetId] = useState(null);
 
-            <Grid container spacing={4}>
-                {NEWS_DATA.slice(0, 3).map((item) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
-                    <NewsCard item={item} />
-                </Grid>
-                ))}
-            </Grid>
+  // Animations
+  const fadeInUp = keyframes`
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  `;
+  const pulseRing = keyframes`
+    0% { box-shadow: 0 0 0 0 rgba(0,105,92,0.25); }
+    70% { box-shadow: 0 0 0 10px rgba(0,105,92,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,105,92,0); }
+  `;
+  const shimmerSweep = keyframes`
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  `;
+  const bump = keyframes`
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  `;
 
-            <Box sx={{ textAlign: 'center', mt: 6 }}>
-                <Button 
-                variant="outlined" 
-                size="large" 
-                onClick={() => navigate('/news')}
-                sx={{ 
-                    border: '2px solid #00695c', color: '#00695c', fontWeight: 'bold', px: 5, py: 1.5,
-                    '&:hover': { bgcolor: '#00695c', color: 'white' }
-                }}
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await vetsAPI.getAll();
+        let combined = Array.isArray(data) ? data : [];
+        // also include users with role=vet if not present
+        try {
+          const users = await usersAPI.getAll();
+          const vetsOnly = (Array.isArray(users) ? users.filter(u => u.role === 'vet') : []);
+          const seenIds = new Set(combined.map(v => String(v.userId || v.id || '')));
+          const derived = vetsOnly.filter(u => !seenIds.has(String(u.id))).map(u => ({
+            id: String(u.id),
+            userId: String(u.id),
+            name: u.fullname || u.fullName || u.name || u.email || 'Κτηνίατρος',
+            specialty: 'Κτηνιατρικές Υπηρεσίες',
+            address: u.address || '—',
+            rating: 4.7,
+            image: 'https://images.unsplash.com/photo-1522693668201-5b88340c1bd7?auto=format&fit=crop&w=400&q=60'
+          }));
+          combined = [...combined, ...derived];
+        } catch (_) {}
+        combined.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        if (mounted) setVets(combined.slice(0, 3));
+      } catch (e) {
+        if (mounted) setVets([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  return (
+    <Container maxWidth="lg" sx={{ py: 10 }}>
+      <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Typography variant="h4" fontWeight="bold" gutterBottom>Κορυφαίοι Κτηνίατροι</Typography>
+        <Typography variant="body1" color="text.secondary">
+          Οι 3 καλύτερα αξιολογημένοι κτηνίατροι κοντά σας.
+        </Typography>
+        <Box sx={{ width: 80, height: 4, bgcolor: '#00695c', mx: 'auto', mt: 2, borderRadius: 2 }} />
+      </Box>
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', gap: 3, flexWrap: 'wrap' }}>
+        {vets.map((vet, idx) => (
+          <Box key={vet.id} sx={{ width: 320, maxWidth: '90vw' }}>
+            <Card
+              onMouseEnter={() => setSelectedVetId(vet.id)}
+              onMouseLeave={() => setSelectedVetId((prev) => (prev === vet.id ? null : prev))}
+              sx={{
+                borderRadius: 3,
+                boxShadow: selectedVetId === vet.id ? '0 12px 28px rgba(0,105,92,0.20)' : '0 8px 22px rgba(15,23,42,0.08)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                transform: selectedVetId === vet.id ? 'translateY(-4px) scale(1.01)' : 'none',
+                position: 'relative',
+                cursor: 'pointer',
+                animation: `${fadeInUp} 420ms ease ${idx * 80}ms both`,
+                willChange: 'transform'
+              }}
+              onClick={() => navigate(`/find-vet?find=1&q=${encodeURIComponent(vet.name || '')}`)}
+            >
+              <Box sx={{ position: 'relative' }}>
+                <Box component="img" src={vet.image} alt={vet.name} sx={{ width: '100%', height: 190, objectFit: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />
+                {/* Shimmer highlight on hover */}
+                <Box sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  height: 190,
+                  width: '40%',
+                  background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%)',
+                  filter: 'blur(1px)',
+                  opacity: selectedVetId === vet.id ? 1 : 0,
+                  transform: 'translateX(-100%)',
+                  animation: selectedVetId === vet.id ? `${shimmerSweep} 900ms ease` : 'none',
+                  pointerEvents: 'none',
+                  borderTopLeftRadius: 12,
+                  borderTopRightRadius: 12
+                }} />
+                <Chip icon={<StarIcon />} label={(vet.rating || 0).toFixed(1)} sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'primary.main', color: 'white', animation: selectedVetId === vet.id ? `${pulseRing} 2.2s ease infinite` : 'none' }} />
+                {/* Minimal hover actions pop-up */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 12,
+                    right: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    px: 1,
+                    py: 0.5,
+                    bgcolor: 'rgba(255,255,255,0.92)',
+                    borderRadius: 20,
+                    boxShadow: '0 6px 14px rgba(0,0,0,0.15)',
+                    opacity: selectedVetId === vet.id ? 1 : 0,
+                    visibility: selectedVetId === vet.id ? 'visible' : 'hidden',
+                    transition: 'opacity 0.15s ease'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                Προβολή Όλων των Νέων
-                </Button>
-            </Box>
-        </Container>
-    );
+                  <Tooltip title="Κλείσε Ραντεβού" arrow>
+                    <IconButton size="small" sx={{ bgcolor: '#ffe082', color: '#263238', '&:hover': { bgcolor: '#ffd54f' } }} onClick={() => navigate(`/find-vet?find=1&q=${encodeURIComponent(vet.name || '')}`)}>
+                      <MedicalServicesIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Δες Διαθεσιμότητα" arrow>
+                    <IconButton size="small" sx={{ bgcolor: '#e0f2f1', color: 'primary.main', '&:hover': { bgcolor: '#b2dfdb' } }} onClick={() => navigate(`/find-vet?find=1&q=${encodeURIComponent(vet.name || '')}`)}>
+                      <CalendarMonthIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" sx={{ textAlign: 'center' }}>{vet.name}</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
+                  <MedicalServicesIcon sx={{ fontSize: 18, color: 'primary.main' }} /> {vet.specialty || 'Κτηνιατρικές Υπηρεσίες'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, justifyContent: 'center' }}>
+                  <LocationOnIcon sx={{ fontSize: 16 }} /> {vet.address || '—'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+        ))}
+      </Box>
+
+      <Box sx={{ textAlign: 'center', mt: 6 }}>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={() => navigate('/find-vet?find=1')}
+          sx={{ borderRadius: 3, px: 5, '&:hover': { animation: `${bump} 550ms ease` } }}
+        >
+          Κλείσε Ραντεβού με Κτηνίατρο
+        </Button>
+      </Box>
+    </Container>
+  );
 };
 
 // --- MAIN COMPONENT ---
@@ -433,7 +565,7 @@ export default function Home() {
         <HeroSection />
         <LostPetBanner />
         <StepsSection />
-        <NewsSection /> {/* Added the News Section here */}
+        <TopVetsSection />
       </Box>
     </ThemeProvider>
   );

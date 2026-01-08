@@ -165,7 +165,13 @@ export default function Register() {
         }
 
         alert('Η εγγραφή ολοκληρώθηκε! Τώρα μπορείτε να συνδεθείτε.');
-        navigate('/login'); // Πάμε στη σελίδα σύνδεσης
+        // Preserve any post-auth redirect (e.g., find-vet) and forward hint to login
+        const stored = sessionStorage.getItem('postAuthRedirect');
+        if (!stored) {
+          // If user came here directly, but wants to book, set a soft default to find-vet
+          sessionStorage.setItem('postAuthRedirect', '/find-vet?find=1');
+        }
+        navigate('/login?redirect=find-vet');
       } else {
         setError('Υπήρξε πρόβλημα με την εγγραφή.');
       }
