@@ -33,14 +33,78 @@ const VET_NAV = [
   { id: 'help', label: 'Οδηγός Χρήσης', icon: HelpOutlineIcon, path: '/vet/help' },
 ];
 
-export default function DashboardSidebar() {
+export default function DashboardSidebar({ static: isStatic = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const containerRef = useRef(null);
   const sidebarRef = useRef(null);
-  const [sidebarHeight, setSidebarHeight] = useState(0);
-  const [fixedStyle, setFixedStyle] = useState({ position: 'sticky', top: 80 });
+  const [metrics, setMetrics] = useState({
+    containerLeft: 0,
+    containerWidth: 260,
+    containerTop: 0,
+    footerTop: Infinity,
+    headerOffset: 80,
+    sidebarHeight: 0,
+  });
+  const [translateY, setTranslateY] = useState(0);
+
+  useEffect(() => {
+    if (isStatic) return; // No scroll listeners in static mode
+    const measure = () => {
+      const container = containerRef.current;
+      const sidebar = sidebarRef.current;
+      const footer = document.getElementById('app-footer');
+      const topbar = document.getElementById('app-topbar');
+      if (!container || !sidebar || !footer) return;
+      const rect = container.getBoundingClientRect();
+      const footerRect = footer.getBoundingClientRect();
+      const scrollY = window.scrollY || window.pageYOffset;
+      const headerHeight = topbar ? topbar.offsetHeight : 80;
+      const next = {
+        containerLeft: rect.left,
+        containerWidth: rect.width,
+        containerTop: rect.top + scrollY,
+        footerTop: footerRect.top + scrollY,
+        headerOffset: headerHeight,
+        sidebarHeight: sidebar.offsetHeight,
+      };
+      setMetrics(next);
+      // Also update translateY after measuring
+      const topMargin = 24;
+      const bottomMargin = 24;
+      const minTopAbs = next.containerTop + topMargin;
+      const maxTopAbs = next.footerTop - next.sidebarHeight - bottomMargin;
+      const desiredAbsTop = Math.min(Math.max(scrollY + next.headerOffset, minTopAbs), maxTopAbs);
+      const y = Math.round(desiredAbsTop - (scrollY + next.headerOffset));
+      setTranslateY(Math.max(0, y));
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const topMargin = 24;
+        const bottomMargin = 24;
+        const minTopAbs = metrics.containerTop + topMargin;
+        const maxTopAbs = metrics.footerTop - metrics.sidebarHeight - bottomMargin;
+        const desiredAbsTop = Math.min(Math.max(scrollY + metrics.headerOffset, minTopAbs), maxTopAbs);
+        const y = Math.round(desiredAbsTop - (scrollY + metrics.headerOffset));
+        setTranslateY(Math.max(0, y));
+        ticking = false;
+      });
+    };
+
+    measure();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', measure);
+    };
+  }, [isStatic, metrics.containerTop, metrics.footerTop, metrics.sidebarHeight, metrics.headerOffset]);
 
   // Choose nav based on user role
   const navItems = user?.role === 'vet' ? VET_NAV : OWNER_NAV;
@@ -52,44 +116,11 @@ export default function DashboardSidebar() {
   const rolePrimary = user?.role === 'vet' ? '#00897B' : '#1976d2';
   const roleTint = user?.role === 'vet' ? '#e0f2f1' : '#e3f2fd';
 
-  useEffect(() => {
-    const update = () => {
-      const container = containerRef.current;
-      const sidebar = sidebarRef.current;
-      const footer = document.getElementById('app-footer');
-      if (!container || !sidebar || !footer) return;
-      const headerOffset = 80; // navbar spacer height
-      const containerRect = container.getBoundingClientRect();
-      const footerRect = footer.getBoundingClientRect();
-      const scrollY = window.scrollY || window.pageYOffset;
-      const containerTop = containerRect.top + scrollY;
-      const footerTop = footerRect.top + scrollY;
-      const sbHeight = sidebar.offsetHeight;
-      setSidebarHeight(sbHeight);
-      const margin = 24;
-      const maxTopAbsolute = footerTop - sbHeight - margin;
-      const desiredTopAbsolute = Math.max(containerTop, scrollY + headerOffset);
-      const top = Math.min(desiredTopAbsolute - scrollY, maxTopAbsolute - scrollY);
-      setFixedStyle({
-        position: 'fixed',
-        top: Math.max(top, headerOffset),
-        left: containerRect.left,
-        width: containerRect.width,
-        zIndex: 2
-      });
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, []);
+  // Sticky positioning without scroll listeners to avoid jitter.
 
   return (
     <Box ref={containerRef} sx={{ width: { xs: '100%', sm: 260 }, flexShrink: 0 }}>
-      <Box
+       <Box
         ref={sidebarRef}
         sx={{
           bgcolor: 'white',
@@ -97,7 +128,19 @@ export default function DashboardSidebar() {
           border: '2px solid #cfd8dc',
           boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
           p: 2,
-          ...fixedStyle
+          ...(isStatic ? {
+            position: 'sticky',
+            top: metrics.headerOffset,
+            zIndex: 2
+          } : {
+            position: 'fixed',
+            top: metrics.headerOffset,
+            left: metrics.containerLeft,
+            width: metrics.containerWidth,
+            transform: `translateY(${translateY}px)`,
+            willChange: 'transform',
+            zIndex: 2,
+          }),
         }}
       >
       <Box sx={{ position: 'sticky', top: 0, bgcolor: 'white' }}>
@@ -150,8 +193,8 @@ export default function DashboardSidebar() {
         </Box>
       </Box>
       </Box>
-      {/* Spacer to preserve layout so content doesn't jump */}
-      <Box sx={{ height: sidebarHeight }} />
+      {/* Spacer only for fixed-follow mode */}
+      {!isStatic && (<Box sx={{ height: metrics.sidebarHeight }} />)}
     </Box>
   );
 }

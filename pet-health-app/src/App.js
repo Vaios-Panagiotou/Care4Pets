@@ -1,3 +1,4 @@
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Alert, Box, Button, Container, Typography } from "@mui/material";
 import Home from "./pages/home";
@@ -271,12 +272,36 @@ function NavWrapper() {
   const location = useLocation();
   const hidePaths = ['/login', '/register', '/forgot'];
   const hide = hidePaths.includes(location.pathname);
+  const [spacerHeight, setSpacerHeight] = React.useState(80);
+
+  React.useLayoutEffect(() => {
+    const measure = () => {
+      const el = document.getElementById('app-topbar');
+      const h = el ? el.offsetHeight : 80;
+      setSpacerHeight(h);
+    };
+    measure();
+    const el = document.getElementById('app-topbar');
+    let ro;
+    if (window.ResizeObserver && el) {
+      ro = new ResizeObserver(() => {
+        const h = el.offsetHeight || 80;
+        setSpacerHeight(h);
+      });
+      ro.observe(el);
+    }
+    window.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('resize', measure);
+      if (ro) ro.disconnect();
+    };
+  }, [location.pathname]);
   if (hide) return null;
   return (
     <>
       <Navbar />
       {/* Spacer so content doesn't go under fixed navbar */}
-      <div style={{ height: 80 }}></div>
+      <div style={{ height: spacerHeight }}></div>
     </>
   );
 }

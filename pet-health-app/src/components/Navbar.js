@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import {
   AppBar, Toolbar, Typography, Button, Box, Container,
-  Menu, MenuItem, TextField, InputAdornment, Autocomplete, Popper, IconButton
+  Menu, MenuItem, TextField, InputAdornment, Autocomplete, Popper, IconButton,
+  Breadcrumbs, Link
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 // Icons
@@ -16,6 +17,8 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import PageviewIcon from '@mui/icons-material/Pageview';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HomeIcon from '@mui/icons-material/Home';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 // News data for search suggestions
 import { NEWS_DATA } from '../pages/News';
@@ -57,7 +60,13 @@ export default function Navbar() {
   const [anchorElProfile, setAnchorElProfile] = useState(null);
   const [searchValue, setSearchValue] = useState(null);
   const [inputValue, setInputValue] = useState('');
+  const [crumbsCollapsed, setCrumbsCollapsed] = useState(false);
+  const lastToggleY = useRef(0);
+  const lastY = useRef(0);
+  const crumbsContentRef = useRef(null);
+  const [crumbsHeight, setCrumbsHeight] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
 
   const handleOpenMenu = (event, setAnchor) => setAnchor(event.currentTarget);
@@ -79,8 +88,69 @@ export default function Navbar() {
 
   const navButtonStyle = { fontSize: '16px', color: '#546e7a', '&:hover': { color: '#00695c', backgroundColor: 'transparent' } };
 
+  // Breadcrumb labels (Greek)
+  const routeNameMap = {
+    owner: 'Ιδιοκτήτης',
+    vet: 'Κτηνίατρος',
+    contact: 'Επικοινωνία',
+    'lost-pets': 'Απολεσθέντα',
+    history: 'Ιστορικό',
+    pets: 'Τα Κατοικίδιά μου',
+    search: 'Αναζήτηση Κτηνιάτρου',
+    profile: 'Προφίλ',
+    schedule: 'Πρόγραμμα',
+    clinic: 'Κλινική',
+    records: 'Καταγραφές',
+    news: 'Νέα'
+  };
+  const pathnames = location.pathname.split('/').filter(Boolean);
+
+  // Collapse breadcrumbs on downward scroll and show on upward scroll
+  useEffect(() => {
+    lastY.current = window.scrollY || 0;
+    lastToggleY.current = lastY.current;
+    const downThreshold = 80; // collapse after ~80px down
+    const upThreshold = 60;   // show after ~60px up
+    const onScroll = () => {
+      const y = window.scrollY || 0;
+      const delta = y - lastY.current;
+      const goingDown = delta > 0;
+      const goingUp = delta < 0;
+      if (goingDown) {
+        if (!crumbsCollapsed && y - lastToggleY.current > downThreshold) {
+          setCrumbsCollapsed(true);
+          lastToggleY.current = y;
+        }
+      } else if (goingUp) {
+        if (crumbsCollapsed && lastToggleY.current - y > upThreshold) {
+          setCrumbsCollapsed(false);
+          lastToggleY.current = y;
+        }
+        if (y < 8 && crumbsCollapsed) {
+          setCrumbsCollapsed(false);
+          lastToggleY.current = y;
+        }
+      }
+      lastY.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [crumbsCollapsed]);
+
+  // Measure breadcrumb content height for smooth height animation
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = crumbsContentRef.current;
+      const h = el ? el.offsetHeight : 0;
+      setCrumbsHeight(h);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [location.pathname]);
+
   return (
-      <AppBar position="fixed" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
+      <AppBar id="app-topbar" position="fixed" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0', zIndex: 1300 }}>
         <Container maxWidth="xl">
           <Toolbar disableGutters sx={{ height: 80 }}>
 
@@ -228,6 +298,90 @@ export default function Navbar() {
             </Box>
 
           </Toolbar>
+          {pathnames.length > 0 && (
+            <Box sx={{
+              height: crumbsCollapsed ? 0 : crumbsHeight,
+              opacity: crumbsCollapsed ? 0 : 1,
+              transform: crumbsCollapsed ? 'translateY(-4px)' : 'translateY(0)',
+              overflow: 'hidden',
+              transition: 'height 220ms ease, opacity 160ms ease, transform 180ms ease',
+            }}>
+              <Box ref={crumbsContentRef} sx={{
+                display: 'flex',
+                alignItems: 'center',
+                px: { xs: 2, md: 3 },
+                py: 0.5,
+                mx: 'auto',
+                maxWidth: 'xl'
+              }}>
+                <Breadcrumbs
+                  aria-label="breadcrumb"
+                  separator={<NavigateNextIcon sx={{ fontSize: 16, color: 'text.disabled' }} />}
+                  maxItems={4}
+                  itemsBeforeCollapse={1}
+                  itemsAfterCollapse={2}
+                  sx={{
+                    '& .MuiBreadcrumbs-li': {
+                      fontWeight: 400,
+                      fontSize: '0.8rem',
+                    },
+                    '& a': {
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      color: 'text.secondary',
+                      textDecoration: 'none',
+                      px: 0.75,
+                      py: 0.25,
+                      borderRadius: 1,
+                      transition: 'background-color 120ms ease, color 120ms ease',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      '&:hover': { bgcolor: 'action.hover', color: 'primary.main' },
+                      '&:active': { transform: 'translateY(0.5px)' },
+                      '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 }
+                    }
+                  }}
+                >
+                  <Link
+                    component={RouterLink}
+                    to="/"
+                    underline="none"
+                    title="Αρχική"
+                    sx={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    <HomeIcon sx={{ mr: 0.5, fontSize: 16 }} /> Αρχική
+                  </Link>
+                  {pathnames.map((value, index) => {
+                    const last = index === pathnames.length - 1;
+                    const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+                    const name = routeNameMap[value] || value;
+                    const isRole = value === 'owner' || value === 'vet';
+                    const roleLink = value === 'owner' ? '/owner' : value === 'vet' ? '/vet' : null;
+                    if (last) {
+                      return (
+                        <Typography key={to} aria-current="page" sx={{ color: 'text.primary', fontWeight: 700, px: 0.75, py: 0.25 }}>
+                          {name}
+                        </Typography>
+                      );
+                    }
+                    const linkTarget = isRole && roleLink ? roleLink : to;
+                    return (
+                      <Link
+                        key={to}
+                        component={RouterLink}
+                        to={linkTarget}
+                        underline="none"
+                        title={name}
+                      >
+                        {name}
+                      </Link>
+                    );
+                  })}
+                </Breadcrumbs>
+              </Box>
+            </Box>
+          )}
         </Container>
       </AppBar>
   );

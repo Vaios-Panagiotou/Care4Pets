@@ -147,8 +147,8 @@ export default function OwnerDashboard() {
 
         {/* MAIN LAYOUT WITH SIDEBAR */}
         <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'visible', p: 2, gap: 2 }}>
-          {/* REUSABLE SIDEBAR */}
-          <DashboardSidebar />
+          {/* REUSABLE SIDEBAR (static in main dashboards) */}
+          <DashboardSidebar static />
 
           {/* MAIN CONTENT AREA */}
           <Box sx={{ flex: 1, p: 4 }}>

@@ -102,8 +102,8 @@ export default function VetDashboard() {
 
         {/* MAIN LAYOUT: SIDEBAR + CONTENT */}
         <Box sx={{ display: 'flex', flexGrow: 1, p: 2, gap: 2 }}>
-          {/* REUSABLE SIDEBAR */}
-          <DashboardSidebar />
+          {/* REUSABLE SIDEBAR (static in main dashboards) */}
+          <DashboardSidebar static />
 
           {/* MAIN CONTENT */}
           <Box sx={{ flex: 1, p: 4 }}>
