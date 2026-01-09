@@ -14,7 +14,7 @@ export default function Footer() {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ bgcolor: '#1a2327', color: '#b0bec5', py: 5, mt: 'auto' }}>
+    <Box id="app-footer" sx={{ bgcolor: '#1a2327', color: '#b0bec5', py: 5, mt: 'auto' }}>
       <Container>
         <Grid container spacing={4} alignItems="flex-start">
           {/* Company Info */}

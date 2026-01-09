@@ -106,7 +106,7 @@ export default function VetDashboard() {
           <DashboardSidebar />
 
           {/* MAIN CONTENT */}
-          <Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
+          <Box sx={{ flex: 1, p: 4 }}>
             {/* QUICK ACTIONS */}
             <Typography 
               variant="h4" 

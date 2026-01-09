@@ -146,12 +146,12 @@ export default function OwnerDashboard() {
         </Box>
 
         {/* MAIN LAYOUT WITH SIDEBAR */}
-        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'visible', p: 2, gap: 2 }}>
           {/* REUSABLE SIDEBAR */}
           <DashboardSidebar />
 
           {/* MAIN CONTENT AREA */}
-          <Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
+          <Box sx={{ flex: 1, p: 4 }}>
             {/* QUICK ACTIONS */}
             <Typography 
               variant="h4" 

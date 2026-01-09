@@ -62,23 +62,7 @@ export default function PageHeader() {
       borderRadius: 2
     }}>
       
-      {/* 1. ΚΟΥΜΠΙ ΠΙΣΩ (MINIMAL) */}
-      <Tooltip title="Επιστροφή">
-        <IconButton 
-          onClick={() => navigate(-1)} 
-          size="small"
-          sx={{ 
-            color: '#94a3b8',
-            '&:hover': { 
-              color: '#1976d2',
-              bgcolor: 'rgba(25, 118, 210, 0.05)'
-            },
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <ArrowBackIosNewIcon sx={{ fontSize: 16 }} />
-        </IconButton>
-      </Tooltip>
+      {/* Back arrow removed per request */}
 
       {/* 2. BREADCRUMBS - DISCRETE & ELEGANT */}
       <Breadcrumbs 
@@ -178,28 +162,7 @@ export default function PageHeader() {
         })}
       </Breadcrumbs>
 
-      {/* 3. Logout button when authenticated AND not on public pages */}
-      {user && !isPublicPage && (
-        <Button
-          variant="text"
-          size="small"
-          onClick={() => { logout(); navigate('/login'); }}
-          sx={{ 
-            ml: 'auto', 
-            color: '#64748b', 
-            fontSize: '0.8rem',
-            fontWeight: 500,
-            textTransform: 'none',
-            '&:hover': { 
-              color: '#ef4444',
-              bgcolor: 'rgba(239, 68, 68, 0.05)'
-            },
-            transition: 'all 0.2s ease'
-          }}
-        >
-          Αποσύνδεση
-        </Button>
-      )}
+      {/* Logout button removed per request */}
 
     </Box>
   );
