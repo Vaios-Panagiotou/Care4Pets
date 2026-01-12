@@ -19,6 +19,7 @@ import { keyframes } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
 
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
@@ -436,26 +437,65 @@ export default function VetSchedule() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 6 }}>
+
+        {/* HERO SECTION (full width) */}
+        <Box sx={{ 
+          position: 'relative',
+          py: 6,
+          mb: 2,
+          color: 'white',
+          textAlign: 'center',
+          width: '100vw',
+          left: '50%',
+          right: '50%',
+          marginLeft: '-50vw',
+          marginRight: '-50vw',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?auto=format&fit=crop&w=1920&q=80)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{ 
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(135deg, rgba(38, 50, 56, 0.9) 0%, rgba(0, 105, 92, 0.85) 100%)',
+              zIndex: 1
+          }} />
+          <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2 }}>
+              <CalendarMonthIcon sx={{ fontSize: 60, mb: 2, opacity: 0.95 }} />
+              <Typography variant="h3" fontWeight="800" gutterBottom>
+                  Ραντεβού Κτηνιάτρου
+              </Typography>
+              <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 400 }}>
+                  Διαχειριστείτε εισερχόμενα, επιβεβαιώσεις και ολοκληρώσεις
+              </Typography>
+          </Container>
+        </Box>
+
       <Container maxWidth="xl" sx={{ pt: 2 }}>
+
+        {/* Header (spans above the sidebar) */}
+        <Paper sx={{ p: 2, borderRadius: 3, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.1 }}>Κέντρο Ραντεβού</Typography>
+              <Typography variant="body2" color="text.secondary">Inbox → Αποδοχή/Απόρριψη, Σήμερα → Ολοκλήρωση, Κλειστά → Ιστορικό.</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Chip icon={<PendingActionsIcon />} label={`Νέα: ${counts.inbox}`} color={counts.inbox ? 'secondary' : 'default'} />
+              <Chip icon={<AccessTimeIcon />} label={`Σήμερα: ${counts.today}`} />
+              <Chip icon={<DoneAllIcon />} label={`Κλειστά: ${counts.closed}`} />
+              <Button variant="contained" size="small">Νέο Ραντεβού</Button>
+            </Box>
+          </Box>
+        </Paper>
+
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-          <DashboardSidebar />
+          <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0, position: 'sticky', top: 120, alignSelf: 'flex-start' }}>
+            <DashboardSidebar />
+          </Box>
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Paper sx={{ p: 2, borderRadius: 3, mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.1 }}>Κέντρο Ραντεβού</Typography>
-                  <Typography variant="body2" color="text.secondary">Inbox → Αποδοχή/Απόρριψη, Σήμερα → Ολοκλήρωση, Κλειστά → Ιστορικό.</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Chip icon={<PendingActionsIcon />} label={`Νέα: ${counts.inbox}`} color={counts.inbox ? 'secondary' : 'default'} />
-                  <Chip icon={<AccessTimeIcon />} label={`Σήμερα: ${counts.today}`} />
-                  <Chip icon={<DoneAllIcon />} label={`Κλειστά: ${counts.closed}`} />
-                  <Button variant="contained" size="small">Νέο Ραντεβού</Button>
-                </Box>
-              </Box>
-            </Paper>
-
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
                 <Column

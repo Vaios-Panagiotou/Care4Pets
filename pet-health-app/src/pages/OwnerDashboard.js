@@ -133,10 +133,19 @@ export default function OwnerDashboard() {
           backgroundPosition: 'center',
           display: 'flex', 
           alignItems: 'center', 
-          justifyContent: 'center'
+          justifyContent: 'center',
+          overflow: 'hidden'
         }}>
-          <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.5)' }} />
-          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', color: 'white' }}>
+          {/* Gradient Overlay - Το πράσινο fade */}
+          <Box sx={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(135deg, rgba(38, 50, 56, 0.9) 0%, rgba(0, 105, 92, 0.85) 100%)',
+            zIndex: 1
+          }} />
+          
+          {/* Content */}
+          <Box sx={{ position: 'relative', zIndex: 2, textAlign: 'center', color: 'white' }}>
             <Typography variant="h2" fontWeight="800" sx={{ textShadow: '0 4px 20px rgba(0,0,0,0.8)' }}>
               Καλωσήρθατε, Ιδιοκτήτη
             </Typography>
@@ -164,12 +173,12 @@ export default function OwnerDashboard() {
                 letterSpacing: '-0.5px',
                 maxWidth: '900px',
                 mx: 'auto',
-                ml: { md: '280px' }
+                ml: { md: '140px' }
               }}
             >
               Με μια Ματιά
             </Typography>
-            <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '280px' } }}>
+            <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '180px' } }}>
               {[
                 { label: 'Τα Κατοικίδια', icon: <PetsIcon fontSize="large" />, color: '#1976d2', path: '/owner/pets' },
                 { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#1976d2', path: '/owner/history' },
@@ -235,12 +244,12 @@ export default function OwnerDashboard() {
                 letterSpacing: '-0.5px',
                 maxWidth: '900px',
                 mx: 'auto',
-                ml: { md: '280px' }
+                ml: { md: '140px' }
               }}
             >
               Τι Τρέχει Τώρα
             </Typography>
-            <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '280px' } }}>
+            <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '180px' } }}>
               <Grid item xs={12} sm={6}>
                 <Paper 
                   elevation={0}

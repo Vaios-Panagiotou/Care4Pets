@@ -78,7 +78,7 @@ export default function DashboardSidebar({ static: isStatic = false }) {
       const minTopAbs = next.containerTop + topMargin;
       const maxTopAbs = next.footerTop - next.sidebarHeight - bottomMargin;
       const desiredAbsTop = Math.min(Math.max(scrollY + next.headerOffset, minTopAbs), maxTopAbs);
-      const y = Math.round(desiredAbsTop - (scrollY + next.headerOffset));
+      const y = desiredAbsTop - (scrollY + next.headerOffset);
       setTranslateY(Math.max(0, y));
     };
 
@@ -93,7 +93,7 @@ export default function DashboardSidebar({ static: isStatic = false }) {
         const minTopAbs = metrics.containerTop + topMargin;
         const maxTopAbs = metrics.footerTop - metrics.sidebarHeight - bottomMargin;
         const desiredAbsTop = Math.min(Math.max(scrollY + metrics.headerOffset, minTopAbs), maxTopAbs);
-        const y = Math.round(desiredAbsTop - (scrollY + metrics.headerOffset));
+        const y = desiredAbsTop - (scrollY + metrics.headerOffset);
         setTranslateY(Math.max(0, y));
         ticking = false;
       });
@@ -130,17 +130,19 @@ export default function DashboardSidebar({ static: isStatic = false }) {
           border: '2px solid #cfd8dc',
           boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
           p: 2,
-          ...(isStatic ? {
+            ...(isStatic ? {
             position: 'sticky',
             top: metrics.headerOffset,
-            zIndex: 2
+            zIndex: 2,
+            transition: 'box-shadow 220ms ease'
           } : {
             position: 'fixed',
             top: metrics.headerOffset,
             left: metrics.containerLeft,
             width: metrics.containerWidth,
-            transform: `translateY(${translateY}px)`,
-            willChange: 'transform',
+            transform: `translateY(${translateY}px) translateZ(0)`,
+            willChange: 'transform, left',
+            transition: 'transform 220ms cubic-bezier(0.2,0.8,0.2,1), left 220ms ease',
             zIndex: 2,
           }),
         }}
