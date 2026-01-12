@@ -270,10 +270,9 @@ const LOST_PETS = [
 ].map(p => ({ ...p, isMock: true }));
 
 const STEPS = [
-  { label: 'Στοιχεία Ζώου', icon: <PetsIcon />, description: 'Βασικές πληροφορίες' },
-  { label: 'Φωτογραφίες', icon: <PhotoCameraIcon />, description: 'Προσθέστε εικόνες' },
-  { label: 'Λεπτομέρειες', icon: <InfoIcon />, description: 'Περιγραφή & τοποθεσία' },
-  { label: 'Επικοινωνία', icon: <NotificationsActiveIcon />, description: 'Στοιχεία επικοινωνίας' }
+  { label: 'Φωτογραφία', icon: <PhotoCameraIcon />, description: 'Μία καθαρή εικόνα του ζώου' },
+  { label: 'Περιγραφή', icon: <InfoIcon />, description: 'Χαρακτηριστικά που ξεχωρίζουν' },
+  { label: 'Τοποθεσία & Επικοινωνία', icon: <LocationOnIcon />, description: 'Πού βρέθηκε και πώς να σας βρουν' }
 ];
 
 function LostPetsSearchView({
@@ -312,14 +311,14 @@ function LostPetsSearchView({
           <Box sx={{ position: 'relative', zIndex: 2, textAlign: 'center', px: 2 }}>
             <PetsIcon sx={{ fontSize: 80, color: '#FFA726', mb: 2 }} />
             <Typography variant="h3" sx={{ color: 'white', fontWeight: 900, mb: 1, textShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: { xs: '2rem', md: '3rem' } }}>
-              Αναζήτηση Χαμένου Κατοικιδίου
+              Δήλωση Εύρεσης Κατοικιδίου
             </Typography>
             <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)', mb: 4, fontWeight: 400 }}>
-              Βοηθήστε να βρουν τον δρόμο τους σπίτι
+              Δηλώστε ότι βρήκατε ένα ζωάκι για να επιστρέψει σπίτι
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Tooltip
-                title={!canReportLoss ? 'Πρέπει να συνδεθείτε για να κάνετε δήλωση απώλειας.' : ''}
+                title={!canReportLoss ? 'Πρέπει να συνδεθείτε για να κάνετε δήλωση εύρεσης.' : ''}
                 disableHoverListener={canReportLoss}
                 arrow
               >
@@ -333,7 +332,7 @@ function LostPetsSearchView({
                     onClick={() => setView('form')}
                     sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
                   >
-                    Δήλωση Απώλειας
+                    Δήλωση Εύρεσης
                   </Button>
                 </Box>
               </Tooltip>
@@ -660,7 +659,7 @@ function LostPetsFormView({
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => setView('search')} sx={{ mb: 3 }}>Πίσω στην αναζήτηση</Button>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => setView('search')} sx={{ mb: 3 }}>Πίσω στις δηλωμένες ευρέσεις</Button>
       <Paper sx={{ p: 2, mb: 3, borderRadius: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
           <Typography variant="body2" fontWeight={600}>Πρόοδος Δήλωσης</Typography>
@@ -672,7 +671,7 @@ function LostPetsFormView({
       <Grid container spacing={4}>
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3, borderRadius: 4 }}>
-            <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>Δήλωση Απώλειας</Typography>
+            <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>Δήλωση Εύρεσης</Typography>
             <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
               {STEPS.map((step, index) => (
                 <Step key={step.label}>
@@ -685,106 +684,6 @@ function LostPetsFormView({
 
             <Box sx={{ minHeight: '400px' }}>
                 {activeStep === 0 && (
-                  <Grid container spacing={3} alignItems="stretch">
-                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            {petsLoading ? (
-                              <Alert severity="info">Φόρτωση των δηλωμένων κατοικιδίων σας…</Alert>
-                            ) : (Array.isArray(userPets) && userPets.length === 0) ? (
-                              <Alert severity="warning">
-                                Δεν έχετε δηλωμένο κατοικίδιο στον λογαριασμό σας. Για να κάνετε «Δήλωση Απώλειας», πρέπει πρώτα να δηλώσετε το κατοικίδιό σας.
-                              </Alert>
-                            ) : (
-                              <FormControl fullWidth required sx={{ minWidth: 200 }}>
-                                <InputLabel id="pet-select-label">Κατοικίδιο</InputLabel>
-                                <Select
-                                  labelId="pet-select-label"
-                                  label="Κατοικίδιο"
-                                  value={formData.petId || ''}
-                                  onChange={(e) => {
-                                    const nextPetId = e.target.value;
-                                    const selected = (userPets || []).find(p => String(p.id) === String(nextPetId));
-                                    setFormData((prev) => {
-                                      const next = { ...prev, petId: nextPetId };
-                                      if (selected) {
-                                        const rawType = selected.type;
-                                        const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
-                                        next.name = selected.name ?? next.name;
-                                        next.type = mappedType ?? next.type;
-                                        next.microchip = selected.microchip ?? next.microchip;
-                                        next.color = selected.color ?? next.color;
-                                        next.breed = selected.breed ?? next.breed;
-                                        next.gender = selected.gender ?? next.gender;
-                                        next.age = selected.age ?? next.age;
-                                      }
-                                      return next;
-                                    });
-                                    setFormErrors(prev => ({ ...prev, petId: null, name: null }));
-                                  }}
-                                  error={!!formErrors.petId}
-                                >
-                                  {(userPets || []).map((pet) => (
-                                    <MenuItem key={pet.id} value={pet.id}>
-                                      {pet.name || 'Χωρίς όνομα'}{pet.type ? ` • ${pet.type}` : ''}{pet.microchip ? ` • ${pet.microchip}` : ''}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            )}
-                          </Grid>
-                          <Grid item xs={12}>
-                            <TextField 
-                              fullWidth 
-                              required 
-                              label="Όνομα Ζώου" 
-                              value={formData.name || ''} 
-                              onChange={(e) => { 
-                                setFormData({ ...formData, name: e.target.value });
-                                setFormErrors(prev => ({ ...prev, name: null }));
-                              }} 
-                              error={!!formErrors.name} 
-                              helperText={formErrors.name} 
-                              disabled={Boolean(formData.petId)}
-                            />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <FormControl fullWidth required sx={{ minWidth: 200 }}>
-                              <InputLabel id="type-label">Είδος</InputLabel>
-                              <Select
-                                labelId="type-label"
-                                label="Είδος"
-                                value={formData.type || ''}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, type: e.target.value })
-                                }
-                                disabled={Boolean(formData.petId)}
-                              >
-                                <MenuItem value="Σκύλος">🐕 Σκύλος</MenuItem>
-                                <MenuItem value="Γάτα">🐱 Γάτα</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} disabled={Boolean(formData.petId)} />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} disabled={Boolean(formData.petId)} />
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                )}
-
-              {activeStep === 1 && (
                 <Grid container spacing={3} alignItems="stretch">
                   <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
                     <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -915,15 +814,40 @@ function LostPetsFormView({
                 </Grid>
               )}
 
-              {/*steps2 & 3simplified for brevity,similar structure ...*/}
-              {activeStep === 2 && (
+              {activeStep === 1 && (
                 <Grid container spacing={3} alignItems="stretch">
-                  <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 260 }}>
                       <TextField 
                         fullWidth 
                         required 
-                        label="Περιοχή" 
+                        multiline 
+                        rows={8} 
+                        label="Περιγραφή" 
+                        placeholder="Περιγράψτε το ζώο, διακριτικά σημάδια, κολάρο, συμπεριφορά, αν φαίνεται φοβισμένο ή τραυματισμένο"
+                        value={formData.description || ''} 
+                        onChange={(e) => { 
+                          setFormData({ ...formData, description: e.target.value });
+                          setFormErrors(prev => ({ ...prev, description: null }));
+                        }}
+                        error={!!formErrors.description}
+                        helperText={formErrors.description || 'Μικρή, σαφής περιγραφή βοηθά τον ιδιοκτήτη να αναγνωρίσει το ζώο.'}
+                      />
+                    </Paper>
+                  </Grid>
+                </Grid>
+              )}
+
+              {activeStep === 2 && (
+                <Grid container spacing={3} alignItems="stretch">
+                  <Grid item xs={12} sx={{ display: 'flex' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3 }}>
+                        <Box>
+                      <TextField 
+                        fullWidth 
+                        required 
+                        label="Περιοχή που το βρήκατε" 
                         value={formData.location || ''} 
                         onChange={(e) => { 
                           setFormData({ ...formData, location: e.target.value });
@@ -939,113 +863,72 @@ function LostPetsFormView({
                           onLocationChange={(text) => setFormData(prev => ({ ...prev, location: text }))}
                         />
                       </Box>
+                        </Box>
+                        <Box>
+                          <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle1" fontWeight={700}>Στοιχεία Επικοινωνίας</Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Δώστε έναν τρόπο να επικοινωνήσει ο ιδιοκτήτης μαζί σας (τηλέφωνο ή email).
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField 
+                            fullWidth 
+                            label="Τηλέφωνο" 
+                            placeholder="6912345678"
+                            value={formData.phone || ''} 
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
+                            error={formData.phone && !/^[0-9]{10}$/.test((formData.phone || '').replace(/[\s-]/g, ''))}
+                            helperText={formData.phone && !/^[0-9]{10}$/.test((formData.phone || '').replace(/[\s-]/g, '')) ? 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)' : ''}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField 
+                            fullWidth 
+                            label="Email" 
+                            type="email"
+                            placeholder="name@example.com"
+                            value={formData.email || ''} 
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                            error={Boolean(formData.email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)}
+                            helperText={Boolean(formData.email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'Παρακαλώ εισάγετε έγκυρο email' : ''}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>Προτιμώμενος Τρόπος Επικοινωνίας</InputLabel>
+                            <Select
+                              label="Προτιμώμενος Τρόπος Επικοινωνίας"
+                              value={formData.preferredContact || 'Τηλέφωνο'}
+                              onChange={(e) => setFormData({ ...formData, preferredContact: e.target.value })}
+                            >
+                              <MenuItem value="Τηλέφωνο">Τηλέφωνο</MenuItem>
+                              <MenuItem value="SMS">SMS</MenuItem>
+                              <MenuItem value="Viber/WhatsApp">Viber/WhatsApp</MenuItem>
+                              <MenuItem value="Email">Email</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField 
+                            fullWidth 
+                            label="Ώρες Επικοινωνίας" 
+                            placeholder="π.χ. 09:00 - 21:00 ή Όλη μέρα"
+                            value={formData.contactHours || ''} 
+                            onChange={(e) => setFormData({ ...formData, contactHours: e.target.value })}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <FormControlLabel 
+                            control={<Checkbox checked={!!formData.showPhone} onChange={(e) => setFormData({ ...formData, showPhone: e.target.checked })} />} 
+                            label="Εμφάνιση τηλεφώνου δημόσια στην αγγελία"
+                          />
+                        </Grid>
+                          </Grid>
+                        </Box>
+                      </Box>
                     </Paper>
-                  </Grid>
-                  <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <TextField 
-                        fullWidth 
-                        required 
-                        multiline 
-                        rows={10} 
-                        label="Περιγραφή" 
-                        value={formData.description || ''} 
-                        onChange={(e) => { 
-                          setFormData({ ...formData, description: e.target.value });
-                          setFormErrors(prev => ({ ...prev, description: null }));
-                        }}
-                        error={!!formErrors.description}
-                        helperText={formErrors.description}
-                      />
-                    </Paper>
-                  </Grid>
-                </Grid>
-              )}
-              {activeStep === 3 && (
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField 
-                      fullWidth 
-                      required 
-                      label="Τηλέφωνο" 
-                      placeholder="6912345678"
-                      value={formData.phone || ''} 
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
-                      error={formData.phone && !/^[0-9]{10}$/.test((formData.phone || '').replace(/[\s-]/g, ''))}
-                      helperText={formData.phone && !/^[0-9]{10}$/.test((formData.phone || '').replace(/[\s-]/g, '')) ? 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)' : ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Εναλλακτικό Τηλέφωνο" 
-                      placeholder="2101234567"
-                      value={formData.altPhone || ''} 
-                      onChange={(e) => setFormData({ ...formData, altPhone: e.target.value })} 
-                      error={Boolean(formData.altPhone) && !/^[0-9]{10}$/.test((formData.altPhone || '').replace(/[\s-]/g, ''))}
-                      helperText={Boolean(formData.altPhone) && !/^[0-9]{10}$/.test((formData.altPhone || '').replace(/[\s-]/g, '')) ? '10 ψηφία (ελληνικός αριθμός)' : ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Email" 
-                      type="email"
-                      placeholder="name@example.com"
-                      value={formData.email || ''} 
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
-                      error={Boolean(formData.email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)}
-                      helperText={Boolean(formData.email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'Παρακαλώ εισάγετε έγκυρο email' : ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Προτιμώμενος Τρόπος Επικοινωνίας</InputLabel>
-                      <Select
-                        label="Προτιμώμενος Τρόπος Επικοινωνίας"
-                        value={formData.preferredContact || 'Τηλέφωνο'}
-                        onChange={(e) => setFormData({ ...formData, preferredContact: e.target.value })}
-                      >
-                        <MenuItem value="Τηλέφωνο">Τηλέφωνο</MenuItem>
-                        <MenuItem value="SMS">SMS</MenuItem>
-                        <MenuItem value="Viber/WhatsApp">Viber/WhatsApp</MenuItem>
-                        <MenuItem value="Email">Email</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Ώρες Επικοινωνίας" 
-                      placeholder="π.χ. 09:00 - 21:00 ή Όλη μέρα"
-                      value={formData.contactHours || ''} 
-                      onChange={(e) => setFormData({ ...formData, contactHours: e.target.value })}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Σύνδεσμος Επικοινωνίας (Facebook/Instagram)"
-                      placeholder="https://instagram.com/yourprofile"
-                      value={formData.socialLink || ''} 
-                      onChange={(e) => setFormData({ ...formData, socialLink: e.target.value })}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField 
-                      fullWidth 
-                      multiline rows={4}
-                      label="Σημειώσεις για επικοινωνία (προαιρετικό)"
-                      placeholder="π.χ. Αν δεν απαντήσω, στείλτε SMS ή μήνυμα στο Viber."
-                      value={formData.contactNotes || ''} 
-                      onChange={(e) => setFormData({ ...formData, contactNotes: e.target.value })}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControlLabel 
-                      control={<Checkbox checked={!!formData.showPhone} onChange={(e) => setFormData({ ...formData, showPhone: e.target.checked })} />} 
-                      label="Εμφάνιση τηλεφώνου δημόσια στην αγγελία"
-                    />
                   </Grid>
                 </Grid>
               )}
@@ -1056,7 +939,7 @@ function LostPetsFormView({
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={petsLoading || (Array.isArray(userPets) && userPets.length === 0)}
+                disabled={petsLoading}
               >
                 {activeStep === STEPS.length - 1 ? 'Οριστική Υποβολή' : 'Επόμενο'}
               </Button>
@@ -1152,28 +1035,7 @@ export default function LostPets() {
     };
   }, [user, view]);
 
-  // Preselect first declared pet (convenience)
-  useEffect(() => {
-    if (!user || view !== 'form') return;
-    if (!Array.isArray(userPets) || userPets.length === 0) return;
-    setFormData((prev) => {
-      if (prev.petId) return prev;
-      const first = userPets[0];
-      const rawType = first.type;
-      const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
-      return {
-        ...prev,
-        petId: first.id,
-        name: first.name ?? prev.name,
-        type: mappedType ?? prev.type,
-        microchip: first.microchip ?? prev.microchip,
-        color: first.color ?? prev.color,
-        breed: first.breed ?? prev.breed,
-        gender: first.gender ?? prev.gender,
-        age: first.age ?? prev.age,
-      };
-    });
-  }, [user, view, userPets]);
+  // Δεν απαιτείται προεπιλογή κατοικιδίου στη δήλωση εύρεσης
 
   //prevent key bubbling
   const stopKeyPropagation = useCallback((e) => {
@@ -1268,38 +1130,26 @@ export default function LostPets() {
   }, [allLostPets, searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
 
   const handleNext = async () => {
-    // Ensure the loss report is tied to a declared pet
-    if (petsLoading) {
-      alert('Φορτώνουμε τα δηλωμένα κατοικίδιά σας. Παρακαλώ περιμένετε…');
-      return;
-    }
-    if (!Array.isArray(userPets) || userPets.length === 0) {
-      alert('Δεν έχετε δηλωμένο κατοικίδιο. Παρακαλώ δηλώστε πρώτα ένα κατοικίδιο για να κάνετε δήλωση απώλειας.');
-      return;
-    }
-    if (!formData.petId) {
-      setFormErrors(prev => ({ ...prev, petId: 'Required' }));
-      alert('Παρακαλώ επιλέξτε κατοικίδιο από τα δηλωμένα σας.');
-      return;
-    }
-    //basic validation logic
-    if (activeStep === 0 && !formData.name) { setFormErrors({ name: 'Required' }); return; }
-    if (activeStep === 1 && uploadedImages.length === 0) { setFormErrors({ images: 'Required' }); return; }
-    if (activeStep === 2) {
-      const locValid = Boolean((formData.location || '').trim());
+    // Step 0: απαιτείται φωτογραφία
+    if (activeStep === 0 && uploadedImages.length === 0) { setFormErrors({ images: 'Required' }); return; }
+
+    // Step 1: απαιτείται περιγραφή
+    if (activeStep === 1) {
       const descValid = Boolean((formData.description || '').trim());
-      if (!locValid || !descValid) {
-        setFormErrors(prev => ({
-          ...prev,
-          location: locValid ? null : 'Required',
-          description: descValid ? null : 'Required'
-        }));
+      if (!descValid) {
+        setFormErrors(prev => ({ ...prev, description: 'Required' }));
         return;
       }
     }
-    
-    // Contact validation: require at least one valid contact method
-    if (activeStep === 3) {
+
+    // Step 2: τοποθεσία και επικοινωνία
+    if (activeStep === 2) {
+      const locValid = Boolean((formData.location || '').trim());
+      if (!locValid) {
+        setFormErrors(prev => ({ ...prev, location: 'Required' }));
+        return;
+      }
+
       const hasValidPhone = formData.phone && /^[0-9]{10}$/.test(String(formData.phone).replace(/[\s-]/g, ''));
       const emailValid = formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(formData.email));
       const prefersEmail = (formData.preferredContact || 'Τηλέφωνο') === 'Email';
@@ -1320,7 +1170,7 @@ export default function LostPets() {
         id: undefined,
         petId: formData.petId || null,
         name: formData.name || 'Χωρίς όνομα',
-        type: formData.type || 'Σκύλος',
+        type: formData.type || 'Άγνωστο',
         breed: formData.breed || 'Άγνωστη',
         gender: formData.gender || 'Άγνωστο',
         age: formData.age || '',
@@ -1634,13 +1484,13 @@ export default function LostPets() {
               </Box>
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Με 4 απλά βήματα καταχωρείτε αγγελία για το χαμένο κατοικίδιό σας.
+              Με 3 απλά βήματα καταχωρείτε αγγελία για το ζώο που βρήκατε.
               Η αγγελία δημοσιεύεται άμεσα στην αναζήτηση (δημόσια προβολή) και μπορείτε να την ενημερώνετε ή να την αφαιρέσετε οποιαδήποτε στιγμή.
               Για την προστασία προσωπικών δεδομένων, δημοσιεύστε μόνο τις πληροφορίες που είναι απαραίτητες για τον εντοπισμό του ζώου.
             </Typography>
 
             <Alert severity="info" sx={{ mb: 3 }}>
-              Για να κάνετε «Δήλωση Απώλειας» πρέπει να είστε συνδεδεμένος/η.
+              Για να κάνετε «Δήλωση Εύρεσης» πρέπει να είστε συνδεδεμένος/η.
             </Alert>
 
             <Grid container spacing={2}>
@@ -1652,8 +1502,7 @@ export default function LostPets() {
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>1) Δημιουργία Αγγελίας</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Πατήστε «Δήλωση Απώλειας», συμπληρώστε βασικά στοιχεία (όνομα, είδος, χρώμα/ράτσα), ανεβάστε καθαρές φωτογραφίες
-                    και επιλέξτε την τελευταία γνωστή τοποθεσία στον χάρτη ή μέσω αναζήτησης περιοχής/διεύθυνσης.
+                    Πατήστε «Δήλωση Εύρεσης», ανεβάστε μία καθαρή φωτογραφία, γράψτε μια σύντομη περιγραφή και σημειώστε την περιοχή/σημείο που το βρήκατε.
                     Αποφύγετε να γράψετε ακριβή διεύθυνση κατοικίας ή άλλα στοιχεία που δεν χρειάζονται.
                   </Typography>
                   </Box>
@@ -1718,7 +1567,7 @@ export default function LostPets() {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
               <Button variant="text" onClick={() => setHowItWorksDialogOpen(false)}>Κλείσιμο</Button>
               <Tooltip
-                title={!user ? 'Πρέπει να συνδεθείτε για να ξεκινήσετε δήλωση απώλειας.' : ''}
+                title={!user ? 'Πρέπει να συνδεθείτε για να ξεκινήσετε δήλωση εύρεσης.' : ''}
                 disableHoverListener={Boolean(user)}
                 arrow
               >
