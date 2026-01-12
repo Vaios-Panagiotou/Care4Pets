@@ -786,7 +786,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                             <QuickActionCard 
                                 icon={<NotificationsIcon sx={{ fontSize: 24, color: '#757575' }} />}
                                 title="Δήλωση Απώλειας"
-                                onClick={() => navigate('/lost-pets')}
+                              onClick={() => navigate('/lost-pets?view=form')}
                             />
                         </Box>
                     </Box>

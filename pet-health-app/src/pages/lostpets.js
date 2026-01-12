@@ -3,12 +3,12 @@ import {
   Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, 
   TextField, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel,
   Slider, Dialog, DialogContent, Stepper, Step, StepLabel, Collapse,
-  Alert, LinearProgress, Fade, Grow, Divider, InputAdornment, Zoom
+  Alert, LinearProgress, Fade, Grow, Divider, InputAdornment, Zoom, Tooltip
 } from '@mui/material';
 import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { lostPetsAPI } from '../services/api';
+import { lostPetsAPI, petsAPI } from '../services/api';
 
 // Icons
 import SearchIcon from '@mui/icons-material/Search';
@@ -284,6 +284,7 @@ function LostPetsSearchView({
   stopKeyPropagation, setHowItWorksDialogOpen,
   selectedBreed, setSelectedBreed, selectedGender, setSelectedGender,
   selectedColor, setSelectedColor, hasReward, setHasReward,
+  canReportLoss,
 }) {
   return (
     <Box onKeyDown={stopKeyPropagation} tabIndex={0} sx={{ outline: 'none' }}>
@@ -317,9 +318,25 @@ function LostPetsSearchView({
               Βοηθήστε να βρουν τον δρόμο τους σπίτι
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Button variant="contained" color="secondary" size="large" startIcon={<NotificationsActiveIcon />} onClick={() => setView('form')} sx={{ borderRadius: '50px', px: 4, py: 1.5 }}>
-                Δήλωση Απώλειας
-              </Button>
+              <Tooltip
+                title={!canReportLoss ? 'Πρέπει να συνδεθείτε για να κάνετε δήλωση απώλειας.' : ''}
+                disableHoverListener={canReportLoss}
+                arrow
+              >
+                <Box component="span" sx={{ display: 'inline-flex' }}>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    size="large"
+                    startIcon={<NotificationsActiveIcon />}
+                    disabled={!canReportLoss}
+                    onClick={() => setView('form')}
+                    sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
+                  >
+                    Δήλωση Απώλειας
+                  </Button>
+                </Box>
+              </Tooltip>
               <Button variant="outlined" size="large" startIcon={<InfoIcon />} onClick={() => setHowItWorksDialogOpen(true)} sx={{ borderRadius: '50px', px: 4, py: 1.5, color: 'white', borderColor: 'white', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}>
                 Πώς Λειτουργεί
               </Button>
@@ -615,7 +632,8 @@ function LostPetsSearchView({
 
 function LostPetsFormView({
   activeStep, setActiveStep, setView, formData, setFormData,
-  formErrors, setFormErrors, uploadedImages, setUploadedImages, handleImageUpload, removeImage, handleNext
+  formErrors, setFormErrors, uploadedImages, setUploadedImages, handleImageUpload, removeImage, handleNext,
+  userPets, petsLoading
 }) {
   const progress = ((activeStep + 1) / STEPS.length) * 100;
   const [isDragging, setIsDragging] = useState(false);
@@ -672,6 +690,51 @@ function LostPetsFormView({
                       <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
                         <Grid container spacing={2}>
                           <Grid item xs={12}>
+                            {petsLoading ? (
+                              <Alert severity="info">Φόρτωση των δηλωμένων κατοικιδίων σας…</Alert>
+                            ) : (Array.isArray(userPets) && userPets.length === 0) ? (
+                              <Alert severity="warning">
+                                Δεν έχετε δηλωμένο κατοικίδιο στον λογαριασμό σας. Για να κάνετε «Δήλωση Απώλειας», πρέπει πρώτα να δηλώσετε το κατοικίδιό σας.
+                              </Alert>
+                            ) : (
+                              <FormControl fullWidth required sx={{ minWidth: 200 }}>
+                                <InputLabel id="pet-select-label">Κατοικίδιο</InputLabel>
+                                <Select
+                                  labelId="pet-select-label"
+                                  label="Κατοικίδιο"
+                                  value={formData.petId || ''}
+                                  onChange={(e) => {
+                                    const nextPetId = e.target.value;
+                                    const selected = (userPets || []).find(p => String(p.id) === String(nextPetId));
+                                    setFormData((prev) => {
+                                      const next = { ...prev, petId: nextPetId };
+                                      if (selected) {
+                                        const rawType = selected.type;
+                                        const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
+                                        next.name = selected.name ?? next.name;
+                                        next.type = mappedType ?? next.type;
+                                        next.microchip = selected.microchip ?? next.microchip;
+                                        next.color = selected.color ?? next.color;
+                                        next.breed = selected.breed ?? next.breed;
+                                        next.gender = selected.gender ?? next.gender;
+                                        next.age = selected.age ?? next.age;
+                                      }
+                                      return next;
+                                    });
+                                    setFormErrors(prev => ({ ...prev, petId: null, name: null }));
+                                  }}
+                                  error={!!formErrors.petId}
+                                >
+                                  {(userPets || []).map((pet) => (
+                                    <MenuItem key={pet.id} value={pet.id}>
+                                      {pet.name || 'Χωρίς όνομα'}{pet.type ? ` • ${pet.type}` : ''}{pet.microchip ? ` • ${pet.microchip}` : ''}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            )}
+                          </Grid>
+                          <Grid item xs={12}>
                             <TextField 
                               fullWidth 
                               required 
@@ -683,6 +746,7 @@ function LostPetsFormView({
                               }} 
                               error={!!formErrors.name} 
                               helperText={formErrors.name} 
+                              disabled={Boolean(formData.petId)}
                             />
                           </Grid>
                           <Grid item xs={12}>
@@ -695,6 +759,7 @@ function LostPetsFormView({
                                 onChange={(e) =>
                                   setFormData({ ...formData, type: e.target.value })
                                 }
+                                disabled={Boolean(formData.petId)}
                               >
                                 <MenuItem value="Σκύλος">🐕 Σκύλος</MenuItem>
                                 <MenuItem value="Γάτα">🐱 Γάτα</MenuItem>
@@ -708,10 +773,10 @@ function LostPetsFormView({
                       <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
                         <Grid container spacing={2}>
                           <Grid item xs={12}>
-                            <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} />
+                            <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} disabled={Boolean(formData.petId)} />
                           </Grid>
                           <Grid item xs={12}>
-                            <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} />
+                            <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} disabled={Boolean(formData.petId)} />
                           </Grid>
                         </Grid>
                       </Paper>
@@ -988,7 +1053,13 @@ function LostPetsFormView({
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6 }}>
               <Button disabled={activeStep === 0} onClick={() => setActiveStep(prev => prev - 1)}>Προηγούμενο</Button>
-              <Button variant="contained" onClick={handleNext}>{activeStep === STEPS.length - 1 ? 'Οριστική Υποβολή' : 'Επόμενο'}</Button>
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={petsLoading || (Array.isArray(userPets) && userPets.length === 0)}
+              >
+                {activeStep === STEPS.length - 1 ? 'Οριστική Υποβολή' : 'Επόμενο'}
+              </Button>
             </Box>
           </Paper>
         </Grid>
@@ -1023,13 +1094,86 @@ export default function LostPets() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
 
+  const [userPets, setUserPets] = useState([]);
+  const [petsLoading, setPetsLoading] = useState(false);
+
   // Check URL parameter to show form view
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('view') === 'form') {
-      setView('form');
+      if (user) {
+        setView('form');
+      } else {
+        try {
+          sessionStorage.setItem('postAuthRedirect', '/lost-pets?view=form');
+        } catch (_) {}
+        navigate('/login');
+      }
     }
-  }, [location]);
+  }, [location.search, user, navigate]);
+
+  // Autofill contact fields from logged-in user
+  useEffect(() => {
+    if (!user || view !== 'form') return;
+    setFormData((prev) => {
+      const next = { ...prev };
+      if (!next.email && user.email) next.email = user.email;
+      if (!next.phone && user.phone) {
+        const digits = String(user.phone).replace(/\D/g, '');
+        next.phone = digits.length === 10 ? digits : String(user.phone);
+      }
+      if (!next.preferredContact) next.preferredContact = 'Τηλέφωνο';
+      if (typeof next.showPhone !== 'boolean') next.showPhone = true;
+      return next;
+    });
+  }, [user, view]);
+
+  // Load user's declared pets when in form view
+  useEffect(() => {
+    let cancelled = false;
+    const loadPets = async () => {
+      if (!user || view !== 'form') return;
+      setPetsLoading(true);
+      try {
+        const pets = await petsAPI.getByOwnerId(user.id);
+        if (cancelled) return;
+        setUserPets(Array.isArray(pets) ? pets : []);
+      } catch (e) {
+        console.error(e);
+        if (cancelled) return;
+        setUserPets([]);
+      } finally {
+        if (!cancelled) setPetsLoading(false);
+      }
+    };
+    loadPets();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, view]);
+
+  // Preselect first declared pet (convenience)
+  useEffect(() => {
+    if (!user || view !== 'form') return;
+    if (!Array.isArray(userPets) || userPets.length === 0) return;
+    setFormData((prev) => {
+      if (prev.petId) return prev;
+      const first = userPets[0];
+      const rawType = first.type;
+      const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
+      return {
+        ...prev,
+        petId: first.id,
+        name: first.name ?? prev.name,
+        type: mappedType ?? prev.type,
+        microchip: first.microchip ?? prev.microchip,
+        color: first.color ?? prev.color,
+        breed: first.breed ?? prev.breed,
+        gender: first.gender ?? prev.gender,
+        age: first.age ?? prev.age,
+      };
+    });
+  }, [user, view, userPets]);
 
   //prevent key bubbling
   const stopKeyPropagation = useCallback((e) => {
@@ -1124,6 +1268,20 @@ export default function LostPets() {
   }, [allLostPets, searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
 
   const handleNext = async () => {
+    // Ensure the loss report is tied to a declared pet
+    if (petsLoading) {
+      alert('Φορτώνουμε τα δηλωμένα κατοικίδιά σας. Παρακαλώ περιμένετε…');
+      return;
+    }
+    if (!Array.isArray(userPets) || userPets.length === 0) {
+      alert('Δεν έχετε δηλωμένο κατοικίδιο. Παρακαλώ δηλώστε πρώτα ένα κατοικίδιο για να κάνετε δήλωση απώλειας.');
+      return;
+    }
+    if (!formData.petId) {
+      setFormErrors(prev => ({ ...prev, petId: 'Required' }));
+      alert('Παρακαλώ επιλέξτε κατοικίδιο από τα δηλωμένα σας.');
+      return;
+    }
     //basic validation logic
     if (activeStep === 0 && !formData.name) { setFormErrors({ name: 'Required' }); return; }
     if (activeStep === 1 && uploadedImages.length === 0) { setFormErrors({ images: 'Required' }); return; }
@@ -1160,6 +1318,7 @@ export default function LostPets() {
       // Persist to server and then show success
       const payload = {
         id: undefined,
+        petId: formData.petId || null,
         name: formData.name || 'Χωρίς όνομα',
         type: formData.type || 'Σκύλος',
         breed: formData.breed || 'Άγνωστη',
@@ -1238,6 +1397,7 @@ export default function LostPets() {
             setView={setView}
             stopKeyPropagation={stopKeyPropagation}
             setHowItWorksDialogOpen={setHowItWorksDialogOpen}
+            canReportLoss={Boolean(user)}
           />
         ) : (
           <LostPetsFormView
@@ -1253,6 +1413,8 @@ export default function LostPets() {
             handleImageUpload={handleImageUpload}
             removeImage={removeImage}
             handleNext={handleNext}
+            userPets={userPets}
+            petsLoading={petsLoading}
           />
         )}
 
@@ -1473,8 +1635,13 @@ export default function LostPets() {
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Με 4 απλά βήματα καταχωρείτε αγγελία για το χαμένο κατοικίδιό σας.
-              Η αγγελία δημοσιεύεται άμεσα στην αναζήτηση και μπορείτε να την ενημερώνετε οποιαδήποτε στιγμή.
+              Η αγγελία δημοσιεύεται άμεσα στην αναζήτηση (δημόσια προβολή) και μπορείτε να την ενημερώνετε ή να την αφαιρέσετε οποιαδήποτε στιγμή.
+              Για την προστασία προσωπικών δεδομένων, δημοσιεύστε μόνο τις πληροφορίες που είναι απαραίτητες για τον εντοπισμό του ζώου.
             </Typography>
+
+            <Alert severity="info" sx={{ mb: 3 }}>
+              Για να κάνετε «Δήλωση Απώλειας» πρέπει να είστε συνδεδεμένος/η.
+            </Alert>
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
@@ -1486,7 +1653,8 @@ export default function LostPets() {
                     <Typography variant="subtitle1" fontWeight={700}>1) Δημιουργία Αγγελίας</Typography>
                   <Typography variant="body2" color="text.secondary">
                     Πατήστε «Δήλωση Απώλειας», συμπληρώστε βασικά στοιχεία (όνομα, είδος, χρώμα/ράτσα), ανεβάστε καθαρές φωτογραφίες
-                    και επιλέξτε την τελευταία γνωστή τοποθεσία στον χάρτη ή μέσω αναζήτησης διεύθυνσης.
+                    και επιλέξτε την τελευταία γνωστή τοποθεσία στον χάρτη ή μέσω αναζήτησης περιοχής/διεύθυνσης.
+                    Αποφύγετε να γράψετε ακριβή διεύθυνση κατοικίας ή άλλα στοιχεία που δεν χρειάζονται.
                   </Typography>
                   </Box>
                 </Paper>
@@ -1500,7 +1668,8 @@ export default function LostPets() {
                     <Typography variant="subtitle1" fontWeight={700}>2) Δημοσίευση & Ορατότητα</Typography>
                   <Typography variant="body2" color="text.secondary">
                     Με την υποβολή, η αγγελία δημοσιεύεται άμεσα και είναι ορατή στη σελίδα αναζήτησης.
-                    Μπορείτε να την επεξεργαστείτε ή να την ενημερώνετε όποτε χρειάζεται.
+                    Τα στοιχεία επικοινωνίας χρησιμοποιούνται για να μπορεί να σας βρει κάποιος που έχει πληροφορίες.
+                    Το τηλέφωνο εμφανίζεται δημόσια μόνο αν το επιλέξετε από τη σχετική ένδειξη.
                   </Typography>
                   </Box>
                 </Paper>
@@ -1527,8 +1696,9 @@ export default function LostPets() {
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>4) Επικοινωνία & Κλείσιμο</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Όποιος έχει πληροφορίες επικοινωνεί μαζί σας μέσω των στοιχείων που δώσατε. Όταν το κατοικίδιο βρεθεί,
-                    μαρκάρετε την αγγελία ως «Βρέθηκε» ή διαγράψτε την για να ενημερωθεί η κοινότητα.
+                    Όποιος έχει πληροφορίες επικοινωνεί μαζί σας μέσω των στοιχείων που δώσατε.
+                    Όταν το κατοικίδιο βρεθεί, ενημερώστε/διαγράψτε την αγγελία ώστε να μην συνεχίζουν να σας καλούν.
+                    Για την ασφάλειά σας, προτείνεται οι συναντήσεις να γίνονται σε δημόσιο χώρο.
                   </Typography>
                   </Box>
                 </Paper>
@@ -1540,14 +1710,28 @@ export default function LostPets() {
             <Box component="ul" sx={{ pl: 3, m: 0, color: 'text.secondary' }}>
               <li>Ανεβάστε καθαρές φωτογραφίες που δείχνουν διακριτικά σημάδια (κολάρο, σημάδια, τρίχωμα).</li>
               <li>Προσθέστε σαφή περιγραφή και τελευταία θεάση με όσο πιο ακριβή τοποθεσία γίνεται.</li>
-              <li>Μην κοινοποιείτε ευαίσθητα προσωπικά δεδομένα. Κανονίστε συναντήσεις σε δημόσιο χώρο.</li>
+              <li>Μην κοινοποιείτε ευαίσθητα προσωπικά δεδομένα (π.χ. ΑΦΜ, ακριβή διεύθυνση κατοικίας, στοιχεία τρίτων).</li>
               <li>Κοινοποιήστε την αγγελία στα κοινωνικά δίκτυα και σε τοπικές ομάδες.</li>
               <li>Αν βρεθεί, ενημερώστε άμεσα την αγγελία για να αποφύγετε περιττές κλήσεις.</li>
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
               <Button variant="text" onClick={() => setHowItWorksDialogOpen(false)}>Κλείσιμο</Button>
-              <Button variant="contained" onClick={() => { setHowItWorksDialogOpen(false); setView('form'); }}>Ξεκινήστε</Button>
+              <Tooltip
+                title={!user ? 'Πρέπει να συνδεθείτε για να ξεκινήσετε δήλωση απώλειας.' : ''}
+                disableHoverListener={Boolean(user)}
+                arrow
+              >
+                <Box component="span" sx={{ display: 'inline-flex' }}>
+                  <Button
+                    variant="contained"
+                    disabled={!user}
+                    onClick={() => { setHowItWorksDialogOpen(false); setView('form'); }}
+                  >
+                    Ξεκινήστε
+                  </Button>
+                </Box>
+              </Tooltip>
             </Box>
           </DialogContent>
         </Dialog>

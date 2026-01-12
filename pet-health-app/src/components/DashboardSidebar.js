@@ -8,6 +8,7 @@ import PetsIcon from '@mui/icons-material/Pets';
 import HistoryIcon from '@mui/icons-material/History';
 import SearchIcon from '@mui/icons-material/Search';
 import Person2Icon from '@mui/icons-material/Person2';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
 // Vet Icons
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
@@ -21,6 +22,7 @@ const OWNER_NAV = [
   { id: 'pets', label: 'Τα Κατοικίδια', icon: PetsIcon, path: '/owner/pets' },
   { id: 'history', label: 'Ιστορικό', icon: HistoryIcon, path: '/owner/history' },
   { id: 'search', label: 'Εύρεση Ιατρού', icon: SearchIcon, path: '/owner/search' },
+  { id: 'lost', label: 'Δήλωση Απώλειας', icon: NotificationsActiveIcon, path: '/lost-pets?view=form' },
   { id: 'profile', label: 'Προφίλ', icon: Person2Icon, path: '/owner/profile' },
   { id: 'help', label: 'Οδηγός Χρήσης', icon: HelpOutlineIcon, path: '/owner/help' },
 ];

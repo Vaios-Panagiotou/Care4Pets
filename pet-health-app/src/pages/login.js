@@ -13,6 +13,11 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
 
+  const reason = searchParams.get('reason');
+  const infoMessage = reason === 'lost-pets'
+    ? 'Για να κάνετε δήλωση απώλειας πρέπει να συνδεθείτε.'
+    : '';
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -100,6 +105,7 @@ export default function Login() {
             Σύνδεση λογαριασμού
           </Typography>
 
+          {infoMessage && <Alert severity="info" sx={{ mb: 2 }}>{infoMessage}</Alert>}
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
           <Box component="form" onSubmit={handleSubmit} noValidate>

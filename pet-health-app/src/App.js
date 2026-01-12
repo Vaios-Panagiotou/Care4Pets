@@ -270,7 +270,7 @@ function App() {
 // Conditionally render Navbar based on current route
 function NavWrapper() {
   const location = useLocation();
-  const hidePaths = ['/login', '/register', '/forgot'];
+  const hidePaths = ['/forgot'];
   const hide = hidePaths.includes(location.pathname);
   const [spacerHeight, setSpacerHeight] = React.useState(80);
 

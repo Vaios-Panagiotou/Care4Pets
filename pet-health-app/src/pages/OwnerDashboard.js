@@ -21,6 +21,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
 // Import PageHeader
 import PageHeader from './PageHeader'; 
@@ -51,7 +52,7 @@ const OWNER_INFO = [
     items: [
       { text: 'Προβολή/Επεξεργασία προφίλ', path: '/owner/pets' },
       { text: 'Ηλεκτρονικό Βιβλιάριο', path: '/owner/pets' },
-      { text: 'Δήλωση απώλειας', path: '/lost-pets' }
+      { text: 'Δήλωση απώλειας', path: '/lost-pets?view=form' }
     ]
   },
   {
@@ -166,15 +167,16 @@ export default function OwnerDashboard() {
                 ml: { md: '280px' }
               }}
             >
-              Γρήγορες Ενέργειες
+              Με μια Ματιά
             </Typography>
             <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '280px' } }}>
               {[
                 { label: 'Τα Κατοικίδια', icon: <PetsIcon fontSize="large" />, color: '#1976d2', path: '/owner/pets' },
                 { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#1976d2', path: '/owner/history' },
-                { label: 'Εύρεση Ιατρού', icon: <SearchIcon fontSize="large" />, color: '#1976d2', path: '/owner/search' }
+                { label: 'Εύρεση Ιατρού', icon: <SearchIcon fontSize="large" />, color: '#1976d2', path: '/owner/search' },
+                { label: 'Δήλωση Απώλειας', icon: <NotificationsActiveIcon fontSize="large" />, color: '#1976d2', path: '/lost-pets?view=form' }
               ].map((action) => (
-                <Grid item xs={12} sm={4} key={action.label}>
+                <Grid item xs={12} sm={6} md={3} key={action.label}>
                   <Paper 
                     elevation={0}
                     onClick={() => navigate(action.path)} 
@@ -236,7 +238,7 @@ export default function OwnerDashboard() {
                 ml: { md: '280px' }
               }}
             >
-              Πρόσφατη Δραστηριότητα
+              Τι Τρέχει Τώρα
             </Typography>
             <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '280px' } }}>
               <Grid item xs={12} sm={6}>

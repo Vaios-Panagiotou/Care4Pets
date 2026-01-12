@@ -50,6 +50,12 @@ export default function Register() {
     return digits.startsWith('2') || digits.startsWith('69');
   };
 
+  // Απλός έλεγχος ΑΦΜ (προαιρετικό): 9 ψηφία
+  const isValidAFM = (afm) => {
+    const digits = String(afm || '').replace(/\D/g, '');
+    return digits.length === 9;
+  };
+
   const handleRoleChange = (event, newRole) => {
     if (newRole !== null) setRole(newRole);
   };
@@ -97,9 +103,24 @@ export default function Register() {
       else if (!isValidGreekPhone(formData.phone)) vetFieldErrors.phone = 'Έγκυρο ελληνικό τηλέφωνο: 10 ψηφία, αρχίζει με 2 ή 69';
       if (formData.price && isNaN(Number(formData.price))) vetFieldErrors.price = 'Η τιμή πρέπει να είναι αριθμός';
 
+      if (formData.afm && !isValidAFM(formData.afm)) vetFieldErrors.afm = 'Το ΑΦΜ πρέπει να έχει 9 ψηφία.';
+
       if (Object.keys(vetFieldErrors).length > 0) {
         setFieldErrors(vetFieldErrors);
         setError('Συμπληρώστε σωστά τα υποχρεωτικά πεδία κτηνιάτρου.');
+        return;
+      }
+    }
+
+    // Έλεγχοι για owner
+    if (role === 'owner') {
+      const ownerFieldErrors = {};
+      if (!formData.afm) ownerFieldErrors.afm = 'ΑΦΜ είναι υποχρεωτικό';
+      else if (!isValidAFM(formData.afm)) ownerFieldErrors.afm = 'Το ΑΦΜ πρέπει να έχει 9 ψηφία.';
+      if (formData.phone && !isValidGreekPhone(formData.phone)) ownerFieldErrors.phone = 'Έγκυρο ελληνικό τηλέφωνο: 10 ψηφία, αρχίζει με 2 ή 69';
+      if (Object.keys(ownerFieldErrors).length > 0) {
+        setFieldErrors(ownerFieldErrors);
+        setError('Συμπληρώστε σωστά τα στοιχεία ιδιοκτήτη.');
         return;
       }
     }
@@ -109,7 +130,10 @@ export default function Register() {
       role,
       fullname: formData.fullname,
       email: emailTrimmed,
-      password: formData.password
+      password: formData.password,
+      afm: role === 'vet' ? (formData.afm || '').trim() : String(formData.afm || '').trim(),
+      phone: String(formData.phone || '').trim(),
+      address: String(formData.address || '').trim()
     };
 
     try {
@@ -263,7 +287,8 @@ export default function Register() {
                 <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Επαγγελματικά Στοιχεία</Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <TextField required fullWidth name="afm" label="ΑΦΜ" variant="outlined" onChange={handleInputChange} />
+                    <TextField required fullWidth name="afm" label="ΑΦΜ" variant="outlined" onChange={handleInputChange}
+                      error={Boolean(fieldErrors.afm)} helperText={fieldErrors.afm} />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField fullWidth name="phone" label="Τηλέφωνο Ιατρείου" variant="outlined" onChange={handleInputChange}
@@ -318,6 +343,26 @@ export default function Register() {
                         <Typography color="text.secondary"><MapIcon sx={{ mr: 1, verticalAlign: 'middle' }} /> Χάρτης Ιατρείου (συμπληρώστε διεύθυνση)</Typography>
                       </Box>
                     )}
+                  </Grid>
+                </Grid>
+              </Paper>
+            )}
+
+            {/* Προαιρετικά Στοιχεία για Ιδιοκτήτη */}
+            {role === 'owner' && (
+              <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Στοιχεία Ιδιοκτήτη</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth name="phone" label="Τηλέφωνο" variant="outlined" onChange={handleInputChange}
+                      error={Boolean(fieldErrors.phone)} helperText={fieldErrors.phone} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField required fullWidth name="afm" label="ΑΦΜ" variant="outlined" onChange={handleInputChange}
+                      error={Boolean(fieldErrors.afm)} helperText={fieldErrors.afm} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth name="address" label="Διεύθυνση" variant="outlined" onChange={handleInputChange} />
                   </Grid>
                 </Grid>
               </Paper>

@@ -9,6 +9,7 @@ import Chip from '@mui/material/Chip';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { keyframes } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // --- ICONS IMPORTS ---
 import SearchIcon from '@mui/icons-material/Search';
@@ -215,7 +216,30 @@ const Navbar = () => {
   );
 };
 
-const HeroSection = () => (
+const HeroSection = ({ user }) => {
+  const navigate = useNavigate();
+  const goToOwner = () => {
+    if (user) {
+      navigate('/owner');
+      return;
+    }
+    try {
+      sessionStorage.setItem('postAuthRedirect', '/owner');
+    } catch (_) {}
+    navigate('/login');
+  };
+  const goToVet = () => {
+    if (user) {
+      navigate('/vet');
+      return;
+    }
+    try {
+      sessionStorage.setItem('postAuthRedirect', '/vet');
+    } catch (_) {}
+    navigate('/login');
+  };
+
+  return (
   <Box sx={{ position: 'relative', height: '650px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
     <Box sx={{
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1,
@@ -234,7 +258,7 @@ const HeroSection = () => (
 
       <Grid container spacing={3} justifyContent="center">
         <Grid item xs={12} md={5}>
-          <Paper component="a" href="/login" elevation={6} sx={{
+          <Paper elevation={6} onClick={goToOwner} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') goToOwner(); }} sx={{
               p: 3, display: 'flex', alignItems: 'center', cursor: 'pointer', textDecoration: 'none',
               borderRadius: '16px', transition: 'transform 0.3s ease', 
               '&:hover': { transform: 'translateY(-5px)', bgcolor: 'secondary.light' }
@@ -251,7 +275,7 @@ const HeroSection = () => (
         </Grid>
 
         <Grid item xs={12} md={5}>
-          <Paper component="a" href="/login" elevation={6} sx={{
+          <Paper elevation={6} onClick={goToVet} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') goToVet(); }} sx={{
               p: 3, display: 'flex', alignItems: 'center', cursor: 'pointer', textDecoration: 'none',
               borderRadius: '16px', transition: 'transform 0.3s ease', 
               '&:hover': { transform: 'translateY(-5px)', bgcolor: '#e0f2f1' }
@@ -269,25 +293,65 @@ const HeroSection = () => (
       </Grid>
     </Container>
   </Box>
-);
+  );
+};
 
-const LostPetBanner = () => (
-  <Box sx={{ bgcolor: '#263238', py: 4, color: 'white' }}>
-    <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-      <Box>
-        <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SearchIcon sx={{ color: 'secondary.main' }} /> Χάσατε το κατοικίδιό σας;
-        </Typography>
-        <Typography variant="body2" sx={{ opacity: 0.7 }}>
-          Δηλώστε το τώρα στην πανελλαδική βάση δεδομένων μας.
-        </Typography>
-      </Box>
-      <Button variant="contained" color="secondary" size="large" href="/lost-pets" sx={{ color: 'black', fontWeight: 'bold' }}>
-        Δήλωση / Αναζήτηση
-      </Button>
-    </Container>
-  </Box>
-);
+const LostPetBanner = ({ user }) => {
+  const navigate = useNavigate();
+  const canReportLoss = Boolean(user);
+
+  return (
+    <Box sx={{ bgcolor: '#263238', py: 4, color: 'white' }}>
+      <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SearchIcon sx={{ color: 'secondary.main' }} /> Χάσατε ή βρήκατε κατοικίδιο;
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.7 }}>
+            Κάντε αναζήτηση στις αγγελίες ή δηλώστε νέα απώλεια (απαιτεί σύνδεση).
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="large"
+            onClick={() => navigate('/lost-pets')}
+            sx={{ fontWeight: 'bold', borderColor: 'secondary.main', color: 'secondary.main' }}
+          >
+            Αναζήτηση Αγγελιών
+          </Button>
+
+          <Tooltip
+            title={!canReportLoss ? 'Για δήλωση απώλειας απαιτείται σύνδεση.' : ''}
+            disableHoverListener={canReportLoss}
+            arrow
+          >
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={() => {
+                if (canReportLoss) {
+                  navigate('/lost-pets?view=form');
+                  return;
+                }
+                try {
+                  sessionStorage.setItem('postAuthRedirect', '/lost-pets?view=form');
+                } catch (_) {}
+                navigate('/login?reason=lost-pets');
+              }}
+              sx={{ color: 'black', fontWeight: 'bold' }}
+            >
+              Δήλωσε Απώλεια
+            </Button>
+          </Tooltip>
+        </Box>
+      </Container>
+    </Box>
+  );
+};
 
 const StepsSection = () => (
   <Box sx={{ py: 10, bgcolor: 'linear-gradient(180deg, #f8fbfd 0%, #f4f7fb 100%)' }}>
@@ -559,11 +623,12 @@ const TopVetsSection = () => {
 
 // --- MAIN COMPONENT ---
 export default function Home() {
+  const { user } = useAuth();
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <HeroSection />
-        <LostPetBanner />
+        <HeroSection user={user} />
+        <LostPetBanner user={user} />
         <StepsSection />
         <TopVetsSection />
       </Box>
