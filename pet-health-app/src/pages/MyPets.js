@@ -667,13 +667,33 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                 
                 {/* Hero Section */}
                 <Box sx={{ 
-                    position: 'relative', height: 300,
+                    position: 'relative', 
+                    height: 300,
                     backgroundImage: 'url(https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=1600&q=80)',
-                    backgroundSize: 'cover', backgroundPosition: 'center',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    backgroundSize: 'cover', 
+                    backgroundPosition: 'center',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    overflow: 'hidden'
                 }}>
-                    <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.4)' }} />
-                    <Typography variant="h3" sx={{ color: 'white', fontWeight: 800, zIndex: 1, textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>Κατοικίδια</Typography>
+                    {/* Gradient Overlay - Το πράσινο fade */}
+                    <Box sx={{ 
+                        position: 'absolute', 
+                        inset: 0, 
+                        background: 'linear-gradient(135deg, rgba(38, 50, 56, 0.9) 0%, rgba(0, 105, 92, 0.85) 100%)',
+                        zIndex: 1
+                    }} />
+                    
+                    {/* Content */}
+                    <Typography variant="h3" sx={{ 
+                        color: 'white', 
+                        fontWeight: 800, 
+                        zIndex: 2, 
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.3)' 
+                    }}>
+                        Κατοικίδια
+                    </Typography>
                 </Box>
 
                 {/* Main Layout with Sidebar */}

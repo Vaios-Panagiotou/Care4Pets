@@ -118,12 +118,12 @@ export default function VetDashboard() {
                 letterSpacing: '-0.5px',
                 maxWidth: '900px',
                 mx: 'auto',
-                ml: { md: '280px' }
+                ml: { md: '160px' }
               }}
             >
               Γρήγορες Ενέργειες
             </Typography>
-            <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '280px' } }}>
+            <Grid container spacing={4} sx={{ mb: 4, justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '180px' } }}>
               {[
                 { label: 'Ιστορικό', icon: <HistoryIcon fontSize="large" />, color: '#00897B', path: '/vet/history' },
                 { label: 'Πρόγραμμα', icon: <EventAvailableIcon fontSize="large" />, color: '#00897B', path: '/vet/schedule' },
@@ -169,12 +169,12 @@ export default function VetDashboard() {
                 letterSpacing: '-0.5px',
                 maxWidth: '900px',
                 mx: 'auto',
-                ml: { md: '280px' }
+                ml: { md: '160px' }
               }}
             >
               Δραστηριότητα Ιατρείου
             </Typography>
-            <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '280px' } }}>
+            <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '180px' } }}>
               <Grid item xs={12} sm={6}>
                 <Paper
                   elevation={0}

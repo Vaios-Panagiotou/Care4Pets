@@ -15,7 +15,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PetsIcon from '@mui/icons-material/Pets';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import ShareIcon from '@mui/icons-material/Share';
@@ -30,13 +30,8 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
-// Import PageHeader & Sidebar (Αν δεν υπάρχουν αυτά τα αρχεία, θα πρέπει να αφαιρεθούν ή να γίνουν mock)
-// import PageHeader from './PageHeader';
-// import DashboardSidebar from '../components/DashboardSidebar';
-
-// --- Placeholder Components αν λείπουν τα imports ---
-const PageHeader = () => <Box sx={{ py: 2 }}><Typography variant="h4">Lost Pets Dashboard</Typography></Box>;
-const DashboardSidebar = () => <Box sx={{ width: 280, display: { xs: 'none', lg: 'block' } }} />;
+import Navbar from '../components/Navbar';
+import DashboardSidebar from '../components/DashboardSidebar';
 
 // Keyframe Animations
 const fadeInUp = keyframes`
@@ -344,8 +339,12 @@ function LostPetsSearchView({
           </Box>
         </Box>
       </Fade>
-
-      <Container maxWidth="xl">
+      <Box sx={{ display: 'flex', gap: 3, px: 2, mb: 4, alignItems: 'flex-start' }}>
+        <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0 }}>
+          <DashboardSidebar />
+        </Box>
+        <Box sx={{ flexGrow: 1 }}>
+          <Container maxWidth="xl">
         <StatsBar />
         {/* FILTERS */}
         <Paper sx={{ p: 3, mb: 4, borderRadius: 4, boxShadow: 3 }}>
@@ -626,6 +625,8 @@ function LostPetsSearchView({
           )}
         </Grid>
       </Container>
+        </Box>
+      </Box>
     </Box>
   );
 }
@@ -659,18 +660,54 @@ function LostPetsFormView({
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => setView('search')} sx={{ mb: 3 }}>Πίσω στην αναζήτηση</Button>
-      <Paper sx={{ p: 2, mb: 3, borderRadius: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="body2" fontWeight={600}>Πρόοδος Δήλωσης</Typography>
-          <Typography variant="body2" color="primary" fontWeight={700}>{Math.round(progress)}%</Typography>
+    <>
+      {/* HERO SECTION */}
+      <Fade in timeout={800}>
+        <Box sx={{
+          height: { xs: '220px', md: '300px' },
+          position: 'relative',
+          mb: 6,
+          borderRadius: '0 0 60px 60px',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          <Box sx={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(135deg, rgba(0,105,92,0.85) 0%, rgba(38,50,56,0.9) 100%)',
+            borderRadius: '0 0 60px 60px',
+          }} />
+          <Box sx={{ position: 'relative', zIndex: 2, textAlign: 'center', px: 2 }}>
+            <PetsIcon sx={{ fontSize: 64, color: '#FFA726', mb: 1 }} />
+            <Typography variant="h4" sx={{ color: 'white', fontWeight: 900, mb: 1, textShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: { xs: '1.5rem', md: '2.2rem' } }}>
+              Δήλωση Απώλειας Κατοικιδίου
+            </Typography>
+            <Typography variant="subtitle1" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
+              Συμπληρώστε τα στοιχεία για να βοηθήσετε στην εύρεση του κατοικιδίου σας
+            </Typography>
+          </Box>
         </Box>
-        <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
-      </Paper>
-      
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={8}>
+      </Fade>
+      <Box sx={{ display: 'flex', gap: 3, px: 2, mb: 4, alignItems: 'flex-start' }}>
+        <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0 }}>
+          <DashboardSidebar />
+        </Box>
+        <Box sx={{ flexGrow: 1 }}>
+          <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper sx={{ p: 2, mb: 3, borderRadius: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" fontWeight={600}>Πρόοδος Δήλωσης</Typography>
+            <Typography variant="body2" color="primary" fontWeight={700}>{Math.round(progress)}%</Typography>
+          </Box>
+          <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
+        </Paper>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3, borderRadius: 4 }}>
             <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>Δήλωση Απώλειας</Typography>
             <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
@@ -686,97 +723,99 @@ function LostPetsFormView({
             <Box sx={{ minHeight: '400px' }}>
                 {activeStep === 0 && (
                   <Grid container spacing={3} alignItems="stretch">
-                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
+                    <Grid item xs={12}>
+                      <Paper sx={{ p: 3, borderRadius: 4 }}>
                         <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            {petsLoading ? (
-                              <Alert severity="info">Φόρτωση των δηλωμένων κατοικιδίων σας…</Alert>
-                            ) : (Array.isArray(userPets) && userPets.length === 0) ? (
-                              <Alert severity="warning">
-                                Δεν έχετε δηλωμένο κατοικίδιο στον λογαριασμό σας. Για να κάνετε «Δήλωση Απώλειας», πρέπει πρώτα να δηλώσετε το κατοικίδιό σας.
-                              </Alert>
-                            ) : (
-                              <FormControl fullWidth required sx={{ minWidth: 200 }}>
-                                <InputLabel id="pet-select-label">Κατοικίδιο</InputLabel>
-                                <Select
-                                  labelId="pet-select-label"
-                                  label="Κατοικίδιο"
-                                  value={formData.petId || ''}
-                                  onChange={(e) => {
-                                    const nextPetId = e.target.value;
-                                    const selected = (userPets || []).find(p => String(p.id) === String(nextPetId));
-                                    setFormData((prev) => {
-                                      const next = { ...prev, petId: nextPetId };
-                                      if (selected) {
-                                        const rawType = selected.type;
-                                        const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
-                                        next.name = selected.name ?? next.name;
-                                        next.type = mappedType ?? next.type;
-                                        next.microchip = selected.microchip ?? next.microchip;
-                                        next.color = selected.color ?? next.color;
-                                        next.breed = selected.breed ?? next.breed;
-                                        next.gender = selected.gender ?? next.gender;
-                                        next.age = selected.age ?? next.age;
-                                      }
-                                      return next;
-                                    });
-                                    setFormErrors(prev => ({ ...prev, petId: null, name: null }));
-                                  }}
-                                  error={!!formErrors.petId}
-                                >
-                                  {(userPets || []).map((pet) => (
-                                    <MenuItem key={pet.id} value={pet.id}>
-                                      {pet.name || 'Χωρίς όνομα'}{pet.type ? ` • ${pet.type}` : ''}{pet.microchip ? ` • ${pet.microchip}` : ''}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            )}
+                          <Grid item xs={12} md={6}>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12}>
+                                {petsLoading ? (
+                                  <Alert severity="info">Φόρτωση των δηλωμένων κατοικιδίων σας…</Alert>
+                                ) : (Array.isArray(userPets) && userPets.length === 0) ? (
+                                  <Alert severity="warning">
+                                    Δεν έχετε δηλωμένο κατοικίδιο στον λογαριασμό σας. Για να κάνετε «Δήλωση Απώλειας», πρέπει πρώτα να δηλώσετε το κατοικίδιό σας.
+                                  </Alert>
+                                ) : (
+                                  <FormControl fullWidth required sx={{ minWidth: 200 }}>
+                                    <InputLabel id="pet-select-label">Κατοικίδιο</InputLabel>
+                                    <Select
+                                      labelId="pet-select-label"
+                                      label="Κατοικίδιο"
+                                      value={formData.petId || ''}
+                                      onChange={(e) => {
+                                        const nextPetId = e.target.value;
+                                        const selected = (userPets || []).find(p => String(p.id) === String(nextPetId));
+                                        setFormData((prev) => {
+                                          const next = { ...prev, petId: nextPetId };
+                                          if (selected) {
+                                            const rawType = selected.type;
+                                            const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
+                                            next.name = selected.name ?? next.name;
+                                            next.type = mappedType ?? next.type;
+                                            next.microchip = selected.microchip ?? next.microchip;
+                                            next.color = selected.color ?? next.color;
+                                            next.breed = selected.breed ?? next.breed;
+                                            next.gender = selected.gender ?? next.gender;
+                                            next.age = selected.age ?? next.age;
+                                          }
+                                          return next;
+                                        });
+                                        setFormErrors(prev => ({ ...prev, petId: null, name: null }));
+                                      }}
+                                      error={!!formErrors.petId}
+                                    >
+                                      {(userPets || []).map((pet) => (
+                                        <MenuItem key={pet.id} value={pet.id}>
+                                          {pet.name || 'Χωρίς όνομα'}{pet.type ? ` • ${pet.type}` : ''}{pet.microchip ? ` • ${pet.microchip}` : ''}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField 
+                                  fullWidth 
+                                  required 
+                                  label="Όνομα Ζώου" 
+                                  value={formData.name || ''} 
+                                  onChange={(e) => { 
+                                    setFormData({ ...formData, name: e.target.value });
+                                    setFormErrors(prev => ({ ...prev, name: null }));
+                                  }} 
+                                  error={!!formErrors.name} 
+                                  helperText={formErrors.name} 
+                                  disabled={Boolean(formData.petId)}
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <FormControl fullWidth required sx={{ minWidth: 200 }}>
+                                  <InputLabel id="type-label">Είδος</InputLabel>
+                                  <Select
+                                    labelId="type-label"
+                                    label="Είδος"
+                                    value={formData.type || ''}
+                                    onChange={(e) =>
+                                      setFormData({ ...formData, type: e.target.value })
+                                    }
+                                    disabled={Boolean(formData.petId)}
+                                  >
+                                    <MenuItem value="Σκύλος">🐕 Σκύλος</MenuItem>
+                                    <MenuItem value="Γάτα">🐱 Γάτα</MenuItem>
+                                  </Select>
+                                </FormControl>
+                              </Grid>
+                            </Grid>
                           </Grid>
-                          <Grid item xs={12}>
-                            <TextField 
-                              fullWidth 
-                              required 
-                              label="Όνομα Ζώου" 
-                              value={formData.name || ''} 
-                              onChange={(e) => { 
-                                setFormData({ ...formData, name: e.target.value });
-                                setFormErrors(prev => ({ ...prev, name: null }));
-                              }} 
-                              error={!!formErrors.name} 
-                              helperText={formErrors.name} 
-                              disabled={Boolean(formData.petId)}
-                            />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <FormControl fullWidth required sx={{ minWidth: 200 }}>
-                              <InputLabel id="type-label">Είδος</InputLabel>
-                              <Select
-                                labelId="type-label"
-                                label="Είδος"
-                                value={formData.type || ''}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, type: e.target.value })
-                                }
-                                disabled={Boolean(formData.petId)}
-                              >
-                                <MenuItem value="Σκύλος">🐕 Σκύλος</MenuItem>
-                                <MenuItem value="Γάτα">🐱 Γάτα</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} disabled={Boolean(formData.petId)} />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} disabled={Boolean(formData.petId)} />
+                          <Grid item xs={12} md={6}>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12}>
+                                <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} disabled={Boolean(formData.petId)} />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} disabled={Boolean(formData.petId)} />
+                              </Grid>
+                            </Grid>
                           </Grid>
                         </Grid>
                       </Paper>
@@ -1064,7 +1103,11 @@ function LostPetsFormView({
           </Paper>
         </Grid>
       </Grid>
-    </Container>
+          </Container>
+        </Box>
+      </Box>
+    {/* Προσθήκη του tag που έλειπε: */}
+    </>
   );
 }
 
@@ -1372,51 +1415,54 @@ export default function LostPets() {
     setUploadedImages(prev => prev.filter(img => img.id !== id));
   };
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: '#fbfbfb', pb: 8 }}>
-        {/*<PageHeader /> */}
-        {/*<DashboardSidebar /> */}
-        
-        {view === 'search' ? (
-          <LostPetsSearchView
-            filteredPets={filteredPets}
-            searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-            sortBy={sortBy} setSortBy={setSortBy}
-            urgentOnly={urgentOnly} setUrgentOnly={setUrgentOnly}
-            filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen}
-            selectedType={selectedType} setSelectedType={setSelectedType}
-            selectedLocation={selectedLocation} setSelectedLocation={setSelectedLocation}
-            radius={radius} setRadius={setRadius}
-            selectedBreed={selectedBreed} setSelectedBreed={setSelectedBreed}
-            selectedGender={selectedGender} setSelectedGender={setSelectedGender}
-            selectedColor={selectedColor} setSelectedColor={setSelectedColor}
-            hasReward={hasReward} setHasReward={setHasReward}
-            setSelectedPet={setSelectedPet}
-            setDetailsDialogOpen={setDetailsDialogOpen}
-            setView={setView}
-            stopKeyPropagation={stopKeyPropagation}
-            setHowItWorksDialogOpen={setHowItWorksDialogOpen}
-            canReportLoss={Boolean(user)}
-          />
-        ) : (
-          <LostPetsFormView
-            activeStep={activeStep}
-            setActiveStep={setActiveStep}
-            setView={setView}
-            formData={formData}
-            setFormData={setFormData}
-            formErrors={formErrors}
-            setFormErrors={setFormErrors}
-            uploadedImages={uploadedImages}
-            setUploadedImages={setUploadedImages}
-            handleImageUpload={handleImageUpload}
-            removeImage={removeImage}
-            handleNext={handleNext}
-            userPets={userPets}
-            petsLoading={petsLoading}
-          />
-        )}
+
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', bgcolor: '#fbfbfb', pb: 8 }}>
+          <Navbar />
+          <Box>
+            <Box sx={{ width: '100%' }}>
+              {view === 'search' ? (
+                <LostPetsSearchView
+                  filteredPets={filteredPets}
+                  searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+                  sortBy={sortBy} setSortBy={setSortBy}
+                  urgentOnly={urgentOnly} setUrgentOnly={setUrgentOnly}
+                  filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen}
+                  selectedType={selectedType} setSelectedType={setSelectedType}
+                  selectedLocation={selectedLocation} setSelectedLocation={setSelectedLocation}
+                  radius={radius} setRadius={setRadius}
+                  selectedBreed={selectedBreed} setSelectedBreed={setSelectedBreed}
+                  selectedGender={selectedGender} setSelectedGender={setSelectedGender}
+                  selectedColor={selectedColor} setSelectedColor={setSelectedColor}
+                  hasReward={hasReward} setHasReward={setHasReward}
+                  setSelectedPet={setSelectedPet}
+                  setDetailsDialogOpen={setDetailsDialogOpen}
+                   setView={() => setView('form')}
+                  stopKeyPropagation={stopKeyPropagation}
+                  setHowItWorksDialogOpen={setHowItWorksDialogOpen}
+                  canReportLoss={Boolean(user)}
+                />
+                ) : (
+                  <LostPetsFormView
+                    activeStep={activeStep}
+                    setActiveStep={setActiveStep}
+                    setView={() => setView('search')}
+                    formData={formData}
+                    setFormData={setFormData}
+                    formErrors={formErrors}
+                    setFormErrors={setFormErrors}
+                    uploadedImages={uploadedImages}
+                    setUploadedImages={setUploadedImages}
+                    handleImageUpload={handleImageUpload}
+                    removeImage={removeImage}
+                    handleNext={handleNext}
+                    userPets={userPets}
+                    petsLoading={petsLoading}
+                  />
+                )}
+            </Box>
+          </Box>
 
         {/*pet details dialog*/}
         <Dialog 

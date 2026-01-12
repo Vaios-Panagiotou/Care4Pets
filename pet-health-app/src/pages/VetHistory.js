@@ -113,17 +113,51 @@ export default function VetHistory() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-        <DashboardSidebar />
-        <Box sx={{ flex: 1 }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <PageHeader />
-          <Container maxWidth="xl" sx={{ py: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-              <HistoryIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              <Typography variant="h4" fontWeight="bold">Ιστορικό Κτηνιάτρου</Typography>
-            </Box>
 
-            {/* Rating Summary */}
+          {/* HERO SECTION */}
+          <Box sx={{ 
+            position: 'relative', 
+            py: 6, 
+            mb: 2,
+            color: 'white', 
+            textAlign: 'center',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            overflow: 'hidden'
+          }}>
+            {/* Green Fade Overlay */}
+            <Box sx={{ 
+                position: 'absolute', 
+                inset: 0, 
+                background: 'linear-gradient(135deg, rgba(38, 50, 56, 0.9) 0%, rgba(0, 105, 92, 0.85) 100%)',
+                zIndex: 1
+            }} />
+            
+            <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2 }}>
+                <HistoryIcon sx={{ fontSize: 60, mb: 2, opacity: 0.9 }} />
+                <Typography variant="h3" fontWeight="800" gutterBottom>
+                    Ιστορικό Κτηνιάτρου
+                </Typography>
+                <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 400 }}>
+                    Δείτε αναλυτικά το αρχείο επισκέψεων και τις κριτικές των πελατών
+                </Typography>
+            </Container>
+          </Box>
+
+          </Box>
+
+          {/* Below hero: sidebar left, content right */}
+          <Box sx={{ display: 'flex', gap: 3, px: 2, pb: 4, alignItems: 'flex-start' }}>
+            <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0 }}>
+              <DashboardSidebar />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Container maxWidth="xl" sx={{ py: 4 }}>
+                {/* Rating Summary */}
             <Paper sx={{ p: 3, mb: 4, background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)', color: 'white', borderRadius: 4 }}>
               <Grid container alignItems="center" spacing={3}>
                 <Grid item>
@@ -157,7 +191,7 @@ export default function VetHistory() {
                         sx={{ 
                           mb: 2, 
                           p: 2.5, 
-                          cursor: 'pointer',
+                          cursor: 'pointer', 
                           transition: 'all 0.3s',
                           borderRadius: 3,
                           '&:hover': { 
@@ -237,6 +271,7 @@ export default function VetHistory() {
           </Container>
         </Box>
       </Box>
+    </Box>
 
       {/*visit Details Dialog */}
       <Dialog open={visitDialogOpen} onClose={() => setVisitDialogOpen(false)} maxWidth="md" fullWidth>

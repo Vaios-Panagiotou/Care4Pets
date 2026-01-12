@@ -221,11 +221,29 @@ export default function VetRecords() {
         </Container>
 
         {/* HERO HEADER */}
-        <Box sx={{ bgcolor: '#00695c', py: 6, mb: 4, color: 'white', textAlign: 'center' }}>
-          <Container maxWidth="md">
-            <DescriptionIcon sx={{ fontSize: 60, mb: 2, opacity: 0.8 }} />
+        <Box sx={{
+          position: 'relative',
+          py: 6,
+          mb: 4,
+          color: 'white',
+          textAlign: 'center',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?auto=format&fit=crop&w=1920&q=80)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          overflow: 'hidden'
+        }}>
+          {/* Green Fade Overlay (keeps image visible but darkens to match other heroes) */}
+          <Box sx={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(135deg, rgba(38, 50, 56, 0.9) 0%, rgba(0, 105, 92, 0.85) 100%)',
+            zIndex: 1
+          }} />
+
+          <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2 }}>
+            <DescriptionIcon sx={{ fontSize: 60, mb: 2, opacity: 0.95 }} />
             <Typography variant="h4" fontWeight="bold">Συνταγογραφήσεις & Καταγραφές</Typography>
-            <Typography variant="body1" sx={{ opacity: 0.8, mt: 1 }}>
+            <Typography variant="body1" sx={{ opacity: 0.95, mt: 1 }}>
               Διαχειριστείτε συνταγές φαρμάκων και καταχωρήστε νέα ζώα στην πλατφόρμα
             </Typography>
           </Container>
