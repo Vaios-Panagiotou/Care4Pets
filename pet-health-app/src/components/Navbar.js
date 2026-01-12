@@ -188,6 +188,7 @@ export default function Navbar() {
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/pets'); }}>Το Κατοικίδιό μου</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/history'); }}>Ιστορικό</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/search'); }}>Ραντεβού με Κτηνίατρο</MenuItem>
+                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/lost-pets?view=form'); }}>Δήλωση Απώλειας</MenuItem>
                 </Menu>
               </Box>
 
