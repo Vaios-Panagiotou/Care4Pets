@@ -750,7 +750,7 @@ export default function VetSearch() {
     // Keep UI steady on selection changes; no container re-mount or transform animations
 
     return (
-      <Box sx={{ maxWidth: '980px', mx: 'auto' }}>
+      <Box sx={{ maxWidth: '900px', mx: 'auto' }}>
         <Typography variant="h5" fontWeight="bold" align="center" gutterBottom sx={{ mt: -2 }}>Ώρα και Μέρα</Typography>
         <Divider sx={{ width: 60, height: 4, bgcolor: '#333', mx: 'auto', mb: 3, borderRadius: 2 }} />
 
@@ -911,7 +911,7 @@ export default function VetSearch() {
         </Box>
       ) : (
         <Box>
-          <Grid container spacing={4} justifyContent="center">
+          <Grid container spacing={4} justifyContent="center">    
             {/* Extra option: allow booking a Registration even if pets exist */}
             <Grid item xs={12} sm={5} key="new-registration">
               <Paper
@@ -1048,28 +1048,32 @@ export default function VetSearch() {
         
         <Container maxWidth="xl" sx={{ pt: 1 }}><PageHeader /></Container>
 
-        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
-          <DashboardSidebar />
-          
-          <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        {/* Full-width hero section outside of sidebar layout */}
+        <Box sx={{ 
+            width: '100vw',
+            height: '300px', 
+            position: 'relative', 
+            mb: 8,
+            marginLeft: 'calc(-50vw + 50%)',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1600&q=80)',
+            backgroundSize: 'cover', 
+            backgroundPosition: 'center',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            overflow: 'visible'
+        }}>
+            {/* Gradient Overlay */}
             <Box sx={{ 
-                height: '300px', position: 'relative', mb: 8,
-                backgroundImage: 'url(https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1600&q=80)',
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                overflow: 'visible'
-            }}>
-                {/* Gradient Overlay */}
-                <Box sx={{ 
-                    position: 'absolute', 
-                    inset: 0, 
-                    background: 'linear-gradient(135deg, rgba(0, 105, 92, 0.85) 0%, rgba(38, 50, 56, 0.75) 100%)',
-                    zIndex: 1
-                }} />
-                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', position: 'relative', zIndex: 2 }}>
-                    Ραντεβού με Κτηνίατρο
-                </Typography>
-            
+                position: 'absolute', 
+                inset: 0, 
+                background: 'linear-gradient(135deg, rgba(0, 105, 92, 0.85) 0%, rgba(38, 50, 56, 0.75) 100%)',
+                zIndex: 1
+            }} />
+            <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', position: 'relative', zIndex: 2 }}>
+                Ραντεβού με Κτηνίατρο
+            </Typography>
+        
             <Box sx={{ position: 'absolute', bottom: -30, width: '100%', display: 'flex', justifyContent: 'center', zIndex: 3 }}>
                 <Paper elevation={3} sx={{ px: 4, py: 1.5, borderRadius: '50px', display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'white' }}>
                     {STEPS.map((label, index) => (
@@ -1092,9 +1096,14 @@ export default function VetSearch() {
                     ))}
                 </Paper>
             </Box>
-            </Box>
+        </Box>
 
-            <Container maxWidth="md" sx={{ mt: 8 }}>
+        {/* Sidebar and content layout below hero */}
+        <Box sx={{ display: 'flex', flex: 1, maxWidth: '100%', overflow: 'hidden', p: 2, gap: 2 }}>
+          <DashboardSidebar />
+          
+          <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <Container maxWidth="md" sx={{ mt: 2,  ml: 27 }}>
             
             {activeStep === 0 && <StepVetList />}
             {activeStep === 1 && <StepCalendar />}
