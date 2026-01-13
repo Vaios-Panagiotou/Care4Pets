@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   Box, Container, Grid, Typography, Button, Paper, Avatar, IconButton, TextField,
   Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton, Tabs, Tab
@@ -74,8 +74,8 @@ const AppointmentCard = ({ appointment, onViewDetails, onCancel }) => (
       {appointment.status === 'confirmed' ? 'Επιβεβαιωμένο' : appointment.status === 'completed' ? 'Ολοκληρωμένο' : 'Ακυρωμένο'}
     </Typography>
     <Typography variant="body2" fontWeight={700} sx={{ mt: 1, color: 'text.primary' }}>{appointment.date} • {appointment.time}</Typography>
-    <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>📋 {appointment.vetName || appointment.doctor}</Typography>
-    <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>🐕 {appointment.petName || appointment.pet}</Typography>
+    <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>{appointment.vetName || appointment.doctor}</Typography>
+    <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>{appointment.petName || appointment.pet}</Typography>
     {appointment.location && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: 'text.secondary' }}>
       <LocationOnIcon sx={{ fontSize: 14 }} /> {appointment.location}
     </Typography>}
@@ -86,22 +86,22 @@ const AppointmentCard = ({ appointment, onViewDetails, onCancel }) => (
     )}
     {appointment.treatment && (
       <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
-        💊 Θεραπεία: {appointment.treatment}
+        Θεραπεία: {appointment.treatment}
       </Typography>
     )}
     {appointment.nextVisit && (
       <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
-        📅 Επόμενη Επίσκεψη: {appointment.nextVisit}
+        Επόμενη Επίσκεψη: {appointment.nextVisit}
       </Typography>
     )}
     {appointment.note && (
       <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
-        📝 {appointment.note}
+        {appointment.note}
       </Typography>
     )}
     {appointment.cancelReason && (
       <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
-        ❗ Λόγος ακύρωσης: {appointment.cancelReason}
+        Λόγος ακύρωσης: {appointment.cancelReason}
       </Typography>
     )}
     {appointment.phone && <Typography variant="caption" display="block" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
@@ -114,11 +114,75 @@ const AppointmentCard = ({ appointment, onViewDetails, onCancel }) => (
   </Paper>
 );
 
-const CalendarWidget = () => {
-  const [currentMonth, setCurrentMonth] = React.useState(11); // December (0-indexed)
-  const [currentYear, setCurrentYear] = React.useState(2025);
-  const [selectedDay, setSelectedDay] = React.useState(14);
+// Shared date helpers moved to module-level so CalendarWidget (top-level) can use them
+function parseApptDate(appt) {
+  if (!appt) return null;
+
+  const tryParse = (s) => {
+    if (!s) return null;
+    const d = new Date(s);
+    if (!isNaN(d)) return d;
+    const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (m) {
+      const day = parseInt(m[1], 10);
+      const month = parseInt(m[2], 10) - 1;
+      const year = parseInt(m[3], 10);
+      const d2 = new Date(year, month, day);
+      if (!isNaN(d2)) return d2;
+    }
+    const monthNamesGen = ['Ιανουαρίου','Φεβρουαρίου','Μαρτίου','Απριλίου','Μαΐου','Ιουνίου','Ιουλίου','Αυγούστου','Σεπτεμβρίου','Οκτωβρίου','Νοεμβρίου','Δεκεμβρίου'];
+    const monthNamesLocal = ['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+    for (let i = 0; i < monthNamesLocal.length; i++) {
+      const sLower = s.toLowerCase();
+      if (sLower.includes(monthNamesLocal[i].toLowerCase()) || sLower.includes(monthNamesGen[i].toLowerCase())) {
+        const dayMatch = s.match(/(\d{1,2})/);
+        const yearMatch = s.match(/(\d{4})/);
+        const day = dayMatch ? parseInt(dayMatch[1], 10) : 1;
+        const year = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
+        const d2 = new Date(year, i, day);
+        if (!isNaN(d2)) return d2;
+      }
+    }
+    return null;
+  };
+
+  const candidates = [appt.date, appt.dateTime, appt.registeredAt, appt.dateStr, appt.createdAt];
+  for (const c of candidates) {
+    const p = tryParse(c);
+    if (p) return p;
+  }
+
+  if (appt.date && appt.time) {
+    const s = `${appt.date} ${appt.time}`;
+    const p = tryParse(s);
+    if (p) return p;
+  }
+
+  return null;
+}
+
+function isSameDay(d1, d2) {
+  if (!d1 || !d2) return false;
+  return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+}
+
+const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDaySelect = null }) => {
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = React.useState(today.getMonth());
+  const [currentYear, setCurrentYear] = React.useState(today.getFullYear());
+  const [selectedDay, setSelectedDay] = React.useState(today.getDate());
   const [hoveredDay, setHoveredDay] = React.useState(null);
+  const [appointmentsByDay, setAppointmentsByDay] = React.useState({});
+
+  // Sync external selected date (if provided) into the calendar view
+  React.useEffect(() => {
+    if (!selectedDateExternal) return;
+    if (Object.prototype.toString.call(selectedDateExternal) === '[object Date]') {
+      setCurrentMonth(selectedDateExternal.getMonth());
+      setCurrentYear(selectedDateExternal.getFullYear());
+      setSelectedDay(selectedDateExternal.getDate());
+    }
+  }, [selectedDateExternal]);
 
   const days = ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'];
   const monthNames = ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος', 
@@ -126,66 +190,106 @@ const CalendarWidget = () => {
   
   const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+
+  // Build appointments map for the current month/year
+  React.useEffect(() => {
+    const map = {};
+    const normalizeDate = (appt) => {
+      if (!appt) return null;
+      const tryParse = (s) => {
+        if (!s) return null;
+        const d = new Date(s);
+        if (!isNaN(d)) return d;
+        // dd/mm/yyyy or dd-mm-yyyy
+        const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+        if (m) {
+          const day = parseInt(m[1], 10);
+          const month = parseInt(m[2], 10) - 1;
+          const year = parseInt(m[3], 10);
+          return new Date(year, month, day);
+        }
+        // Greek month name - support nominative and genitive (e.g., 'Ιανουάριος' and 'Ιανουαρίου')
+        const monthNamesGen = ['Ιανουαρίου','Φεβρουαρίου','Μαρτίου','Απριλίου','Μαΐου','Ιουνίου','Ιουλίου','Αυγούστου','Σεπτεμβρίου','Οκτωβρίου','Νοεμβρίου','Δεκεμβρίου'];
+        for (let i = 0; i < monthNames.length; i++) {
+          const sLower = s.toLowerCase();
+          if (sLower.includes(monthNames[i].toLowerCase()) || sLower.includes(monthNamesGen[i].toLowerCase())) {
+            const dayMatch = s.match(/(\d{1,2})/);
+            const yearMatch = s.match(/(\d{4})/);
+            const day = dayMatch ? parseInt(dayMatch[1], 10) : 1;
+            const year = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
+            return new Date(year, i, day);
+          }
+        }
+        return null;
+      };
+
+      // try common fields
+      const candidates = [appt.date, appt.dateTime, appt.registeredAt, appt.dateStr, appt.createdAt];
+      for (const c of candidates) {
+        const parsed = tryParse(c);
+        if (parsed) return parsed;
+      }
+
+      // try combining date + time fields
+      if (appt.date && appt.time) {
+        const s = `${appt.date} ${appt.time}`;
+        const parsed = tryParse(s);
+        if (parsed) return parsed;
+      }
+
+      return null;
+    };
+
+    appointments.forEach((a) => {
+      const d = normalizeDate(a);
+      if (!d) return;
+      if (d.getFullYear() !== currentYear || d.getMonth() !== currentMonth) return;
+      const day = d.getDate();
+      if (!map[day]) map[day] = { count: 0, details: [], type: null };
+      map[day].count += 1;
+      map[day].details.push(a);
+      // decide type priority: cancelled > completed > confirmed > pending
+      const status = a.status;
+      const priority = { cancelled: 4, completed: 3, confirmed: 2, pending: 1 };
+      const currentPriority = map[day].type ? (priority[map[day].type] || 0) : 0;
+      const newPriority = priority[status] || 0;
+      if (newPriority > currentPriority) {
+        map[day].type = status;
+      }
+    });
+
+    setAppointmentsByDay(map);
+  }, [appointments, currentMonth, currentYear]);
   
   const daysInMonth = getDaysInMonth(currentMonth, currentYear);
   const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
   const prevMonthDays = getDaysInMonth(currentMonth - 1, currentYear);
   
-  // Appointments by day (example data with details)
-  const appointments = {
-    17: { 
-      type: 'confirmed', 
-      count: 1,
-      details: [
-        { time: '10:00', doctor: 'Δρ. Νίκος Παπαδόπουλος', pet: 'Kouvelaj', reason: 'Εμβολιασμός', location: 'Αθήνα, Κέντρο - Ακαδημίας 23' }
-      ]
-    },
-    24: { 
-      type: 'confirmed', 
-      count: 2,
-      details: [
-        { time: '09:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Pantiana', reason: 'Τακτικός Έλεγχος', location: 'Καλλιθέα' },
-        { time: '14:00', doctor: 'Δρ. Γιάννης Γεωργίου', pet: 'Kouvelaj', reason: 'Επανεξέταση', location: 'Αθήνα, Κέντρο' }
-      ]
-    },
-    26: { 
-      type: 'pending', 
-      count: 1,
-      details: [
-        { time: '11:00', doctor: 'Δρ. Ελένη Παπαδάκη', pet: 'Pantiana', reason: 'Καθαρισμός Δοντιών', location: 'Γλυφάδα' }
-      ]
-    },
-    27: { 
-      type: 'pending', 
-      count: 1,
-      details: [
-        { time: '16:30', doctor: 'Δρ. Κώστας Αντωνίου', pet: 'Kouvelaj', reason: 'Εξέταση Αίματος', location: 'Νέα Σμύρνη' }
-      ]
-    },
-    28: { 
-      type: 'cancelled', 
-      count: 1,
-      details: [
-        { time: '14:30', doctor: 'Δρ. Μαρία Κωνσταντίνου', pet: 'Pantiana', reason: 'Ετήσια Εξέταση', location: 'Καλλιθέα' }
-      ]
-    }
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1); } else setCurrentMonth(m => m - 1);
   };
+  const handleNextMonth = () => {
+    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1); } else setCurrentMonth(m => m + 1);
+  };
+  
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
+    if (typeof onDaySelect === 'function') onDaySelect(day, currentMonth, currentYear);
   };
 
   const renderDay = (day, isCurrentMonth = true) => {
-    const appointment = isCurrentMonth ? appointments[day] : null;
+    const appointment = isCurrentMonth ? appointmentsByDay[day] : null;
     let bg = 'transparent', color = '#1e293b', border = 'none';
     
     if (appointment) {
-      if (appointment.type === 'confirmed') { bg = '#10b981'; color = 'white'; }
+      if (appointment.type === 'cancelled') { bg = '#ef4444'; color = 'white'; }
+      else if (appointment.type === 'completed') { bg = '#0ea5e9'; color = 'white'; }
+      else if (appointment.type === 'confirmed') { bg = '#10b981'; color = 'white'; }
       else if (appointment.type === 'pending') { bg = '#f59e0b'; color = 'white'; }
-      else if (appointment.type === 'cancelled') { bg = '#ef4444'; color = 'white'; }
     }
     
-    if (isCurrentMonth && day === selectedDay) {
+    if (isCurrentMonth && day === selectedDayUsed) {
       border = '2px solid #1976d2';
     }
 
@@ -197,25 +301,25 @@ const CalendarWidget = () => {
         onMouseEnter={() => setHoveredDay(isCurrentMonth ? day : null)}
         onMouseLeave={() => setHoveredDay(null)}
         sx={{ 
-          width: 48, 
-          height: 48, 
+          width: 36, 
+          height: 36, 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
           bgcolor: bg, 
           color: isCurrentMonth ? color : '#bdbdbd', 
-          borderRadius: '8px', 
-          fontSize: '0.95rem',
+          borderRadius: '6px', 
+          fontSize: '0.85rem',
           fontWeight: isToday ? 700 : 500,
           cursor: isCurrentMonth ? 'pointer' : 'default',
           border: border,
           position: 'relative',
-          transition: 'all 0.2s ease',
-          boxShadow: hoveredDay === day && isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
-          transform: hoveredDay === day && isCurrentMonth ? 'scale(1.1)' : 'scale(1)',
+          transition: 'all 0.16s ease',
+          boxShadow: hoveredDay === day && isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.12)' : 'none',
+          transform: hoveredDay === day && isCurrentMonth ? 'scale(1.06)' : 'scale(1)',
           '&:hover': { 
             bgcolor: !appointment && isCurrentMonth ? '#e3f2fd' : bg,
-            boxShadow: isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+            boxShadow: isCurrentMonth ? '0 4px 12px rgba(0,0,0,0.12)' : 'none'
           }
         }}
       >
@@ -253,14 +357,23 @@ const CalendarWidget = () => {
   for (let i = 1; i <= remainingDays; i++) {
     calendar.push({ day: i, isCurrentMonth: false });
   }
+
+  // Allow external control of selected day (via Date)
+  const selectedDayUsed = (selectedDateExternal && Object.prototype.toString.call(selectedDateExternal) === '[object Date]') ? selectedDateExternal.getDate() : selectedDay;
   
   return (
-    <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6" fontWeight={700}>{monthNames[currentMonth]} {currentYear}</Typography>
+    <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton size="small" onClick={handlePrevMonth}><svg style={{ width: 18, height: 18 }} viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z" /></svg></IconButton>
+          <Typography variant="h6" fontWeight={700}>{monthNames[currentMonth]} {currentYear}</Typography>
+          <IconButton size="small" onClick={handleNextMonth}><svg style={{ width: 18, height: 18 }} viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" /></svg></IconButton>
+        </Box>
+        <Box />
       </Box>
       
-      <Grid container spacing={1} sx={{ textAlign: 'center' }}>
+      <Grid container spacing={1} sx={{ textAlign: 'center', mb: 2 }}>
         {calendar.map((item, idx) => (
           <Grid item xs={12/7} key={idx}>
             {renderDay(item.day, item.isCurrentMonth)}
@@ -268,86 +381,26 @@ const CalendarWidget = () => {
         ))}
       </Grid>
 
-      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1, flex: '0 0 auto' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, bgcolor: '#10b981', borderRadius: '4px' }} />
+          <Box sx={{ width: 12, height: 12, bgcolor: '#10b981', borderRadius: '4px' }} />
           <Typography variant="caption">Επιβεβαιωμένα Ραντεβού</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, bgcolor: '#f59e0b', borderRadius: '4px' }} />
+          <Box sx={{ width: 12, height: 12, bgcolor: '#0ea5e9', borderRadius: '4px' }} />
+          <Typography variant="caption">Ολοκληρωμένα</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 12, height: 12, bgcolor: '#f59e0b', borderRadius: '4px' }} />
           <Typography variant="caption">Σε Αναμονή</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, bgcolor: '#ef4444', borderRadius: '4px' }} />
+          <Box sx={{ width: 12, height: 12, bgcolor: '#ef4444', borderRadius: '4px' }} />
           <Typography variant="caption">Ακυρωμένα</Typography>
         </Box>
       </Box>
 
-      {selectedDay && (
-        <Box sx={{ mt: 3 }}>
-          <Box sx={{ p: 2, bgcolor: '#dbeafe', borderRadius: 2, border: '1px solid #93c5fd', mb: 2 }}>
-            <Typography variant="body2" fontWeight={600} color="primary">
-              {selectedDay} {monthNames[currentMonth]} {currentYear}
-            </Typography>
-            {appointments[selectedDay] ? (
-              <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.primary' }}>
-                {appointments[selectedDay].count} ραντεβού
-              </Typography>
-            ) : (
-              <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
-                Δεν υπάρχουν ραντεβού
-              </Typography>
-            )}
-          </Box>
-          
-          {appointments[selectedDay] && appointments[selectedDay].details && (
-            <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
-              {appointments[selectedDay].details.map((apt, idx) => {
-                const statusColors = {
-                  confirmed: { bg: '#d1fae5', border: '#10b981', text: '#065f46', badge: 'Επιβεβαιωμένο' },
-                  pending: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', badge: 'Σε Αναμονή' },
-                  cancelled: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', badge: 'Ακυρωμένο' }
-                };
-                const colors = statusColors[appointments[selectedDay].type];
-                
-                return (
-                  <Paper key={idx} sx={{ p: 1.5, mb: 1.5, bgcolor: colors.bg, border: `1px solid ${colors.border}` }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="caption" sx={{ 
-                        bgcolor: 'white', 
-                        color: colors.text, 
-                        px: 1, 
-                        py: 0.3, 
-                        borderRadius: 1, 
-                        fontWeight: 600,
-                        fontSize: '0.65rem'
-                      }}>
-                        {colors.badge}
-                      </Typography>
-                      <Typography variant="caption" fontWeight={700} sx={{ color: colors.text }}>
-                        {apt.time}
-                      </Typography>
-                    </Box>
-                    
-                    <Typography variant="caption" display="block" fontWeight={600} sx={{ color: 'text.primary', mb: 0.5 }}>
-                      🐕 {apt.pet}
-                    </Typography>
-                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', mb: 0.3 }}>
-                      📋 {apt.doctor}
-                    </Typography>
-                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', mb: 0.3 }}>
-                      💊 {apt.reason}
-                    </Typography>
-                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <LocationOnIcon sx={{ fontSize: 12 }} /> {apt.location}
-                    </Typography>
-                  </Paper>
-                );
-              })}
-            </Box>
-          )}
-        </Box>
-      )}
+
     </Paper>
   );
 };
@@ -541,6 +594,19 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
           return 'confirmed';
         }
       });
+    const [calendarFilterDate, setCalendarFilterDate] = useState(null);
+
+    // Using module-level helpers parseApptDate/isSameDay (declared above)
+
+    const handleCalendarDaySelect = (day, month, year) => {
+      const d = new Date(year, month, day);
+      setCalendarFilterDate(d);
+      // Focus the appointments view -- optional
+      window.requestAnimationFrame(() => {
+        const el = document.querySelector('#appointments-list');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    };
     useEffect(() => {
       try { localStorage.setItem('ownerApptTab', apptTab); } catch {}
     }, [apptTab]);
@@ -811,24 +877,26 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                         </Box>
                     </Box>
 
-                    {/* Appointments with minimal tabs */}
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={8}>
-                          <Box sx={{ bgcolor: 'white', borderRadius: 3, border: '1px solid #e2e8f0', p: 2 }}>
-                            {(() => {
-                              const confirmedCount = appointments.filter(a => a.status === 'confirmed').length;
-                              const completedCount = appointments.filter(a => a.status === 'completed').length;
-                              const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
-                              return (
-                                <Tabs value={apptTab} onChange={(e, v) => setApptTab(v)} variant="fullWidth" sx={{ mb: 2 }}>
-                                  <Tab value="confirmed" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><EventAvailableIcon sx={{ fontSize: 18, color: '#10b981' }} /><Typography variant="body2" fontWeight={700}>Επερχόμενα</Typography><Chip size="small" label={confirmedCount} /></Box>} />
-                                  <Tab value="completed" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><DoneAllIcon sx={{ fontSize: 18, color: '#0ea5e9' }} /><Typography variant="body2" fontWeight={700}>Ολοκληρωμένα</Typography><Chip size="small" label={completedCount} /></Box>} />
-                                  <Tab value="cancelled" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><HighlightOffIcon sx={{ fontSize: 18, color: '#ef4444' }} /><Typography variant="body2" fontWeight={700}>Ακυρωμένα</Typography><Chip size="small" label={cancelledCount} /></Box>} />
-                                </Tabs>
-                              );
-                            })()}
-                            {appointments
-                              .filter(a => a.status === apptTab)
+                    {/* Appointments with minimal tabs (calendar fixed width alongside appointments) */}
+                    <Box sx={{ display: 'flex', gap: 3, alignItems: 'stretch', overflowX: 'auto', flexWrap: 'nowrap' }}>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Box sx={{ bgcolor: 'white', borderRadius: 3, border: '1px solid #e2e8f0', p: 2 }}>
+                          {(() => {
+                            const confirmedCount = appointments.filter(a => a.status === 'confirmed').length;
+                            const completedCount = appointments.filter(a => a.status === 'completed').length;
+                            const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
+                            return (
+                              <Tabs value={apptTab} onChange={(e, v) => setApptTab(v)} variant="fullWidth" sx={{ mb: 2 }}>
+                                <Tab value="confirmed" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><EventAvailableIcon sx={{ fontSize: 18, color: '#10b981' }} /><Typography variant="body2" fontWeight={700}>Επερχόμενα</Typography><Chip size="small" label={confirmedCount} /></Box>} />
+                                <Tab value="completed" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><DoneAllIcon sx={{ fontSize: 18, color: '#0ea5e9' }} /><Typography variant="body2" fontWeight={700} sx={{ color: '#0ea5e9' }}>Ολοκληρωμένα</Typography><Chip size="small" label={completedCount} sx={{ bgcolor: '#0ea5e9', color: '#fff' }} /></Box>} />
+                                <Tab value="cancelled" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><HighlightOffIcon sx={{ fontSize: 18, color: '#ef4444' }} /><Typography variant="body2" fontWeight={700} sx={{ color: '#ef4444' }}>Ακυρωμένα</Typography><Chip size="small" label={cancelledCount} sx={{ bgcolor: '#ef4444', color: '#fff' }} /></Box>} />
+                              </Tabs>
+                            );
+                          })()}
+
+                          {(() => {
+                            const visible = calendarFilterDate ? appointments.filter(a => isSameDay(parseApptDate(a), calendarFilterDate)) : appointments.filter(a => a.status === apptTab);
+                            return visible
                               .sort((a,b) => {
                                 const ax = typeof a.id === 'number' ? a.id : 0;
                                 const bx = typeof b.id === 'number' ? b.id : 0;
@@ -838,33 +906,46 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                               })
                               .slice(0,5)
                               .map(app => (
-                              <AppointmentCard
-                                key={app.id}
-                                appointment={app}
-                                onViewDetails={handleViewDetails}
-                                onCancel={handleCancelAppointment}
-                              />
-                            ))}
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, alignItems: 'center', gap: 1 }}>
-                              <Typography variant="caption" color="text.secondary">
-                                Εμφανίζονται τα 5 πιο πρόσφατα.
-                              </Typography>
-                              <Button variant="text" size="small" onClick={() => navigate('/owner/history')} sx={{ textTransform: 'none', fontSize: '0.75rem', px: 0.5 }}>
-                                Δείτε όλα στο Ιστορικό
-                              </Button>
+                                <AppointmentCard
+                                  key={app.id}
+                                  appointment={app}
+                                  onViewDetails={handleViewDetails}
+                                  onCancel={handleCancelAppointment}
+                                />
+                              ));
+                          })()}
+
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, alignItems: 'center', gap: 1 }}>
+                            <Box>
+                              {calendarFilterDate ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="caption" color="text.secondary">Φιλτραρισμένα ραντεβού για:</Typography>
+                                  <Typography variant="caption" fontWeight={700}>{calendarFilterDate.toLocaleDateString('el-GR')}</Typography>
+                                  <Button size="small" onClick={() => setCalendarFilterDate(null)} sx={{ ml: 1 }}>Επαναφορά</Button>
+                                </Box>
+                              ) : (
+                                <Typography variant="caption" color="text.secondary">Εμφανίζονται τα 5 πιο πρόσφατα.</Typography>
+                              )}
                             </Box>
-                            {appointments.filter(a => a.status === apptTab).length === 0 && (
-                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', py: 4 }}>
-                                Δεν υπάρχουν ραντεβού σε αυτήν την κατηγορία.
-                              </Typography>
-                            )}
+                            <Button variant="text" size="small" onClick={() => navigate('/owner/history')} sx={{ textTransform: 'none', fontSize: '0.75rem', px: 0.5 }}>
+                              Δείτε όλα στο Ιστορικό
+                            </Button>
                           </Box>
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                            <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Ημερολόγιο</Typography>
-                            <CalendarWidget />
-                        </Grid>
-                    </Grid>
+                          {appointments.filter(a => a.status === apptTab).length === 0 && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', py: 4 }}>
+                              Δεν υπάρχουν ραντεβού σε αυτήν την κατηγορία.
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ width: 360, flexShrink: 0 }}>
+                        <Box sx={{ position: 'sticky', top: 120, display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'white', borderRadius: 3, border: '1px solid #e2e8f0', p: 2, alignSelf: 'flex-start', boxShadow: 2 }}>
+                          <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>Ημερολόγιο</Typography>
+                          <CalendarWidget appointments={appointments} selectedDateExternal={calendarFilterDate} onDaySelect={handleCalendarDaySelect} />
+                        </Box>
+                      </Box>
+                    </Box>
 
                     {/* Add/Edit Dialog */}
                     <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
