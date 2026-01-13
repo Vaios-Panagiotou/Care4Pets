@@ -160,7 +160,7 @@ export default function Profile() {
             </Box>
         </Box>
 
-        <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '1200px' }}>
+        <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '1200px', flexWrap: 'nowrap' }}>
             
           {/* LEFT COLUMN: IDENTITY CARD */}
           <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
