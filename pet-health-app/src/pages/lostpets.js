@@ -339,9 +339,12 @@ function LostPetsSearchView({
         </Box>
       </Fade>
       <Box sx={{ display: 'flex', gap: 3, px: 2, mb: 4, alignItems: 'flex-start' }}>
+        {!canReportLoss && (
         <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0 }}>
           <DashboardSidebar />
         </Box>
+      )}
+
         <Box sx={{ flexGrow: 1 }}>
           <Container maxWidth="xl">
         <StatsBar />
