@@ -134,6 +134,7 @@ export default function VetSearch() {
   const [searchQuery, setSearchQuery] = useState(queryParam);
   const [searchInput, setSearchInput] = useState(queryParam);
   const searchRef = useRef(null);
+  const reasonRef = useRef(null);
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const todayRef = useMemo(() => new Date(), []);
   
@@ -165,10 +166,10 @@ export default function VetSearch() {
     } catch (_) {}
   }, []);
   
-  // Stable callback for reason TextField to prevent re-renders
-  const handleReasonChange = useCallback((e) => {
+  // Reason change handler
+  const handleReasonChange = (e) => {
     setAppointmentReason(e.target.value);
-  }, []);
+  };
   
   // Pagination State
   const [page, setPage] = useState(1);
@@ -324,12 +325,44 @@ export default function VetSearch() {
     return () => clearTimeout(id);
   }, [searchInput]);
 
-  // Keep focus on the search field after state updates
+  // Keep focus on the search field after state updates, but don't steal focus while typing elsewhere
   useEffect(() => {
     if (!filterOpen && searchRef.current) {
-      try { searchRef.current.focus(); } catch {}
+      try {
+        const active = document.activeElement;
+        // If focus is inside an input/textarea or a contentEditable, don't steal it
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
+          console.debug('[searchFocus] skipping focus because active element is', active.tagName, active.id, active.className);
+          return;
+        }
+        console.debug('[searchFocus] focusing search input');
+        searchRef.current.focus();
+      } catch (err) { console.error(err); }
     }
   }, [searchInput, searchQuery, filterOpen]);
+
+  // Debug: log focus changes globally to detect which element receives focus
+  useEffect(() => {
+    const onFocusIn = (e) => {
+      try {
+        const t = e.target;
+        console.debug('[focusin]', t.tagName, t.id || '', t.className || '', 'value:', t.value || '');
+      } catch (err) { console.error(err); }
+    };
+    window.addEventListener('focusin', onFocusIn);
+    return () => window.removeEventListener('focusin', onFocusIn);
+  }, []);
+
+  // Debug: log appointment reason updates and current active element
+  useEffect(() => {
+    try {
+      console.debug('[appointmentReason change]', appointmentReason, 'active:', document.activeElement?.tagName, document.activeElement?.id);
+      // Check active element shortly after state change
+      setTimeout(() => {
+        console.debug('[appointmentReason after timeout] active:', document.activeElement?.tagName, document.activeElement?.id);
+      }, 10);
+    } catch (err) { console.error(err); }
+  }, [appointmentReason]);
 
 
   // Draft states used inside the filter dialog so the list doesn't re-render until Apply
@@ -987,10 +1020,38 @@ export default function VetSearch() {
               fullWidth
               multiline
               rows={3}
-              label="Λόγος Ραντεβού"
+              label="Λόγος Ραντεβιού"
               placeholder="Περιγράψτε τον λόγο του ραντεβού (π.χ. εμβολιασμός, τακτικός έλεγχος, πρόβλημα υγείας)"
               value={appointmentReason}
-              onChange={handleReasonChange}
+              inputRef={reasonRef}
+              onChange={(e) => {
+                // Preserve caret/focus across re-renders
+                try {
+                  const newVal = e.target.value;
+                  const selStart = e.target.selectionStart;
+                  const selEnd = e.target.selectionEnd;
+                  setAppointmentReason(newVal);
+                  // restore caret and focus after DOM updates
+                  requestAnimationFrame(() => {
+                    try {
+                      const el = reasonRef.current;
+                      if (el) {
+                        // If focus moved elsewhere, return focus; otherwise keep current
+                        if (document.activeElement !== el) el.focus();
+                        // clamp selection positions to new value length
+                        const len = (el.value || '').length;
+                        const s = Math.min(selStart ?? len, len);
+                        const epos = Math.min(selEnd ?? len, len);
+                        if (typeof el.setSelectionRange === 'function') el.setSelectionRange(s, epos);
+                      }
+                    } catch (err) { console.error('[restore caret]', err); }
+                  });
+                } catch (err) {
+                  console.error('[reason onChange error]', err);
+                }
+              }}
+              onFocus={() => console.debug('[reason] focus')}
+              onBlur={() => console.debug('[reason] blur')}
               variant="outlined"
               sx={{ 
                 bgcolor: 'white',

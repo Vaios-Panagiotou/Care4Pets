@@ -19,6 +19,9 @@ import PetsIcon from '@mui/icons-material/Pets';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import ShareIcon from '@mui/icons-material/Share';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 import InfoIcon from '@mui/icons-material/Info';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -725,97 +728,112 @@ function LostPetsFormView({
             <Box sx={{ minHeight: '400px' }}>
                 {activeStep === 0 && (
                   <Grid container spacing={3} alignItems="stretch">
-                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
+                    <Grid item xs={12}>
+                      <Paper sx={{ p: 3, borderRadius: 3 }}>
                         <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            {petsLoading ? (
-                              <Alert severity="info">Φόρτωση των δηλωμένων κατοικιδίων σας…</Alert>
-                            ) : (Array.isArray(userPets) && userPets.length === 0) ? (
-                              <Alert severity="warning">
-                                Δεν έχετε δηλωμένο κατοικίδιο στον λογαριασμό σας. Για να κάνετε «Δήλωση Απώλειας», πρέπει πρώτα να δηλώσετε το κατοικίδιό σας.
-                              </Alert>
-                            ) : (
-                              <FormControl fullWidth required sx={{ minWidth: 200 }}>
-                                <InputLabel id="pet-select-label">Κατοικίδιο</InputLabel>
-                                <Select
-                                  labelId="pet-select-label"
-                                  label="Κατοικίδιο"
-                                  value={formData.petId || ''}
-                                  onChange={(e) => {
-                                    const nextPetId = e.target.value;
-                                    const selected = (userPets || []).find(p => String(p.id) === String(nextPetId));
-                                    setFormData((prev) => {
-                                      const next = { ...prev, petId: nextPetId };
-                                      if (selected) {
-                                        const rawType = selected.type;
-                                        const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
-                                        next.name = selected.name ?? next.name;
-                                        next.type = mappedType ?? next.type;
-                                        next.microchip = selected.microchip ?? next.microchip;
-                                        next.color = selected.color ?? next.color;
-                                        next.breed = selected.breed ?? next.breed;
-                                        next.gender = selected.gender ?? next.gender;
-                                        next.age = selected.age ?? next.age;
-                                      }
-                                      return next;
-                                    });
-                                    setFormErrors(prev => ({ ...prev, petId: null, name: null }));
-                                  }}
-                                  error={!!formErrors.petId}
-                                >
-                                  {(userPets || []).map((pet) => (
-                                    <MenuItem key={pet.id} value={pet.id}>
-                                      {pet.name || 'Χωρίς όνομα'}{pet.type ? ` • ${pet.type}` : ''}{pet.microchip ? ` • ${pet.microchip}` : ''}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            )}
+                          <Grid item xs={12} md={7}>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12}>
+                                {petsLoading ? (
+                                  <Alert severity="info">Φόρτωση των δηλωμένων κατοικιδίων σας…</Alert>
+                                ) : (Array.isArray(userPets) && userPets.length === 0) ? (
+                                  <Alert severity="warning">
+                                    Δεν έχετε δηλωμένο κατοικίδιο στον λογαριασμό σας. Για να κάνετε «Δήλωση Απώλειας», πρέπει πρώτα να δηλώσετε το κατοικίδιό σας.
+                                  </Alert>
+                                ) : (
+                                  <FormControl fullWidth required sx={{ minWidth: 200 }}>
+                                    <InputLabel id="pet-select-label">Κατοικίδιο</InputLabel>
+                                    <Select
+                                      labelId="pet-select-label"
+                                      label="Κατοικίδιο"
+                                      value={formData.petId || ''}
+                                      onChange={(e) => {
+                                        const nextPetId = e.target.value;
+                                        const selected = (userPets || []).find(p => String(p.id) === String(nextPetId));
+                                        setFormData((prev) => {
+                                          const next = { ...prev, petId: nextPetId };
+                                          if (selected) {
+                                            const rawType = selected.type;
+                                            const mappedType = rawType === 'dog' ? 'Σκύλος' : rawType === 'cat' ? 'Γάτα' : rawType;
+                                            next.name = selected.name ?? next.name;
+                                            next.type = mappedType ?? next.type;
+                                            next.microchip = selected.microchip ?? next.microchip;
+                                            next.color = selected.color ?? next.color;
+                                            next.breed = selected.breed ?? next.breed;
+                                            next.gender = selected.gender ?? next.gender;
+                                            next.age = selected.age ?? next.age;
+                                          }
+                                          return next;
+                                        });
+                                        setFormErrors(prev => ({ ...prev, petId: null, name: null }));
+                                      }}
+                                      error={!!formErrors.petId}
+                                    >
+                                      {(userPets || []).map((pet) => (
+                                        <MenuItem key={pet.id} value={pet.id}>
+                                          {pet.name || 'Χωρίς όνομα'}{pet.type ? ` • ${pet.type}` : ''}{pet.microchip ? ` • ${pet.microchip}` : ''}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField 
+                                  fullWidth 
+                                  required 
+                                  label="Όνομα Ζώου" 
+                                  value={formData.name || ''} 
+                                  onChange={(e) => { 
+                                    setFormData({ ...formData, name: e.target.value });
+                                    setFormErrors(prev => ({ ...prev, name: null }));
+                                  }} 
+                                  error={!!formErrors.name} 
+                                  helperText={formErrors.name} 
+                                  disabled={Boolean(formData.petId)}
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <FormControl fullWidth required sx={{ minWidth: 200 }}>
+                                  <InputLabel id="type-label">Είδος</InputLabel>
+                                  <Select
+                                    labelId="type-label"
+                                    label="Είδος"
+                                    value={formData.type || ''}
+                                    onChange={(e) =>
+                                      setFormData({ ...formData, type: e.target.value })
+                                    }
+                                    disabled={Boolean(formData.petId)}
+                                  >
+                                    <MenuItem value="Σκύλος">Σκύλος</MenuItem>
+                                    <MenuItem value="Γάτα">Γάτα</MenuItem>
+                                  </Select>
+                                </FormControl>
+                              </Grid>
+                            </Grid>
                           </Grid>
-                          <Grid item xs={12}>
-                            <TextField 
-                              fullWidth 
-                              required 
-                              label="Όνομα Ζώου" 
-                              value={formData.name || ''} 
-                              onChange={(e) => { 
-                                setFormData({ ...formData, name: e.target.value });
-                                setFormErrors(prev => ({ ...prev, name: null }));
-                              }} 
-                              error={!!formErrors.name} 
-                              helperText={formErrors.name} 
-                              disabled={Boolean(formData.petId)}
-                            />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <FormControl fullWidth required sx={{ minWidth: 200 }}>
-                              <InputLabel id="type-label">Είδος</InputLabel>
-                              <Select
-                                labelId="type-label"
-                                label="Είδος"
-                                value={formData.type || ''}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, type: e.target.value })
-                                }
-                                disabled={Boolean(formData.petId)}
-                              >
-                                <MenuItem value="Σκύλος">🐕 Σκύλος</MenuItem>
-                                <MenuItem value="Γάτα">🐱 Γάτα</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                      <Paper sx={{ p: 3, borderRadius: 3, flex: 1, minHeight: 360 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} disabled={Boolean(formData.petId)} />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} disabled={Boolean(formData.petId)} />
+                          <Grid item xs={12} md={5}>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12}>
+                                <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} disabled={Boolean(formData.petId)} InputProps={{ endAdornment: (formData.microchip && /^\d+$/.test(formData.microchip)) ? (<CheckCircleIcon sx={{ color: 'success.main' }} />) : null }} />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} disabled={Boolean(formData.petId)} />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #eee', bgcolor: '#fbfbfb' }}>
+                                  <Typography variant="subtitle2">Προεπισκόπηση</Typography>
+                                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 1 }}>
+                                    <Avatar src={(userPets || []).find(p => String(p.id) === String(formData.petId))?.image || formData.img || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80'} sx={{ width: 64, height: 64 }} />
+                                    <Box>
+                                      <Typography variant="body1" fontWeight={700}>{formData.name || 'Όνομα'}</Typography>
+                                      <Typography variant="caption">{formData.type || 'Είδος'}</Typography>
+                                      <Typography variant="caption" display="block">Microchip: {formData.microchip || '—'}</Typography>
+                                    </Box>
+                                  </Box>
+                                </Box>
+                              </Grid>
+                            </Grid>
                           </Grid>
                         </Grid>
                       </Paper>
@@ -826,7 +844,7 @@ function LostPetsFormView({
               {activeStep === 1 && (
                 <Grid container spacing={3} alignItems="stretch">
                   <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
-                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 360, flex: 1, display: 'flex', flexDirection: 'column', mb: 3, overflow: 'visible' }}>
                       <Alert severity="warning" icon={<PhotoCameraIcon />} sx={{ mb: 3 }} {...(formErrors.images && { severity: "error" })}>
                         {formErrors.images || 'Προσθέστε τουλάχιστον μία καθαρή φωτογραφία του κατοικιδίου σας'}
                       </Alert>
@@ -957,7 +975,7 @@ function LostPetsFormView({
               {activeStep === 1 && (
                 <Grid container spacing={3} alignItems="stretch">
                   <Grid item xs={12}>
-                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 260 }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, minHeight: 260, mb: 3, overflow: 'visible' }}>
                       <TextField 
                         fullWidth 
                         required 
@@ -1051,13 +1069,38 @@ function LostPetsFormView({
                           </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <TextField 
-                            fullWidth 
-                            label="Ώρες Επικοινωνίας" 
-                            placeholder="π.χ. 09:00 - 21:00 ή Όλη μέρα"
-                            value={formData.contactHours || ''} 
-                            onChange={(e) => setFormData({ ...formData, contactHours: e.target.value })}
-                          />
+                          <FormControl fullWidth sx={{ minWidth: 320 }}>
+                            <InputLabel id="contact-hours-label">Ώρες Επικοινωνίας</InputLabel>
+                            <Select
+                              labelId="contact-hours-label"
+                              label="Ώρες Επικοινωνίας"
+                              value={formData.contactHoursChoice === 'custom' ? 'custom' : (formData.contactHours || '')}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === 'custom') {
+                                  setFormData(prev => ({ ...prev, contactHoursChoice: 'custom', contactHours: '' }));
+                                } else {
+                                  setFormData(prev => ({ ...prev, contactHoursChoice: null, contactHours: val }));
+                                }
+                              }}
+                              sx={{
+                                '& .MuiSelect-select': { paddingTop: '12px', paddingBottom: '12px' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderRadius: 12 }
+                              }}
+                            >
+                              <MenuItem value="Όλη μέρα">Όλη μέρα</MenuItem>
+                              <MenuItem value="09:00 - 12:00">09:00 - 12:00</MenuItem>
+                              <MenuItem value="12:00 - 15:00">12:00 - 15:00</MenuItem>
+                              <MenuItem value="15:00 - 18:00">15:00 - 18:00</MenuItem>
+                              <MenuItem value="18:00 - 21:00">18:00 - 21:00</MenuItem>
+                              <MenuItem value="custom">Άλλο...</MenuItem>
+                            </Select>
+                          </FormControl>
+                          {formData.contactHoursChoice === 'custom' && (
+                            <Box sx={{ mt: 1 }}>
+                              <TextField fullWidth label="Άλλο (Ώρες Επικοινωνίας)" placeholder="π.χ. 09:00 - 21:00" value={formData.contactHours || ''} onChange={(e) => setFormData({ ...formData, contactHours: e.target.value })} />
+                            </Box>
+                          )}
                         </Grid>
                         <Grid item xs={12}>
                           <FormControlLabel 
@@ -1117,9 +1160,12 @@ export default function LostPets() {
   const [formData, setFormData] = useState({});
   const [uploadedImages, setUploadedImages] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+  const [snack, setSnack] = useState({ open: false, message: '', severity: 'info' });
   const [selectedPet, setSelectedPet] = useState(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [foundDialogOpen, setFoundDialogOpen] = useState(false);
 
   const [userPets, setUserPets] = useState([]);
   const [petsLoading, setPetsLoading] = useState(false);
@@ -1274,8 +1320,15 @@ export default function LostPets() {
   }, [allLostPets, searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
 
   const handleNext = async () => {
-    // Step 0: απαιτείται φωτογραφία
-    if (activeStep === 0 && uploadedImages.length === 0) { setFormErrors({ images: 'Required' }); return; }
+    // Step 0: ideally require a photo — allow skipping after confirmation
+    if (activeStep === 0 && uploadedImages.length === 0) {
+      // show a confirm so users can continue if they truly have no photo
+      const ok = window.confirm('Δεν έχετε προσθέσει φωτογραφία. Θέλετε να συνεχίσετε χωρίς φωτογραφία;');
+      if (!ok) {
+        setFormErrors({ images: 'Required' });
+        return;
+      }
+    }
 
     // Step 1: απαιτείται περιγραφή
     if (activeStep === 1) {
@@ -1538,6 +1591,54 @@ export default function LostPets() {
                   </Box>
                 )}
 
+                {/* Contact dialog (opens when user clicks 'Επικοινωνήστε') */}
+                <Dialog open={contactDialogOpen} onClose={() => setContactDialogOpen(false)}>
+                  <DialogContent>
+                    <Typography variant="h6" fontWeight={700} gutterBottom>Επικοινωνία με τον ιδιοκτήτη</Typography>
+                    <Typography variant="body2" sx={{ mb: 2 }}>Επιλέξτε πώς θέλετε να επικοινωνήσετε με τον ιδιοκτήτη της αγγελίας.</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {selectedPet.phone && selectedPet.showPhone ? (
+                        <Button fullWidth variant="contained" href={`tel:${selectedPet.phone}`}>Καλέστε: {selectedPet.phone}</Button>
+                      ) : (
+                        <Button fullWidth variant="contained" disabled>Τηλέφωνο: Μη διαθέσιμο</Button>
+                      )}
+                      {selectedPet.email ? (
+                        <Button fullWidth variant="outlined" href={`mailto:${selectedPet.email}?subject=${encodeURIComponent('Βρήκα το κατοικίδιό σας')}`}>
+                          Στείλτε Email
+                        </Button>
+                      ) : (
+                        <Button fullWidth variant="outlined" disabled>Ηλ. ταχυδρομείο: Μη διαθέσιμο</Button>
+                      )}
+                      <Button fullWidth variant="text" onClick={() => {
+                        const txt = `${selectedPet.name || 'Κατοικίδιο'} - ${selectedPet.location || ''} - ${window.location.href}`;
+                        try { navigator.clipboard.writeText(txt); alert('Τα στοιχεία αντιγράφηκαν στο πρόχειρο.'); } catch { alert('Αντιγράψτε με το Ctrl+C: ' + txt); }
+                      }}>Αντιγραφή στοιχείων</Button>
+                    </Box>
+                  </DialogContent>
+                </Dialog>
+
+                {/* 'Found' dialog */}
+                <Dialog open={foundDialogOpen} onClose={() => setFoundDialogOpen(false)}>
+                  <DialogContent>
+                    <Typography variant="h6" fontWeight={700} gutterBottom>Το βρήκα — Τι να κάνετε</Typography>
+                    <Typography variant="body2" sx={{ mb: 2 }}>Ευχαριστούμε που βρίσκετε το κατοικίδιο! Μπορείτε να κάνετε τα εξής:</Typography>
+                    <Box component="ol" sx={{ pl: 3, mb: 2 }}>
+                      <li>Επικοινωνήστε άμεσα με τον ιδιοκτήτη (αν υπάρχει διαθέσιμος αριθμός).</li>
+                      <li>Επιβεβαιώστε την τοποθεσία και αν είναι ασφαλές, κρατήστε το κοντά σας μέχρι να το παραλάβει ο ιδιοκτήτης.</li>
+                      <li>Αν δεν μπορείτε να το κρατήσετε, παραδώστε το σε κοντινό κτηνιατρείο ή φιλοζωική οργάνωση.</li>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {selectedPet.phone && selectedPet.showPhone && <Button href={`tel:${selectedPet.phone}`}>Καλέστε</Button>}
+                      {selectedPet.email && <Button href={`mailto:${selectedPet.email}?subject=${encodeURIComponent('Βρήκα το κατοικίδιό σας')}`}>Στείλτε Email</Button>}
+                      <Button onClick={() => {
+                        // quick report: open mailto to site admins explaining found pet
+                        const body = `Βρήκα το κατοικίδιο ${selectedPet.name || ''} στη θέση ${selectedPet.location || ''}. Παρακαλώ επικοινωνήστε.`;
+                        window.location.href = `mailto:contact@petcare.local?subject=${encodeURIComponent('Βρήκα κατοικίδιο')}&body=${encodeURIComponent(body)}`;
+                      }}>Αναφορά στην πλατφόρμα</Button>
+                    </Box>
+                  </DialogContent>
+                </Dialog>
+
                 {selectedPet.reward && (
                   <Alert 
                     icon={false}
@@ -1571,8 +1672,16 @@ export default function LostPets() {
                     size="large"
                     startIcon={<ShareIcon />}
                     sx={{ borderRadius: 3 }}
+                    onClick={async () => {
+                      const text = `${selectedPet.name || 'Κατοικίδιο'} • ${selectedPet.location || ''} • ${window.location.href}`;
+                      if (navigator.share) {
+                        try { await navigator.share({ title: selectedPet.name, text, url: window.location.href }); setSnack({ open: true, message: 'Μοιράστηκε επιτυχώς!', severity: 'success' }); } catch (e) { /* user cancelled */ }
+                      } else if (navigator.clipboard) {
+                        try { await navigator.clipboard.writeText(text); setSnack({ open: true, message: 'Κείμενο αντιγράφηκε στο πρόχειρο!', severity: 'success' }); } catch (e) { alert('Αντιγράψτε: ' + text); }
+                      } else { alert('Μοιραστείτε με: ' + text); }
+                    }}
                   >
-                    Κοινοποίηση
+                    Μοιραστείτε
                   </Button>
                   <Button 
                     variant="outlined" 
@@ -1580,8 +1689,19 @@ export default function LostPets() {
                     size="large"
                     startIcon={<InfoIcon />}
                     sx={{ borderRadius: 3 }}
+                    onClick={() => setContactDialogOpen(true)}
                   >
-                    Επικοινωνία
+                    Επικοινωνήστε
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="large"
+                    startIcon={<DoneAllIcon />}
+                    sx={{ borderRadius: 3, borderColor: '#2E7D32', color: '#2E7D32' }}
+                    onClick={() => setFoundDialogOpen(true)}
+                  >
+                    Το Βρήκα!
                   </Button>
                 </Box>
               </DialogContent>
@@ -1599,37 +1719,29 @@ export default function LostPets() {
           </DialogContent>
         </Dialog>
 
-        {/*how it works dialog*/}
+        <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack({ open: false, message: '', severity: 'info' })}>
+          <MuiAlert onClose={() => setSnack({ open: false, message: '', severity: 'info' })} severity={snack.severity} sx={{ width: '100%' }}>
+            {snack.message}
+          </MuiAlert>
+        </Snackbar>
         <Dialog open={howItWorksDialogOpen} onClose={() => setHowItWorksDialogOpen(false)} maxWidth="md" fullWidth>
-          <DialogContent sx={{ p: 4 }}>
-            {/*Animated header area(lightweight animation instead of video) */}
+          <DialogContent>
             <Box sx={{
-              mb: 2,
-              p: 2,
-              borderRadius: 3,
-              background: 'linear-gradient(135deg, #004d40 0%, #00695c 100%)',
-              color: 'white',
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              bgcolor: 'rgba(255,255,255,0.15)',
               display: 'flex',
               alignItems: 'center',
-              gap: 2
+              justifyContent: 'center',
+              animation: `${pulse} 2s infinite`
             }}>
-              <Box sx={{
-                width: 56,
-                height: 56,
-                borderRadius: '50%',
-                bgcolor: 'rgba(255,255,255,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                animation: `${pulse} 2s infinite`
-              }}>
-                <PlayCircleOutlineIcon sx={{ fontSize: 32, color: 'white' }} />
-              </Box>
+              <PlayCircleOutlineIcon sx={{ fontSize: 32, color: 'white' }} />
+            </Box>
               <Box>
                 <Typography variant="h6" fontWeight={800}>Πώς Λειτουργεί η Αναζήτηση</Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>Γρήγορος οδηγός 4 βημάτων με ζωντανά παραδείγματα.</Typography>
               </Box>
-            </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Με 3 απλά βήματα καταχωρείτε αγγελία για το ζώο που βρήκατε.
               Η αγγελία δημοσιεύεται άμεσα στην αναζήτηση (δημόσια προβολή) και μπορείτε να την ενημερώνετε ή να την αφαιρέσετε οποιαδήποτε στιγμή.
