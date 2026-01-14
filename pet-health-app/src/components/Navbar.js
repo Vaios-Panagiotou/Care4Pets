@@ -284,6 +284,10 @@ export default function Navbar() {
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
                 <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Σχετικά με Κτηνίατρο</MenuItem>
+                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet/history'); }}>Ιστορικό</MenuItem>
+                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet/schedule'); }}>Πρόγραμμα</MenuItem>
+                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet/clinic'); }}>Το Ιατρείο</MenuItem>
+                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet/records'); }}>Καταγραφές</MenuItem>
                 </Menu>
               </Box>
 
@@ -291,6 +295,7 @@ export default function Navbar() {
               <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
                 <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
+                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Σχετικά με Ιδιοκτήτη</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/pets'); }}>Το Κατοικίδιό μου</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/history'); }}>Ιστορικό</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/search'); }}>Ραντεβού με Κτηνίατρο</MenuItem>

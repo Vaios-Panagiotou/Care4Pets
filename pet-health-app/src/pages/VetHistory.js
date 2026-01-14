@@ -59,7 +59,7 @@ const VET_HISTORY_DATA = {
 
 export default function VetHistory() {
   const [tabValue, setTabValue] = useState(0);
-  const [selectedVisit, setSelectedVisit] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
   const [visitDialogOpen, setVisitDialogOpen] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -67,13 +67,70 @@ export default function VetHistory() {
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewError, setReviewError] = useState('');
+  const [appointments, setAppointments] = useState([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [appointmentsError, setAppointmentsError] = useState('');
+
+  const monthMap = {
+    'Ιανουαρίου': 0, 'Φεβρουαρίου': 1, 'Μαρτίου': 2, 'Απριλίου': 3, 'Μαΐου': 4, 'Ιουνίου': 5,
+    'Ιουλίου': 6, 'Αυγούστου': 7, 'Σεπτεμβρίου': 8, 'Οκτωβρίου': 9, 'Νοεμβρίου': 10, 'Δεκεμβρίου': 11,
+    'Ιαν': 0, 'Φεβ': 1, 'Μαρ': 2, 'Απρ': 3, 'Μάι': 4, 'Ιουν': 5,
+    'Ιουλ': 6, 'Αυγ': 7, 'Σεπ': 8, 'Οκτ': 9, 'Νοε': 10, 'Δεκ': 11
+  };
+
+  const toTimestamp = (a) => {
+    try {
+      if (a?.updatedAt) {
+        const d = new Date(a.updatedAt);
+        if (!isNaN(d.getTime())) return d.getTime();
+      }
+      if (a?.completedAt) {
+        const d = new Date(a.completedAt);
+        if (!isNaN(d.getTime())) return d.getTime();
+      }
+      const dateStr = a?.date || '';
+      const timeStr = a?.time || '';
+      if (/^\d{4}-\d{2}-\d{2}(T.*)?$/.test(dateStr)) {
+        // ISO date, optionally with time
+        const base = dateStr.length === 10 ? `${dateStr} ${timeStr || '00:00'}` : dateStr;
+        const d = new Date(base);
+        return !isNaN(d.getTime()) ? d.getTime() : 0;
+      }
+      // Attempt Greek date parsing
+      const parts = (dateStr || '').split(' ').filter(Boolean);
+      let day, monthToken, year;
+      if (parts.length >= 3) {
+        if (isNaN(Number(parts[0]))) {
+          // With weekday e.g. "Παρασκευή 16 Ιανουαρίου 2026"
+          day = Number(parts[1]);
+          monthToken = parts[2];
+          year = Number(parts[3]);
+        } else {
+          // e.g. "20 Δεκ 2025"
+          day = Number(parts[0]);
+          monthToken = parts[1];
+          year = Number(parts[2]);
+        }
+        const m = monthMap[monthToken];
+        if (m !== undefined && !isNaN(day) && !isNaN(year)) {
+          const d = new Date(year, m, day);
+          if (timeStr) {
+            const [hh, mm] = timeStr.split(':');
+            d.setHours(Number(hh) || 0, Number(mm) || 0, 0, 0);
+          }
+          return d.getTime();
+        }
+      }
+    } catch {}
+    return 0;
+  };
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  const openVisitDialog = (visit) => {
-    setSelectedVisit(visit);
+  const openVisitDialog = (appointment) => {
+    setSelectedAppointment(appointment);
     setVisitDialogOpen(true);
   };
 
@@ -104,6 +161,90 @@ export default function VetHistory() {
       }
     };
     fetchReviews();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!user?.id) return;
+      setLoadingAppointments(true);
+      setAppointmentsError('');
+      try {
+        // 1) Fetch by vetUserId
+        let result = [];
+        const byUserRes = await fetch(`http://localhost:3001/appointments?vetUserId=${user.id}`);
+        if (byUserRes.ok) {
+          result = await byUserRes.json();
+        }
+
+        // 2) Find vet profile to also fetch by vetId (profile id)
+        const vetProfileRes = await fetch(`http://localhost:3001/vets?userId=${user.id}`);
+        if (vetProfileRes.ok) {
+          const profiles = await vetProfileRes.json();
+          if (Array.isArray(profiles) && profiles.length > 0) {
+            const vetProfileId = profiles[0]?.id;
+            if (vetProfileId) {
+              const byVetIdRes = await fetch(`http://localhost:3001/appointments?vetId=${vetProfileId}`);
+              if (byVetIdRes.ok) {
+                const byVetId = await byVetIdRes.json();
+                // Merge & dedupe by id
+                const map = new Map();
+                [...result, ...byVetId].forEach(a => map.set(a.id, a));
+                result = Array.from(map.values());
+              }
+            }
+          }
+        }
+
+        // 3) If still empty, try a direct vetId match on user.id (legacy data)
+        if (result.length === 0) {
+          const legacyRes = await fetch(`http://localhost:3001/appointments?vetId=${user.id}`);
+          if (legacyRes.ok) {
+            result = await legacyRes.json();
+          }
+        }
+
+        // Fallback to mock if nothing fetched
+        if (!Array.isArray(result) || result.length === 0) {
+          setAppointmentsError('Σφάλμα ή κενά δεδομένα ραντεβού. Εμφανίζονται δείγμα δεδομένων.');
+          const fallback = VET_HISTORY_DATA.visits.map(v => ({
+            id: v.id,
+            petName: v.petName,
+            ownerName: v.ownerName,
+            date: v.date,
+            time: v.duration || '',
+            status: 'completed',
+            type: v.service,
+            reason: v.notes,
+            note: v.notes,
+            diagnosis: v.diagnosis,
+            treatment: v.treatment
+          }));
+          setAppointments(fallback.sort((a, b) => toTimestamp(b) - toTimestamp(a)));
+        } else {
+          setAppointments(result.sort((a, b) => toTimestamp(b) - toTimestamp(a)));
+        }
+      } catch (e) {
+        console.error('Error fetching vet appointments:', e);
+        setAppointmentsError('Σφάλμα φόρτωσης ραντεβού. Εμφανίζονται δείγμα δεδομένων.');
+        const fallback = VET_HISTORY_DATA.visits.map(v => ({
+          id: v.id,
+          petName: v.petName,
+          ownerName: v.ownerName,
+          date: v.date,
+          time: v.duration || '',
+          status: 'completed',
+          type: v.service,
+          reason: v.notes,
+          note: v.notes,
+          diagnosis: v.diagnosis,
+          treatment: v.treatment
+        }));
+        setAppointments(fallback.sort((a, b) => toTimestamp(b) - toTimestamp(a)));
+      } finally {
+        setLoadingAppointments(false);
+      }
+    };
+    fetchAppointments();
   }, [user]);
 
   const averageRating = (reviews.length > 0 
@@ -164,13 +305,12 @@ export default function VetHistory() {
                   <Box sx={{ textAlign: 'center' }}>
                     <Typography variant="h2" fontWeight="bold">{averageRating}</Typography>
                     <Rating value={parseFloat(averageRating)} precision={0.1} readOnly sx={{ color: '#FFA726' }} />
-                    <Typography variant="body2" sx={{ mt: 1 }}>από {VET_HISTORY_DATA.reviews.length} κριτικές</Typography>
+                    <Typography variant="body2" sx={{ mt: 1 }}>από {(reviews.length || VET_HISTORY_DATA.reviews.length)} κριτικές</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs>
                   <Typography variant="h6" gutterBottom>Συνολική Βαθμολογία</Typography>
-                  <Typography variant="body2">Σύνολο Επισκέψεων: {VET_HISTORY_DATA.visits.length}</Typography>
-                  <Typography variant="body2">Μέση Διάρκεια: {Math.round(VET_HISTORY_DATA.visits.reduce((acc, v) => acc + parseInt(v.duration), 0) / VET_HISTORY_DATA.visits.length)} λεπτά</Typography>
+                  <Typography variant="body2">Σύνολο Επισκέψεων: {appointments.length || VET_HISTORY_DATA.visits.length}</Typography>
                 </Grid>
               </Grid>
             </Paper>
@@ -183,10 +323,19 @@ export default function VetHistory() {
             {/*tab 0:Επισκέψεις Ζώων*/}
             {tabValue === 0 && (
               <Box>
-                <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>Πρόσφατες Επισκέψεις ({VET_HISTORY_DATA.visits.length})</Typography>
+                <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>Πρόσφατες Επισκέψεις ({appointments.length || VET_HISTORY_DATA.visits.length})</Typography>
+                {appointmentsError && (<Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>{appointmentsError}</Typography>)}
                 <List>
-                  {VET_HISTORY_DATA.visits.map((visit, index) => (
-                    <React.Fragment key={visit.id}>
+                  {(appointments.length > 0 ? appointments : VET_HISTORY_DATA.visits.map(v => ({
+                    id: v.id,
+                    petName: v.petName,
+                    ownerName: v.ownerName,
+                    date: v.date,
+                    time: v.duration || '',
+                    status: 'completed',
+                    type: v.service,
+                  }))).map((appt) => (
+                    <React.Fragment key={appt.id}>
                       <Paper 
                         sx={{ 
                           mb: 2, 
@@ -199,7 +348,7 @@ export default function VetHistory() {
                             boxShadow: '0 4px 20px rgba(0,0,0,0.1)' 
                           }
                         }}
-                        onClick={() => openVisitDialog(visit)}
+                        onClick={() => openVisitDialog(appt)}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
@@ -207,13 +356,13 @@ export default function VetHistory() {
                               <PetsIcon />
                             </Avatar>
                             <Box sx={{ flex: 1 }}>
-                              <Typography variant="h6" fontWeight="bold">{visit.petName}</Typography>
-                              <Typography variant="body2" color="text.secondary">Ιδιοκτήτης: {visit.ownerName}</Typography>
+                              <Typography variant="h6" fontWeight="bold">{appt.petName}</Typography>
+                              {appt.ownerName && (<Typography variant="body2" color="text.secondary">Ιδιοκτήτης: {appt.ownerName}</Typography>)}
                               <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-                                <Chip label={visit.service} size="small" color="primary" variant="outlined" />
-                                <Chip label={visit.date} size="small" icon={<CalendarMonthIcon />} />
-                                <Chip label={visit.cost} size="small" icon={<EuroIcon />} color="secondary" />
-                                <Chip label={visit.duration} size="small" icon={<AccessTimeIcon />} />
+                                {appt.type && (<Chip label={appt.type} size="small" color="primary" variant="outlined" />)}
+                                {appt.date && (<Chip label={appt.date} size="small" icon={<CalendarMonthIcon />} />)}
+                                {appt.time && (<Chip label={appt.time} size="small" icon={<AccessTimeIcon />} />)}
+                                {appt.status && (<Chip label={appt.status} size="small" color={appt.status === 'completed' ? 'success' : appt.status === 'cancelled' ? 'default' : 'secondary'} />)}
                               </Box>
                             </Box>
                           </Box>
@@ -285,47 +434,47 @@ export default function VetHistory() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ mt: 3 }}>
-          {selectedVisit && (
+          {selectedAppointment && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'white' }}>
-                  <Typography variant="h5" fontWeight="bold">{selectedVisit.petName}</Typography>
-                  <Typography variant="body2">Ιδιοκτήτης: {selectedVisit.ownerName}</Typography>
+                  <Typography variant="h5" fontWeight="bold">{selectedAppointment.petName}</Typography>
+                  {selectedAppointment.ownerName && (<Typography variant="body2">Ιδιοκτήτης: {selectedAppointment.ownerName}</Typography>)}
                 </Paper>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="caption" color="text.secondary">Υπηρεσία</Typography>
-                <Typography variant="body1" fontWeight="bold">{selectedVisit.service}</Typography>
+                <Typography variant="body1" fontWeight="bold">{selectedAppointment.type || '-'}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="caption" color="text.secondary">Ημερομηνία</Typography>
-                <Typography variant="body1" fontWeight="bold">{selectedVisit.date}</Typography>
+                <Typography variant="body1" fontWeight="bold">{selectedAppointment.date}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="caption" color="text.secondary">Διάρκεια</Typography>
-                <Typography variant="body1" fontWeight="bold">{selectedVisit.duration}</Typography>
+                <Typography variant="body1" fontWeight="bold">{selectedAppointment.time || '-'}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="caption" color="text.secondary">Κόστος</Typography>
-                <Typography variant="body1" fontWeight="bold" color="secondary.main">{selectedVisit.cost}</Typography>
+                <Typography variant="caption" color="text.secondary">Κατάσταση</Typography>
+                <Typography variant="body1" fontWeight="bold" color="secondary.main">{selectedAppointment.status}</Typography>
               </Grid>
               <Grid item xs={12}>
                 <Divider sx={{ my: 1 }} />
                 <Typography variant="caption" color="text.secondary">Διάγνωση</Typography>
                 <Paper sx={{ p: 2, mt: 1, bgcolor: '#e3f2fd' }}>
-                  <Typography variant="body2">{selectedVisit.diagnosis}</Typography>
+                  <Typography variant="body2">{selectedAppointment.diagnosis || '-'}</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="caption" color="text.secondary">Θεραπεία</Typography>
                 <Paper sx={{ p: 2, mt: 1, bgcolor: '#f3e5f5' }}>
-                  <Typography variant="body2">{selectedVisit.treatment}</Typography>
+                  <Typography variant="body2">{selectedAppointment.treatment || '-'}</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="caption" color="text.secondary">Σημειώσεις</Typography>
                 <Paper sx={{ p: 2, mt: 1, bgcolor: '#fff3e0' }}>
-                  <Typography variant="body2">{selectedVisit.notes}</Typography>
+                  <Typography variant="body2">{selectedAppointment.note || selectedAppointment.reason || '-'}</Typography>
                 </Paper>
               </Grid>
             </Grid>
