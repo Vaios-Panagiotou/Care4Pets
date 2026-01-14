@@ -12,6 +12,7 @@ import {
   Divider,
   Grid,
   Paper,
+  Autocomplete,
   TextField,
   Typography,
 } from '@mui/material';
@@ -28,7 +29,7 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import PersonIcon from '@mui/icons-material/Person';
 
 import DashboardSidebar from '../components/DashboardSidebar';
-import { appointmentsAPI, vetsAPI } from '../services/api';
+import { appointmentsAPI, vetsAPI, usersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Used only when the server has no appointments.
@@ -285,6 +286,44 @@ export default function VetSchedule() {
     return d.getHours() * 60 + d.getMinutes();
   });
 
+  // New appointment dialog state
+  const [newApptOpen, setNewApptOpen] = useState(false);
+  const [creatingAppt, setCreatingAppt] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [loadingOwners, setLoadingOwners] = useState(false);
+  const [newAppt, setNewAppt] = useState({
+    ownerId: '',
+    ownerName: '',
+    ownerEmail: '',
+    petName: '',
+    date: '',
+    time: '',
+    type: 'Visit',
+    reason: '',
+    phone: ''
+  });
+  
+  // Load owners when dialog opens
+  useEffect(() => {
+    let mounted = true;
+    const loadOwners = async () => {
+      if (!newApptOpen) return;
+      try {
+        setLoadingOwners(true);
+        const all = await usersAPI.getAll();
+        const onlyOwners = Array.isArray(all) ? all.filter(u => u.role === 'owner') : [];
+        if (mounted) setOwners(onlyOwners);
+      } catch (e) {
+        console.warn('Failed to load owners', e);
+        if (mounted) setOwners([]);
+      } finally {
+        if (mounted) setLoadingOwners(false);
+      }
+    };
+    loadOwners();
+    return () => { mounted = false; };
+  }, [newApptOpen]);
+
   const [statusDialog, setStatusDialog] = useState({
     open: false,
     apptId: null,
@@ -485,7 +524,7 @@ export default function VetSchedule() {
               <Chip icon={<PendingActionsIcon />} label={`Νέα: ${counts.inbox}`} color={counts.inbox ? 'secondary' : 'default'} />
               <Chip icon={<AccessTimeIcon />} label={`Σήμερα: ${counts.today}`} />
               <Chip icon={<DoneAllIcon />} label={`Κλειστά: ${counts.closed}`} />
-              <Button variant="contained" size="small">Νέο Ραντεβού</Button>
+              <Button variant="contained" size="small" onClick={() => setNewApptOpen(true)}>Νέο Ραντεβού</Button>
             </Box>
           </Box>
         </Paper>
@@ -645,6 +684,69 @@ export default function VetSchedule() {
           </Box>
         </Box>
       </Container>
+
+      {/* New Appointment Dialog */}
+      <Dialog open={newApptOpen} onClose={() => setNewApptOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Νέο Ραντεβού</DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+            <Autocomplete
+              loading={loadingOwners}
+              options={owners}
+              getOptionLabel={(o) => o.fullname || o.name || o.email || ''}
+              value={owners.find(o => String(o.id) === String(newAppt.ownerId)) || null}
+              onChange={(e, val) => setNewAppt(prev => ({ ...prev, ownerId: val?.id || '', ownerName: val ? (val.fullname || val.name || '') : prev.ownerName, ownerEmail: val?.email || '' }))}
+              onInputChange={(e, inp) => setNewAppt(prev => ({ ...prev, ownerName: inp }))}
+              renderInput={(params) => (
+                <TextField {...params} label="Ιδιοκτήτης" placeholder="Επιλέξτε ή πληκτρολογήστε" />
+              )}
+            />
+            <TextField label="Κατοικίδιο" value={newAppt.petName} onChange={(e) => setNewAppt(prev => ({ ...prev, petName: e.target.value }))} fullWidth />
+            <TextField label="Ημερομηνία" type="date" value={newAppt.date} onChange={(e) => setNewAppt(prev => ({ ...prev, date: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+            <TextField label="Ώρα" type="time" value={newAppt.time} onChange={(e) => setNewAppt(prev => ({ ...prev, time: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+            <TextField label="Τύπος" value={newAppt.type} onChange={(e) => setNewAppt(prev => ({ ...prev, type: e.target.value }))} fullWidth />
+            <TextField label="Λόγος (προαιρετικό)" value={newAppt.reason} onChange={(e) => setNewAppt(prev => ({ ...prev, reason: e.target.value }))} fullWidth />
+            <TextField label="Email ιδιοκτήτη" type="email" value={newAppt.ownerEmail} onChange={(e) => setNewAppt(prev => ({ ...prev, ownerEmail: e.target.value }))} fullWidth />
+            <TextField label="Τηλέφωνο" type="tel" value={newAppt.phone} onChange={(e) => setNewAppt(prev => ({ ...prev, phone: e.target.value }))} fullWidth />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNewApptOpen(false)} disabled={creatingAppt}>Άκυρο</Button>
+          <Button variant="contained" disabled={creatingAppt} onClick={async () => {
+            const { ownerId, ownerName, ownerEmail, petName, date, time, type, reason, phone } = newAppt;
+            if (!petName || !date || !time) { alert('Συμπληρώστε Κατοικίδιο, Ημερομηνία και Ώρα.'); return; }
+            setCreatingAppt(true);
+            const payload = {
+              ownerId: ownerId || null,
+              ownerName: ownerName || undefined,
+              ownerEmail: ownerEmail || undefined,
+              vetId: String(currentVetId || user?.id || ''),
+              vetUserId: String(user?.id || ''),
+              vetEmail: user?.email || '',
+              vetName: user?.fullname || user?.fullName || user?.name || '',
+              petName,
+              time,
+              date,
+              status: 'confirmed',
+              type: type || 'Visit',
+              reason: reason || '',
+              phone: phone || '',
+              updatedAt: new Date().toISOString(),
+            };
+            try {
+              const created = await appointmentsAPI.create(payload);
+              setServerAppointments(prev => [...prev, created]);
+              setNewApptOpen(false);
+              setNewAppt({ ownerId: '', ownerName: '', ownerEmail: '', petName: '', date: '', time: '', type: 'Visit', reason: '', phone: '' });
+            } catch (e) {
+              console.error('Failed to create appointment', e);
+              alert('Αποτυχία δημιουργίας ραντεβού.');
+            } finally {
+              setCreatingAppt(false);
+            }
+          }}>Δημιουργία</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={statusDialog.open} onClose={closeStatusDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{statusDialog.newStatus === 'completed' ? 'Ολοκλήρωση Ραντεβού' : 'Ακύρωση Ραντεβού'}</DialogTitle>
