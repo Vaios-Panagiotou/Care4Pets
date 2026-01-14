@@ -376,8 +376,8 @@ export default function History() {
                     status={item.status}
                     statusLabel={item.status === 'completed' ? 'Ολοκληρωμένο' : item.status === 'cancelled' ? 'Ακυρωμένο' : 'Επιβεβαιωμένο'}
                     showReviewButton={item.status === 'completed'}
-                            onReviewClick={() => handleOpenReviewDialog(item)}
-                            onClick={() => handleOpenDialog({
+                        onReviewClick={() => handleOpenReviewDialog(item)}
+                        onClick={() => handleOpenDialog({
                                 type: 'appointment',
                                 data: item,
                                 details: {
@@ -386,10 +386,12 @@ export default function History() {
                                     phone: '210 1234567',
                                     duration: '45 λεπτά',
                                     cost: '€65',
-                        payment: item.status === 'completed' ? 'Πληρώθηκε - Κάρτα' : item.status === 'cancelled' ? 'Δεν χρεώθηκε' : '—',
-                                    notes: item.status === 'completed' 
-                                        ? 'Το ραντεβού ολοκληρώθηκε επιτυχώς. Το ζώο εξετάστηκε και δεν διαπιστώθηκαν προβλήματα υγείας. Συνιστάται επανεξέταση σε 6 μήνες.'
-                                        : 'Το ραντεβού ακυρώθηκε από τον ιδιοκτήτη 2 ώρες πριν την προγραμματισμένη ώρα. Δεν επιβλήθηκε χρέωση ακύρωσης.',
+                      payment: item.status === 'completed' ? 'Πληρώθηκε - Κάρτα' : item.status === 'cancelled' ? 'Δεν χρεώθηκε' : '—',
+                            notes: item.status === 'completed' 
+                              ? 'Το ραντεβού ολοκληρώθηκε επιτυχώς. Το ζώο εξετάστηκε και δεν διαπιστώθηκαν προβλήματα υγείας. Συνιστάται επανεξέταση σε 6 μήνες.'
+                              : (item.cancelledBy === 'vet'
+                                ? `Το ραντεβού ακυρώθηκε από τον κτηνίατρο.${item.cancelReason ? ` Λόγος: ${item.cancelReason}` : ''}`
+                                : `Το ραντεβού ακυρώθηκε από τον ιδιοκτήτη.${item.cancelReason ? ` Λόγος: ${item.cancelReason}` : ''}`),
                                     prescription: item.status === 'completed' ? 'Συνταγή: Antibiotica 250mg - 2x ημερησίως για 7 ημέρες' : null
                                 }
                             })}

@@ -375,7 +375,7 @@ export default function VetSchedule() {
         treatment: meta.treatment || '',
         nextVisit: meta.nextVisit || ''
       } : {}),
-      ...(newStatus === 'cancelled' ? { cancelReason: meta.note || '' } : {}),
+      ...(newStatus === 'cancelled' ? { cancelReason: meta.note || '', cancelledBy: 'vet' } : {}),
       updatedAt: new Date().toISOString(),
     };
     setUpdating(prev => ({ ...prev, [apptId]: true }));

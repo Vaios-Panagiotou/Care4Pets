@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import {
   AppBar, Toolbar, Typography, Button, Box, Container,
   Menu, MenuItem, TextField, InputAdornment, Autocomplete, Popper, IconButton,
-  Breadcrumbs, Link
+  Breadcrumbs, Link, Badge
 } from '@mui/material';
 import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import HomeIcon from '@mui/icons-material/Home';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 
 // News data for search suggestions
 import { NEWS_DATA } from '../pages/News';
@@ -58,6 +59,7 @@ export default function Navbar() {
   const [anchorElVet, setAnchorElVet] = useState(null);
   const [anchorElOwner, setAnchorElOwner] = useState(null);
   const [anchorElProfile, setAnchorElProfile] = useState(null);
+  const [anchorElNotifications, setAnchorElNotifications] = useState(null);
   const [searchValue, setSearchValue] = useState(null);
   const [inputValue, setInputValue] = useState('');
   const [crumbsCollapsed, setCrumbsCollapsed] = useState(false);
@@ -65,6 +67,9 @@ export default function Navbar() {
   const lastY = useRef(0);
   const crumbsContentRef = useRef(null);
   const [crumbsHeight, setCrumbsHeight] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -148,6 +153,107 @@ export default function Navbar() {
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   }, [location.pathname]);
+
+  // Fetch notifications based on role
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!user?.id) { setNotifications([]); return; }
+      setLoadingNotifications(true);
+      try {
+        // Owner: show vet confirmations/cancellations
+        if (user.role === 'owner') {
+          const res = await fetch(`http://localhost:3001/appointments?ownerId=${user.id}`);
+          const data = res.ok ? await res.json() : [];
+          const items = (Array.isArray(data) ? data : [])
+            .filter(a => a.status === 'confirmed' || a.status === 'cancelled')
+            .sort((a,b) => {
+              const ta = a.updatedAt ? Date.parse(a.updatedAt) : (typeof a.id === 'number' ? a.id : 0);
+              const tb = b.updatedAt ? Date.parse(b.updatedAt) : (typeof b.id === 'number' ? b.id : 0);
+              return tb - ta;
+            })
+            .slice(0, 6)
+            .map(a => ({
+              id: a.id,
+              kind: a.status,
+              text: a.status === 'confirmed'
+                ? `Αποδοχή ραντεβού για ${a.petName || 'κατοικίδιο'} • ${a.date} ${a.time}`
+                : (a.cancelledBy === 'vet'
+                    ? `Ακύρωση από κτηνίατρο • ${a.petName || ''} • ${a.cancelReason || ''}`
+                    : `Ακύρωση ραντεβού • ${a.petName || ''}`),
+              when: a.updatedAt || a.date,
+              to: '/owner/history'
+            }));
+          setNotifications(items);
+        } else if (user.role === 'vet') {
+          // Vet: show new pending appointments
+          const res = await fetch(`http://localhost:3001/appointments?vetUserId=${user.id}`);
+          let data = res.ok ? await res.json() : [];
+          // Fallback: if none found via vetUserId, try vetId
+          if (!Array.isArray(data) || data.length === 0) {
+            const alt = await fetch(`http://localhost:3001/appointments?vetId=${user.id}`);
+            data = alt.ok ? await alt.json() : [];
+          }
+          const list = (Array.isArray(data) ? data : []);
+          const newReqItems = list
+            .filter(a => a.status === 'pending')
+            .sort((a,b) => {
+              const ta = a.updatedAt ? Date.parse(a.updatedAt) : (typeof a.id === 'number' ? a.id : 0);
+              const tb = b.updatedAt ? Date.parse(b.updatedAt) : (typeof b.id === 'number' ? b.id : 0);
+              return tb - ta;
+            })
+            .slice(0, 6)
+            .map(a => ({
+              id: a.id,
+              kind: 'pending',
+              text: `Νέο ραντεβού: ${a.ownerName || 'Ιδιοκτήτης'} • ${a.petName || ''} • ${a.date} ${a.time}`,
+              when: a.updatedAt || a.date,
+              to: '/vet/schedule'
+            }));
+          const cancelledByOwnerItems = list
+            .filter(a => a.status === 'cancelled' && a.cancelledBy === 'owner')
+            .sort((a,b) => {
+              const ta = a.updatedAt ? Date.parse(a.updatedAt) : (typeof a.id === 'number' ? a.id : 0);
+              const tb = b.updatedAt ? Date.parse(b.updatedAt) : (typeof b.id === 'number' ? b.id : 0);
+              return tb - ta;
+            })
+            .slice(0, 6)
+            .map(a => ({
+              id: a.id,
+              kind: 'cancelled',
+              text: `Ακύρωση από ιδιοκτήτη: ${a.ownerName || ''} • ${a.petName || ''}${a.cancelReason ? ` • ${a.cancelReason}` : ''}`,
+              when: a.updatedAt || a.date,
+              to: '/vet/schedule'
+            }));
+          setNotifications([...newReqItems, ...cancelledByOwnerItems]);
+        } else {
+          setNotifications([]);
+        }
+      } catch (e) {
+        setNotifications([]);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+    fetchNotifications();
+  }, [user]);
+
+  // Compute unread count from localStorage
+  useEffect(() => {
+    const key = user?.id ? `notifRead_${user.id}` : null;
+    const readIds = key ? JSON.parse(localStorage.getItem(key) || '[]') : [];
+    const unread = notifications.filter(n => !readIds.includes(n.id)).length;
+    setUnreadCount(unread);
+  }, [notifications, user]);
+
+  const markAllRead = () => {
+    const key = user?.id ? `notifRead_${user.id}` : null;
+    if (!key) return;
+    const current = JSON.parse(localStorage.getItem(key) || '[]');
+    const ids = notifications.map(n => n.id);
+    const merged = Array.from(new Set([...current, ...ids]));
+    localStorage.setItem(key, JSON.stringify(merged));
+    setUnreadCount(0);
+  };
 
   return (
       <AppBar id="app-topbar" position="fixed" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0', zIndex: 1300 }}>
@@ -267,6 +373,46 @@ export default function Navbar() {
                 >
                   <HelpOutlineIcon />
                 </IconButton>
+              )}
+
+              {/* Notifications button (left of profile icon) */}
+              {user && (
+                <>
+                  <IconButton
+                    aria-label="notifications"
+                    onClick={(e) => handleOpenMenu(e, setAnchorElNotifications)}
+                    sx={{ color: 'primary.main', bgcolor: '#e0f2f1', '&:hover': { bgcolor: '#b2dfdb' } }}
+                    title={user.role === 'owner' ? 'Ειδοποιήσεις Ραντεβού' : 'Νέα Ραντεβού'}
+                  >
+                    <Badge color="error" overlap="circular" badgeContent={unreadCount || 0}>
+                      <NotificationsNoneIcon />
+                    </Badge>
+                  </IconButton>
+                  <Menu anchorEl={anchorElNotifications} open={Boolean(anchorElNotifications)} onClose={() => handleCloseMenu(setAnchorElNotifications)}>
+                    <MenuItem disabled sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                      {user.role === 'owner' ? 'Ειδοποιήσεις' : 'Κέντρο Ειδοποιήσεων'}
+                    </MenuItem>
+                    {notifications.length > 0 && unreadCount > 0 && (
+                      <MenuItem onClick={() => { markAllRead(); }} sx={{ color: 'primary.main', fontWeight: 700 }}>
+                        Μαρκάρισμα όλων ως αναγνωσμένα
+                      </MenuItem>
+                    )}
+                    {loadingNotifications ? (
+                      <MenuItem disabled>Φόρτωση…</MenuItem>
+                    ) : notifications.length === 0 ? (
+                      <MenuItem disabled>{user.role === 'owner' ? 'Δεν υπάρχουν ενημερώσεις' : 'Δεν υπάρχουν νέα αιτήματα'}</MenuItem>
+                    ) : (
+                      notifications.map(n => (
+                        <MenuItem key={n.id} onClick={() => { handleCloseMenu(setAnchorElNotifications); navigate(n.to); }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{n.text}</Typography>
+                            <Typography variant="caption" color="text.secondary">{n.when}</Typography>
+                          </Box>
+                        </MenuItem>
+                      ))
+                    )}
+                  </Menu>
+                </>
               )}
 
               {/* Conditionally render auth or profile buttons */}

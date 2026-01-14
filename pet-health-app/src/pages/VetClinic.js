@@ -182,37 +182,36 @@ export default function VetClinicProfile() {
         
         <DashboardSidebar />
 
-        <Container maxWidth="xl" sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Container maxWidth="lg" sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingLeft: '10px' }}>
             
             {/* Header Area */}
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '100%' }}>
+            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', textAlign: 'center', width: '100%', marginLeft: '400px' }}>
                 <Box>
                     <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, letterSpacing: 1 }}>BUSINESS PROFILE</Typography>
                     <Typography variant="h4" sx={{ color: '#0f172a' }}>Διαχείριση Κλινικής</Typography>
                 </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%', mb: 3 }}>
-                <Button 
-                    variant="contained" 
-                    size="large"
-                    startIcon={isEditing ? <SaveIcon /> : <EditIcon />} 
-                    onClick={() => setIsEditing(!isEditing)}
-                    color={isEditing ? "success" : "primary"}
-                    sx={{ px: 4, boxShadow: '0 4px 14px 0 rgba(14, 116, 144, 0.3)' }}
-                >
-                    {isEditing ? 'Αποθήκευση Αλλαγών' : 'Επεξεργασία Στοιχείων'}
-                </Button>
-            </Box>
-
-            <Grid container spacing={3} sx={{ justifyContent: 'center', maxWidth: '1200px' }}>
+           <Grid container spacing={3} sx={{ justifyContent: 'center', maxWidth: '1200px', flexDirection: 'column', alignItems: 'center', marginLeft: '160px' }}>
                 
                 {/* --- LEFT COLUMN: IDENTITY & HOURS --- */}
-                <Grid item xs={12} lg={4}>
+                <Grid item xs={12} sx={{ maxWidth: '800px' }}>
                     <Stack spacing={3}>
                         
                         {/* 1. Identity Card */}
-                        <Card sx={{ borderRadius: 4, border: '1px solid #e2e8f0', overflow: 'visible' }}>
+                        <Card sx={{ borderRadius: 4, border: '1px solid #e2e8f0', overflow: 'visible', position: 'relative' }}>
+                            <Box sx={{ position: 'absolute', top: 110, right: 16, zIndex: 10 }}>
+                                <Button 
+                                    variant="contained" 
+                                    size="small"
+                                    startIcon={isEditing ? <SaveIcon /> : <EditIcon />} 
+                                    onClick={() => setIsEditing(!isEditing)}
+                                    color={isEditing ? "success" : "primary"}
+                                    sx={{ px: 2, boxShadow: '0 4px 14px 0 rgba(14, 116, 144, 0.3)' }}
+                                >
+                                    {isEditing ? 'Αποθήκευση' : 'Επεξεργασία'}
+                                </Button>
+                            </Box>
                             <Box sx={{ height: 100, background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)', borderRadius: '16px 16px 0 0', position: 'relative' }}>
                                 <Avatar 
                                     src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=200&q=80" 
@@ -286,7 +285,7 @@ export default function VetClinicProfile() {
                 </Grid>
 
                 {/* --- RIGHT COLUMN: SERVICES & SETTINGS --- */}
-                <Grid item xs={12} lg={8}>
+                <Grid item xs={12} sx={{ maxWidth: '800px' }}>
                     <Stack spacing={3}>
                         
                         {/* 1. Services Management */}

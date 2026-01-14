@@ -698,27 +698,28 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
     };
 
     const handleCancelAppointment = async (appointment) => {
-        if (window.confirm('Είστε σίγουροι ότι θέλετε να ακυρώσετε το ραντεβού;')) {
-            try {
-                // Update appointment status to cancelled
-                const response = await fetch(`http://localhost:3001/appointments/${appointment.id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'cancelled' })
-                });
+      if (window.confirm('Είστε σίγουροι ότι θέλετε να ακυρώσετε το ραντεβού;')) {
+        const note = window.prompt('Λόγος ακύρωσης (προαιρετικό):', '') || '';
+        try {
+          // Update appointment status to cancelled with metadata
+          const response = await fetch(`http://localhost:3001/appointments/${appointment.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'cancelled', cancelReason: note, cancelledBy: 'owner', updatedAt: new Date().toISOString() })
+          });
                 
-                if (response.ok) {
-                    // Update local state
-                    setAppointments(prev => prev.map(a => 
-                        a.id === appointment.id ? { ...a, status: 'cancelled' } : a
-                    ));
-                    alert('Το ραντεβού ακυρώθηκε επιτυχώς.');
-                }
-            } catch (error) {
-                console.error('Error cancelling appointment:', error);
-                alert('Σφάλμα κατά την ακύρωση του ραντεβού.');
-            }
+          if (response.ok) {
+            // Update local state
+            setAppointments(prev => prev.map(a => 
+              a.id === appointment.id ? { ...a, status: 'cancelled', cancelReason: note, cancelledBy: 'owner', updatedAt: new Date().toISOString() } : a
+            ));
+            alert('Το ραντεβού ακυρώθηκε επιτυχώς.');
+          }
+        } catch (error) {
+          console.error('Error cancelling appointment:', error);
+          alert('Σφάλμα κατά την ακύρωση του ραντεβού.');
         }
+      }
     };
 
     return (

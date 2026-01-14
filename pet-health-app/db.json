@@ -39,6 +39,16 @@
       "password": "123",
       "afm": "999999993",
       "role": "vet"
+    },
+    {
+      "id": "1768402024631",
+      "role": "vet",
+      "fullname": "giorgos",
+      "email": "Ogvet@gmail.com",
+      "password": "123",
+      "afm": "123456789",
+      "phone": "6976976976",
+      "address": "New york"
     }
   ],
   "pets": [
@@ -160,7 +170,7 @@
       "petName": "wht",
       "time": "19:45",
       "date": "Παρασκευή 23 Ιανουαρίου 2026",
-      "status": "confirmed",
+      "status": "cancelled",
       "type": "Visit",
       "reason": "r"
     },
@@ -283,6 +293,93 @@
       "reason": "iosi",
       "updatedAt": "2026-01-07T20:42:10.503Z",
       "cancelReason": "einai kala telika"
+    },
+    {
+      "id": "1768402082508",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "wht",
+      "time": "11:30",
+      "date": "Σάββατο 31 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "πλζ",
+      "updatedAt": "2026-01-14T14:49:04.598Z",
+      "cancelReason": "δεν θελω μπρο\n"
+    },
+    {
+      "id": "1768402390571",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "wht",
+      "time": "11:30",
+      "date": "Παρασκευή 16 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "cancelReason": "δεν θελω",
+      "cancelledBy": "vet",
+      "updatedAt": "2026-01-14T14:53:30.553Z"
+    },
+    {
+      "id": "1768403069130",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "wht",
+      "time": "11:30",
+      "date": "Πέμπτη 29 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "1",
+      "cancelReason": "ιδκ",
+      "cancelledBy": "vet",
+      "updatedAt": "2026-01-14T15:05:40.863Z"
+    },
+    {
+      "id": "1768403096438",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "Max",
+      "time": "10:00",
+      "date": "Πέμπτη 29 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "2",
+      "updatedAt": "2026-01-14T15:05:34.279Z"
+    },
+    {
+      "id": "1768403477902",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "wht",
+      "time": "11:30",
+      "date": "Παρασκευή 30 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "updatedAt": "2026-01-14T15:12:27.697Z",
+      "cancelReason": "",
+      "cancelledBy": "owner"
     }
   ],
   "healthRecords": [
@@ -583,6 +680,32 @@
         "Πέμπτη": "09:00 - 19:00",
         "Παρασκευή": "09:00 - 17:00",
         "Σάββατο": "10:00 - 14:00"
+      }
+    },
+    {
+      "id": "1768402024653",
+      "userId": "1768402024631",
+      "name": "giorgos",
+      "email": "Ogvet@gmail.com",
+      "phone": "6976976976",
+      "address": "New york",
+      "specialty": "βαλσαμωμα",
+      "rating": 4.8,
+      "views": 0,
+      "likes": 0,
+      "price": 0,
+      "image": "https://randomuser.me/api/portraits/men/32.jpg",
+      "availability": "Διαθέσιμος",
+      "services": [
+        "Γενική Εξέταση"
+      ],
+      "workingHours": {
+        "Δευτέρα": "09:00 - 21:00",
+        "Τρίτη": "09:00 - 21:00",
+        "Τετάρτη": "09:00 - 21:00",
+        "Πέμπτη": "09:00 - 21:00",
+        "Παρασκευή": "09:00 - 21:00",
+        "Σάββατο": "09:00 - 14:00"
       }
     }
   ],
