@@ -1320,15 +1320,7 @@ export default function LostPets() {
   }, [allLostPets, searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
 
   const handleNext = async () => {
-    // Step 0: ideally require a photo — allow skipping after confirmation
-    if (activeStep === 0 && uploadedImages.length === 0) {
-      // show a confirm so users can continue if they truly have no photo
-      const ok = window.confirm('Δεν έχετε προσθέσει φωτογραφία. Θέλετε να συνεχίσετε χωρίς φωτογραφία;');
-      if (!ok) {
-        setFormErrors({ images: 'Required' });
-        return;
-      }
-    }
+    // Step 0: photo is optional — proceed without showing a confirmation
 
     // Step 1: απαιτείται περιγραφή
     if (activeStep === 1) {
