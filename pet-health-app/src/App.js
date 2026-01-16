@@ -7,6 +7,7 @@ import Register from "./pages/register";
 import ForgotPassword from "./pages/ForgotPassword";
 import Contact from "./pages/contact";
 import LostPets from "./pages/lostpets";
+import FoundPets from "./pages/FoundPets";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import VetDashboard from "./pages/VetDashboard";
 import PlaceholderPage from "./pages/PlaceholderPage"; // Το νέο αρχείο
@@ -109,6 +110,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/lost-pets" element={<LostPets />} />
+        <Route path="/found-pets" element={<FoundPets />} />
         <Route path="/news" element={<News />} />
         <Route path="/news/:id" element={<NewsDetail />} />
         <Route path="/terms" element={<TermsOfService />} />

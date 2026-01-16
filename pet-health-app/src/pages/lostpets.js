@@ -283,6 +283,7 @@ function LostPetsSearchView({
   selectedColor, setSelectedColor, hasReward, setHasReward,
   canReportLoss,
 }) {
+  const navigate = useNavigate();
   return (
     <Box onKeyDown={stopKeyPropagation} tabIndex={0} sx={{ outline: 'none' }}>
       {/* ANIMATED HERO SECTION */}
@@ -315,25 +316,16 @@ function LostPetsSearchView({
               Δηλώστε ότι βρήκατε ένα ζωάκι για να επιστρέψει σπίτι
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Tooltip
-                title={!canReportLoss ? 'Πρέπει να συνδεθείτε για να κάνετε δήλωση εύρεσης.' : ''}
-                disableHoverListener={canReportLoss}
-                arrow
+              <Button
+                variant="contained"
+                color="secondary"
+                size="large"
+                startIcon={<NotificationsActiveIcon />}
+                onClick={() => navigate('/found-pets')}
+                sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
               >
-                <Box component="span" sx={{ display: 'inline-flex' }}>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    startIcon={<NotificationsActiveIcon />}
-                    disabled={!canReportLoss}
-                    onClick={() => setView('form')}
-                    sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
-                  >
-                    Δήλωση Εύρεσης
-                  </Button>
-                </Box>
-              </Tooltip>
+                Δήλωση Εύρεσης
+              </Button>
               <Button variant="outlined" size="large" startIcon={<InfoIcon />} onClick={() => setHowItWorksDialogOpen(true)} sx={{ borderRadius: '50px', px: 4, py: 1.5, color: 'white', borderColor: 'white', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}>
                 Πώς Λειτουργεί
               </Button>
@@ -540,20 +532,15 @@ function LostPetsSearchView({
                       {/*ΕΠΕΙΓΟΝ*/}
                       {pet.urgent && (
                         <Chip
-                          label="ΕΠΕΙΓΟΝ"
+                          icon={<WarningIcon />}
+                          label="Επείγον"
                           size="small"
-                          icon={<WarningIcon sx={{ fontSize: 14, animation: `${pulse} 2s infinite` }} />}
+                          color="error"
                           sx={{
                             position: 'absolute',
                             top: 8,
                             left: 8,
                             zIndex: 2,
-                            bgcolor: 'error.main',
-                            color: '#fff',
-                            fontWeight: 800,
-                            fontSize: '0.7rem',
-                            maxWidth: 'calc(100% - 16px)',
-                            borderRadius: 2,
                             boxShadow: '0 2px 8px rgba(211, 47, 47, 0.4)',
                             '& .MuiChip-icon': {
                               color: '#fff',
@@ -1170,20 +1157,13 @@ export default function LostPets() {
   const [userPets, setUserPets] = useState([]);
   const [petsLoading, setPetsLoading] = useState(false);
 
-  // Check URL parameter to show form view
+  // Check URL parameter to show form view (no auth required)
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('view') === 'form') {
-      if (user) {
-        setView('form');
-      } else {
-        try {
-          sessionStorage.setItem('postAuthRedirect', '/lost-pets?view=form');
-        } catch (_) {}
-        navigate('/login');
-      }
+      setView('form');
     }
-  }, [location.search, user, navigate]);
+  }, [location.search]);
 
   // Autofill contact fields from logged-in user
   useEffect(() => {
@@ -1437,7 +1417,7 @@ export default function LostPets() {
                    setView={() => setView('form')}
                   stopKeyPropagation={stopKeyPropagation}
                   setHowItWorksDialogOpen={setHowItWorksDialogOpen}
-                  canReportLoss={Boolean(user)}
+                  canReportLoss={true}
                 />
                 ) : (
                   <LostPetsFormView

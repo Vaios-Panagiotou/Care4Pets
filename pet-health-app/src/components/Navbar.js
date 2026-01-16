@@ -303,6 +303,8 @@ export default function Navbar() {
                 </Menu>
               </Box>
 
+              <Button onClick={() => navigate('/found-pets')} sx={navButtonStyle}>Δήλωση Εύρεσης</Button>
+
               <Button onClick={() => navigate('/contact')} sx={navButtonStyle}>Επικοινωνία</Button>
             </Box>
 

@@ -1019,6 +1019,39 @@
       "ownerId": "1765141425145",
       "lat": 37.9286671,
       "lng": 23.7250618
+    },
+    {
+      "id": "1768581497898",
+      "type": "found",
+      "description": "please ",
+      "location": "napoleotnois",
+      "foundAt": "2026-01-16T18:38",
+      "finder": {
+        "name": "dfrfgr",
+        "phone": "697-252900",
+        "email": ""
+      },
+      "images": [],
+      "createdAt": "2026-01-16T16:38:17.898Z"
+    },
+    {
+      "id": "1768582877760",
+      "type": "found",
+      "animalType": "Γάτα",
+      "description": "σδαωσδω",
+      "location": "",
+      "foundAt": "2026-01-16T19:01",
+      "finder": {
+        "name": "δωδσωδσ",
+        "phone": "231232313123132",
+        "email": ""
+      },
+      "images": [],
+      "coords": {
+        "lat": 37.9838,
+        "lng": 23.7275
+      },
+      "createdAt": "2026-01-16T17:01:17.760Z"
     }
   ]
 }
