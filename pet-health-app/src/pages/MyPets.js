@@ -941,7 +941,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                       </Box>
 
                       <Box sx={{ width: 360, flexShrink: 0 }}>
-                        <Box sx={{ position: 'sticky', top: 120, display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'white', borderRadius: 3, border: '1px solid #e2e8f0', p: 2, alignSelf: 'flex-start', boxShadow: 2 }}>
+                        <Box sx={{ position: 'sticky', top: 120, display: 'flex', flexDirection: 'column', /*height: '100%',*/ maxHeight: 'calc(100vh - 140px)', overflowY: 'auto', bgcolor: 'white', borderRadius: 3, border: '1px solid #e2e8f0', p: 2, alignSelf: 'flex-start', boxShadow: 2 }}>
                           <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>Ημερολόγιο</Typography>
                           <CalendarWidget appointments={appointments} selectedDateExternal={calendarFilterDate} onDaySelect={handleCalendarDaySelect} />
                         </Box>

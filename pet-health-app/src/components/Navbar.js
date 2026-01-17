@@ -99,6 +99,8 @@ export default function Navbar() {
     vet: 'Κτηνίατρος',
     contact: 'Επικοινωνία',
     'lost-pets': 'Απολεσθέντα',
+    'found-pets': 'Δήλωση Εύρεσης',
+    'find-vet': 'Εύρεση Κτηνίατρου',
     history: 'Ιστορικό',
     pets: 'Τα Κατοικίδιά μου',
     search: 'Αναζήτηση Κτηνιάτρου',
@@ -275,6 +277,7 @@ export default function Navbar() {
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
                 <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση χαμένου κατοικιδίου</MenuItem>
+                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/found-pets'); }}>Δήλωση Εύρεσης</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/news'); }}>Νέα και Ενημέρωση</MenuItem>
                 </Menu>
               </Box>

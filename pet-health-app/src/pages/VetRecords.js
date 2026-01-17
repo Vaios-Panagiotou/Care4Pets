@@ -8,7 +8,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DashboardSidebar from '../components/DashboardSidebar';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from './PageHeader';
-import { petsAPI, usersAPI, appointmentsAPI } from '../services/api';
+import { petsAPI, usersAPI, appointmentsAPI, prescriptionsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Icons
@@ -43,6 +43,9 @@ const PRESCRIPTIONS = [
   { id: 3, date: '15 Δεκ 2024', petName: 'Ρεξ', ownerName: 'Νίκος Αθανασίου', medicine: 'Pain Relief', dosage: '1x ημερησίως', duration: '5 ημέρες', notes: 'Σε περίπτωση πόνου' },
 ];
 
+// Live prescriptions state moved into the VetRecords component to satisfy rules-of-hooks and avoid ESLint errors
+
+
 // Fallback data in case server is unavailable
 const NEW_PETS_FALLBACK = [
   { id: 'fallback-1', name: 'Μπόμπι', type: 'Σκύλος', breed: 'Golden Retriever', age: '2 έτη', owner: 'Γιάννης Παπαδόπουλος', microchip: 'GR-2023-001234', date: '20 Δεκ 2024' },
@@ -75,6 +78,44 @@ export default function VetRecords() {
     notes: ''
   });
 
+  // Live prescriptions state (loads from API with fallback)
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
+  const [prescriptionError, setPrescriptionError] = useState('');
+  const [savingPrescription, setSavingPrescription] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoadingPrescriptions(true);
+      setPrescriptionError('');
+      try {
+        const data = await prescriptionsAPI.getAll();
+        if (!mounted) return;
+        // Show newest first
+        setPrescriptions(Array.isArray(data) ? data.slice().reverse() : []);
+      } catch (e) {
+        console.warn('Failed to load prescriptions; using fallback.', e);
+        if (!mounted) return;
+        setPrescriptions(PRESCRIPTIONS);
+        setPrescriptionError('Σφάλμα φόρτωσης συνταγών. Εμφανίζονται δείγμα δεδομένων.');
+      } finally {
+        if (mounted) setLoadingPrescriptions(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const handleDeletePrescription = async (id) => {
+    if (!window.confirm('Διαγραφή συνταγής;')) return;
+    try {
+      await prescriptionsAPI.delete(id);
+      setPrescriptions(prev => prev.filter(p => String(p.id) !== String(id)));
+    } catch (e) {
+      console.error('Failed to delete prescription', e);
+    }
+  };
+
   // New Pet Dialog
   const [openNewPet, setOpenNewPet] = useState(false);
   const [petForm, setPetForm] = useState({
@@ -98,25 +139,50 @@ export default function VetRecords() {
     setTabValue(newValue);
   };
 
-  const handleSavePrescription = () => {
-    // Save prescription logic
-    setOpenPrescription(false);
-    setPrescriptionForm({
-      petName: '',
-      ownerName: '',
-      petType: '',
-      diagnosis: '',
-      medicine: '',
-      dosage: '',
-      frequency: '',
-      duration: '',
-      prescriptionDate: new Date().toISOString().split('T')[0],
-      nextVisit: '',
-      warnings: '',
-      notes: ''
-    });
-    setSuccessDialog(true);
-  };
+  const handleSavePrescription = async () => {
+    setSavingPrescription(true);
+    setPrescriptionError('');
+    try {
+      const payload = {
+        petName: prescriptionForm.petName,
+        ownerName: prescriptionForm.ownerName,
+        petType: prescriptionForm.petType,
+        diagnosis: prescriptionForm.diagnosis,
+        medicine: prescriptionForm.medicine,
+        dosage: prescriptionForm.dosage,
+        frequency: prescriptionForm.frequency,
+        duration: prescriptionForm.duration,
+        date: prescriptionForm.prescriptionDate || new Date().toISOString().split('T')[0],
+        nextVisit: prescriptionForm.nextVisit,
+        warnings: prescriptionForm.warnings,
+        notes: prescriptionForm.notes
+      };
+      const created = await prescriptionsAPI.create(payload);
+      // Prepend newest
+      setPrescriptions(prev => [created, ...prev]);
+      setOpenPrescription(false);
+      setPrescriptionForm({
+        petName: '',
+        ownerName: '',
+        petType: '',
+        diagnosis: '',
+        medicine: '',
+        dosage: '',
+        frequency: '',
+        duration: '',
+        prescriptionDate: new Date().toISOString().split('T')[0],
+        nextVisit: '',
+        warnings: '',
+        notes: ''
+      });
+      setSuccessDialog(true);
+    } catch (e) {
+      console.error('Error saving prescription', e);
+      setPrescriptionError('Σφάλμα κατά την αποθήκευση της συνταγής. Δοκιμάστε ξανά.');
+    } finally {
+      setSavingPrescription(false);
+    }
+  }; 
 
   const handleSavePet = () => {
     // Save pet logic
@@ -306,7 +372,7 @@ export default function VetRecords() {
               <Box>
                 <Typography variant="h6" sx={{ mb: 3 }}>Πρόσφατες Συνταγές</Typography>
                 <Grid container spacing={3}>
-                  {PRESCRIPTIONS.map((item) => (
+                  {(loadingPrescriptions ? PRESCRIPTIONS : prescriptions).map((item) => (
                     <Grid item xs={12} key={item.id}>
                       <Paper sx={{ p: 3, borderRadius: 3, '&:hover': { boxShadow: 4 }, transition: '0.3s' }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -328,26 +394,26 @@ export default function VetRecords() {
                             <IconButton size="small" color="primary">
                               <EditIcon />
                             </IconButton>
-                            <IconButton size="small" color="error">
+                            <IconButton size="small" color="error" onClick={() => handleDeletePrescription(item.id)}>
                               <DeleteIcon />
                             </IconButton>
-                          </Box>
+                          </Box> 
                         </Box>
                         <Divider sx={{ my: 2 }} />
                         <Grid container spacing={2}>
-                          <Grid item xs={12} sm={4}>
+                          <Grid size={{ xs: 12, sm: 4 }}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΦΑΡΜΑΚΟ</Typography>
                             <Typography variant="body1">{item.medicine}</Typography>
                           </Grid>
-                          <Grid item xs={6} sm={2}>
+                          <Grid size={{ xs: 6, sm: 2 }}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΔΟΣΟΛΟΓΙΑ</Typography>
                             <Typography variant="body1">{item.dosage}</Typography>
                           </Grid>
-                          <Grid item xs={6} sm={2}>
+                          <Grid size={{ xs: 6, sm: 2 }}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΔΙΑΡΚΕΙΑ</Typography>
                             <Typography variant="body1">{item.duration}</Typography>
                           </Grid>
-                          <Grid item xs={12} sm={4}>
+                          <Grid size={{ xs: 12, sm: 4 }}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΣΗΜΕΙΩΣΕΙΣ</Typography>
                             <Typography variant="body2">{item.notes}</Typography>
                           </Grid>
@@ -417,6 +483,7 @@ export default function VetRecords() {
             </IconButton>
           </DialogTitle>
           <DialogContent sx={{ pt: 3 }}>
+            {prescriptionError && (<Alert severity="error" sx={{ mb: 2 }}>{prescriptionError}</Alert>)}
             {/* SECTION 1: Patient Info */}
             <Paper elevation={0} sx={{ p: 3, bgcolor: '#f5f5f5', borderRadius: 2, mb: 3 }}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -433,19 +500,6 @@ export default function VetRecords() {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Είδος</InputLabel>
-                    <Select 
-                      label="Είδος"
-                      value={prescriptionForm.petType}
-                      onChange={(e) => setPrescriptionForm({...prescriptionForm, petType: e.target.value})}
-                    >
-                      <MenuItem value="Σκύλος">Σκύλος</MenuItem>
-                      <MenuItem value="Γάτα">Γάτα</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
                   <TextField 
                     fullWidth 
                     label="Όνομα Ιδιοκτήτη" 
@@ -507,7 +561,7 @@ export default function VetRecords() {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6}>
                   <TextField 
                     fullWidth 
                     label="Δοσολογία" 
@@ -517,24 +571,7 @@ export default function VetRecords() {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Συχνότητα</InputLabel>
-                    <Select 
-                      label="Συχνότητα"
-                      value={prescriptionForm.frequency}
-                      onChange={(e) => setPrescriptionForm({...prescriptionForm, frequency: e.target.value})}
-                    >
-                      <MenuItem value="1x ημερησίως">1x ημερησίως</MenuItem>
-                      <MenuItem value="2x ημερησίως">2x ημερησίως</MenuItem>
-                      <MenuItem value="3x ημερησίως">3x ημερησίως</MenuItem>
-                      <MenuItem value="Κάθε 8 ώρες">Κάθε 8 ώρες</MenuItem>
-                      <MenuItem value="Κάθε 12 ώρες">Κάθε 12 ώρες</MenuItem>
-                      <MenuItem value="Εφάπαξ">Εφάπαξ</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6}>
                   <TextField 
                     fullWidth 
                     label="Διάρκεια" 
@@ -624,7 +661,6 @@ export default function VetRecords() {
                       <Typography variant="body2">
                         <strong>Φάρμακο:</strong> {prescriptionForm.medicine} 
                         {prescriptionForm.dosage && ` - ${prescriptionForm.dosage}`}
-                        {prescriptionForm.frequency && ` ${prescriptionForm.frequency}`}
                         {prescriptionForm.duration && ` για ${prescriptionForm.duration}`}
                       </Typography>
                     </Grid>
@@ -640,6 +676,7 @@ export default function VetRecords() {
               variant="contained" 
               startIcon={<SaveIcon />}
               color="primary"
+              disabled={savingPrescription}
             >
               Αποθήκευση
             </Button>

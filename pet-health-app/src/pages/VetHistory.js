@@ -458,25 +458,31 @@ export default function VetHistory() {
                 <Typography variant="caption" color="text.secondary">Κατάσταση</Typography>
                 <Typography variant="body1" fontWeight="bold" color="secondary.main">{selectedAppointment.status}</Typography>
               </Grid>
-              <Grid item xs={12}>
-                <Divider sx={{ my: 1 }} />
-                <Typography variant="caption" color="text.secondary">Διάγνωση</Typography>
-                <Paper sx={{ p: 2, mt: 1, bgcolor: '#e3f2fd' }}>
-                  <Typography variant="body2">{selectedAppointment.diagnosis || '-'}</Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary">Θεραπεία</Typography>
-                <Paper sx={{ p: 2, mt: 1, bgcolor: '#f3e5f5' }}>
-                  <Typography variant="body2">{selectedAppointment.treatment || '-'}</Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary">Σημειώσεις</Typography>
-                <Paper sx={{ p: 2, mt: 1, bgcolor: '#fff3e0' }}>
-                  <Typography variant="body2">{selectedAppointment.note || selectedAppointment.reason || '-'}</Typography>
-                </Paper>
-              </Grid>
+              {selectedAppointment.diagnosis && (
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="caption" color="text.secondary">Διάγνωση</Typography>
+                  <Paper sx={{ p: 2, mt: 1, bgcolor: '#e3f2fd', minHeight: 72, display: 'flex', alignItems: 'flex-start', borderRadius: 2 }}>
+                    <Typography variant="body1" sx={{ color: 'text.primary', whiteSpace: 'normal' }}>{selectedAppointment.diagnosis}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+              {selectedAppointment.treatment && (
+                <Grid item xs={12}>
+                  <Typography variant="caption" color="text.secondary">Θεραπεία</Typography>
+                  <Paper sx={{ p: 2, mt: 1, bgcolor: '#f3e5f5', minHeight: 72, display: 'flex', alignItems: 'flex-start', borderRadius: 2 }}>
+                    <Typography variant="body1" sx={{ color: 'text.primary', whiteSpace: 'normal' }}>{selectedAppointment.treatment}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+              {(selectedAppointment.note || selectedAppointment.reason) && (
+                <Grid item xs={12}>
+                  <Typography variant="caption" color="text.secondary">Σημειώσεις</Typography>
+                  <Paper sx={{ p: 2, mt: 1, bgcolor: '#fff3e0', minHeight: 72, display: 'flex', alignItems: 'flex-start', borderRadius: 2 }}>
+                    <Typography variant="body1" sx={{ color: 'text.primary', whiteSpace: 'normal' }}>{selectedAppointment.note || selectedAppointment.reason}</Typography>
+                  </Paper>
+                </Grid>
+              )}
             </Grid>
           )}
         </DialogContent>

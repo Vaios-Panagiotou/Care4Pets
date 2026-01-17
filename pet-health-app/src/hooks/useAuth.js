@@ -1,6 +1,6 @@
-// Minimal auth hook used by pages to check auth state and user role.
-// Reads from localStorage key "auth" if present, expecting a JSON like
-// { token: string, user: { id, name, role }, isAuthenticated?: boolean }
+//Απλό hook για έλεγχο αν ο χρήστης είναι συνδεδεμένος και τι ρόλο έχει.
+//Διαβάζει από το localStorage το κλειδί "auth", που περιέχει JSON με
+//{ token: string, user: { id, name, role }, isAuthenticated?: boolean }
 
 export function useAuth() {
   if (typeof window === 'undefined') {

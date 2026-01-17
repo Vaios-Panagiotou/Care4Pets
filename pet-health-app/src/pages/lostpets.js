@@ -797,31 +797,15 @@ function LostPetsFormView({
                                   </Select>
                                 </FormControl>
                               </Grid>
-                            </Grid>
-                          </Grid>
-                          <Grid item xs={12} md={5}>
-                            <Grid container spacing={2}>
                               <Grid item xs={12}>
                                 <TextField fullWidth label="Μικροτσίπ" value={formData.microchip || ''} onChange={(e) => setFormData({ ...formData, microchip: e.target.value })} disabled={Boolean(formData.petId)} InputProps={{ endAdornment: (formData.microchip && /^\d+$/.test(formData.microchip)) ? (<CheckCircleIcon sx={{ color: 'success.main' }} />) : null }} />
                               </Grid>
                               <Grid item xs={12}>
                                 <TextField fullWidth label="Χρώμα" value={formData.color || ''} onChange={(e) => setFormData({ ...formData, color: e.target.value })} disabled={Boolean(formData.petId)} />
                               </Grid>
-                              <Grid item xs={12}>
-                                <Box sx={{ p: 2, borderRadius: 2, border: '1px solid #eee', bgcolor: '#fbfbfb' }}>
-                                  <Typography variant="subtitle2">Προεπισκόπηση</Typography>
-                                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 1 }}>
-                                    <Avatar src={(userPets || []).find(p => String(p.id) === String(formData.petId))?.image || formData.img || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80'} sx={{ width: 64, height: 64 }} />
-                                    <Box>
-                                      <Typography variant="body1" fontWeight={700}>{formData.name || 'Όνομα'}</Typography>
-                                      <Typography variant="caption">{formData.type || 'Είδος'}</Typography>
-                                      <Typography variant="caption" display="block">Microchip: {formData.microchip || '—'}</Typography>
-                                    </Box>
-                                  </Box>
-                                </Box>
-                              </Grid>
                             </Grid>
                           </Grid>
+
                         </Grid>
                       </Paper>
                     </Grid>

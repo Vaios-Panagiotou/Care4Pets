@@ -164,7 +164,61 @@ export default function History() {
             const tb = b.updatedAt ? Date.parse(b.updatedAt) : bx;
             return tb - ta;
           });
-          setAppointments(sorted);
+
+          // Enrich appointments with resolved pet/vet names when missing
+          const petIds = Array.from(new Set(sorted.map(s => s.petId).filter(Boolean)));
+          const vetIds = Array.from(new Set(sorted.map(s => s.vetId).filter(Boolean)));
+
+          // fetch pets for the owner and any petIds referenced
+          let petMap = {};
+          try {
+            const petsRes = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
+            if (petsRes.ok) {
+              const pets = await petsRes.json();
+              pets.forEach(p => { if (p.id) petMap[String(p.id)] = p.name || p.name || p.id; });
+            }
+            // also fetch by petId if there are external petIds
+            const externalPetIds = petIds.filter(id => !petMap[String(id)]);
+            for (const pid of externalPetIds) {
+              const pr = await fetch(`http://localhost:3001/pets?id=${encodeURIComponent(pid)}`);
+              if (pr.ok) {
+                const arr = await pr.json();
+                if (Array.isArray(arr) && arr[0]) petMap[String(pid)] = arr[0].name || arr[0].name || String(pid);
+              }
+            }
+          } catch (e) {
+            // ignore pet fetch errors
+          }
+
+          // fetch vets info
+          let vetMap = {};
+          try {
+            for (const vid of vetIds) {
+              const vr = await fetch(`http://localhost:3001/vets?id=${encodeURIComponent(vid)}`);
+              if (vr.ok) {
+                const arr = await vr.json();
+                if (Array.isArray(arr) && arr[0] && arr[0].name) vetMap[String(vid)] = arr[0].name;
+              }
+              // fallback: try users by userId
+              if (!vetMap[String(vid)]) {
+                const ur = await fetch(`http://localhost:3001/users?id=${encodeURIComponent(vid)}`);
+                if (ur.ok) {
+                  const ua = await ur.json();
+                  if (Array.isArray(ua) && ua[0] && ua[0].fullname) vetMap[String(vid)] = ua[0].fullname;
+                }
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+
+          const enriched = sorted.map(s => ({
+            ...s,
+            petName: s.petName || s.pet || (s.petId ? petMap[String(s.petId)] : s.petName) || '—',
+            vetName: s.vetName || s.vet || (s.vetId ? vetMap[String(s.vetId)] : s.vetName) || 'Κτηνίατρος'
+          }));
+
+          setAppointments(enriched);
         } else {
           throw new Error(`HTTP ${res.status}`);
         }
@@ -215,7 +269,14 @@ export default function History() {
   };
 
   const handleOpenDialog = (content) => {
-    setDialogContent(content);
+    // Normalize data fields so dialogs always receive 'pet' and 'vet' strings
+    const data = content?.data || {};
+    const normalizedData = {
+      ...data,
+      pet: data.pet || data.petName || data.petId || '—',
+      vet: data.vet || data.vetName || data.vetId || 'Κτηνίατρος'
+    };
+    setDialogContent({ ...content, data: normalizedData });
     setOpenDialog(true);
   };
 

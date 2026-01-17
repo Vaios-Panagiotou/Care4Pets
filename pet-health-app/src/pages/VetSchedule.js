@@ -535,8 +535,8 @@ export default function VetSchedule() {
           </Box>
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+            <Grid container spacing={2} sx={{ flexWrap: { xs: 'wrap', md: 'nowrap' }, overflowX: { xs: 'auto', md: 'visible' } }}>
+              <Grid item xs={12} md={4} sx={{ minWidth: { md: 320 } }}>
                 <Column
                   title="Inbox"
                   subtitle={counts.inbox ? 'Νέα ραντεβού που περιμένουν έγκριση' : 'Δεν υπάρχουν νέα αιτήματα'}
@@ -563,7 +563,7 @@ export default function VetSchedule() {
                 </Column>
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={4} sx={{ minWidth: { md: 320 } }}>
                 <Column
                   title="Σήμερα"
                   subtitle="Ολοκλήρωση / Ακύρωση από την κάρτα"
