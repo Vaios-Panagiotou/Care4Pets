@@ -298,21 +298,20 @@ const HeroSection = ({ user }) => {
 
 const LostPetBanner = ({ user }) => {
   const navigate = useNavigate();
-  const canReportLoss = Boolean(user);
 
   return (
     <Box sx={{ bgcolor: '#263238', py: 4, color: 'white' }}>
-      <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+      <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 2, textAlign: 'center' }}>
         <Box>
-          <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SearchIcon sx={{ color: 'secondary.main' }} /> Χάσατε ή βρήκατε ένα κατοικίδιο;
+          <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+            <SearchIcon sx={{ color: 'secondary.main' }} /> Βρείτε αγγελίες κατοικιδίων
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.85 }}>
-            Αναζητήστε αγγελίες ή δηλώστε νέα απώλεια εύκολα και γρήγορα.
+            Αναζητήστε αγγελίες εύκολα και γρήγορα.
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', ml: 8 }}>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Button
             variant="outlined"
             color="secondary"
@@ -322,31 +321,6 @@ const LostPetBanner = ({ user }) => {
           >
             Αναζήτηση Αγγελιών
           </Button>
-
-          <Tooltip
-            title={!canReportLoss ? 'Για δήλωση απώλειας απαιτείται σύνδεση.' : ''}
-            disableHoverListener={canReportLoss}
-            arrow
-          >
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              onClick={() => {
-                if (canReportLoss) {
-                  navigate('/lost-pets?view=form');
-                  return;
-                }
-                try {
-                  sessionStorage.setItem('postAuthRedirect', '/lost-pets?view=form');
-                } catch (_) {}
-                navigate('/login?reason=lost-pets');
-              }}
-              sx={{ color: 'black', fontWeight: 'bold' }}
-            >
-              Δήλωσε Απώλεια
-            </Button>
-          </Tooltip>
         </Box>
       </Container>
     </Box>
