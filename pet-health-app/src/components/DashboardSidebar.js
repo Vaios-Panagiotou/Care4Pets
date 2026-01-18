@@ -41,6 +41,15 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
   const { user } = useAuth();
   const containerRef = useRef(null);
   const sidebarRef = useRef(null);
+  const metricsRef = useRef({
+    containerLeft: 0,
+    containerWidth: 260,
+    containerTop: 0,
+    footerTop: Infinity,
+    headerOffset: 80,
+    sidebarHeight: 0,
+  });
+  const translateYRef = useRef(0);
   const [metrics, setMetrics] = useState({
     containerLeft: 0,
     containerWidth: 260,
@@ -49,10 +58,14 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
     headerOffset: 80,
     sidebarHeight: 0,
   });
-  const [translateY, setTranslateY] = useState(0);
 
   useEffect(() => {
     if (isStatic) return; // No scroll listeners in static mode
+    const applyTransform = (y) => {
+      const sidebar = sidebarRef.current;
+      if (!sidebar) return;
+      sidebar.style.setProperty('--sidebar-y', `${Math.max(0, y)}px`);
+    };
     const measure = () => {
       const container = containerRef.current;
       const sidebar = sidebarRef.current;
@@ -71,15 +84,17 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
         headerOffset: headerHeight,
         sidebarHeight: sidebar.offsetHeight,
       };
+      metricsRef.current = next;
       setMetrics(next);
-      // Also update translateY after measuring
+      // Also update transform after measuring
       const topMargin = 24;
       const bottomMargin = 24;
       const minTopAbs = next.containerTop + topMargin;
       const maxTopAbs = next.footerTop - next.sidebarHeight - bottomMargin;
       const desiredAbsTop = Math.min(Math.max(scrollY + next.headerOffset, minTopAbs), maxTopAbs);
       const y = desiredAbsTop - (scrollY + next.headerOffset);
-      setTranslateY(Math.max(0, y));
+      translateYRef.current = Math.max(0, y);
+      applyTransform(translateYRef.current);
     };
 
     let ticking = false;
@@ -90,11 +105,13 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
         const scrollY = window.scrollY || window.pageYOffset;
         const topMargin = 24;
         const bottomMargin = 24;
-        const minTopAbs = metrics.containerTop + topMargin;
-        const maxTopAbs = metrics.footerTop - metrics.sidebarHeight - bottomMargin;
-        const desiredAbsTop = Math.min(Math.max(scrollY + metrics.headerOffset, minTopAbs), maxTopAbs);
-        const y = desiredAbsTop - (scrollY + metrics.headerOffset);
-        setTranslateY(Math.max(0, y));
+        const m = metricsRef.current;
+        const minTopAbs = m.containerTop + topMargin;
+        const maxTopAbs = m.footerTop - m.sidebarHeight - bottomMargin;
+        const desiredAbsTop = Math.min(Math.max(scrollY + m.headerOffset, minTopAbs), maxTopAbs);
+        const y = desiredAbsTop - (scrollY + m.headerOffset);
+        translateYRef.current = Math.max(0, y);
+        applyTransform(translateYRef.current);
         ticking = false;
       });
     };
@@ -106,7 +123,7 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', measure);
     };
-  }, [isStatic, metrics.containerTop, metrics.footerTop, metrics.sidebarHeight, metrics.headerOffset]);
+  }, [isStatic]);
 
   // Choose nav based on user role
   const navItems = user?.role === 'vet' ? VET_NAV : OWNER_NAV;
@@ -140,9 +157,9 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
             top: metrics.headerOffset,
             left: metrics.containerLeft,
             width: metrics.containerWidth,
-            transform: `translateY(${translateY}px) translateZ(0)`,
+            transform: 'translateY(var(--sidebar-y, 0px)) translateZ(0)',
             willChange: 'transform, left',
-            transition: 'transform 220ms cubic-bezier(0.2,0.8,0.2,1), left 220ms ease',
+            transition: 'left 220ms ease',
             zIndex: 2,
           }),
         }}
@@ -189,12 +206,7 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
           })}
         </List>
 
-        <Divider sx={{ my: 2 }} />
-        <Box sx={{ p: 2, bgcolor: roleTint, borderRadius: 2, border: `1px solid ${rolePrimary}` }}>
-          <Typography variant="body2" sx={{ color: '#455a64' }}>
-            Χρησιμοποιήστε το μενού για άμεση πρόσβαση στις βασικές ενότητες. Το πλαϊνό παραμένει σταθερό καθώς κάνετε κύλιση.
-          </Typography>
-        </Box>
+        {/* Tip box removed per request */}
       </Box>
       </Box>
       {/* Spacer only for fixed-follow mode (skip when overlay/noSpacer) */}
