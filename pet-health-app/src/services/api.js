@@ -37,6 +37,12 @@ export const lostPetsAPI = {
   delete: (id) => request(`lostPets/${id}`, { method: 'DELETE' }),
 };
 
+export const foundPetsAPI = {
+  getAll: () => request('foundPets'),
+  create: (ad) => request('foundPets', { method: 'POST', body: JSON.stringify({ id: toId(), ...ad }) }),
+  delete: (id) => request(`foundPets/${id}`, { method: 'DELETE' }),
+};
+
 export const appointmentsAPI = {
   getAll: () => request('appointments'),
   getByOwnerId: (ownerId) => request(`appointments?ownerId=${encodeURIComponent(ownerId)}`),

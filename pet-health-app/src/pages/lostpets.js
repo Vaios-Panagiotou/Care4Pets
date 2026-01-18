@@ -3,7 +3,8 @@ import {
   Box, Container, Grid, Typography, Button, Paper, Avatar, Chip, IconButton, 
   TextField, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel,
   Slider, Dialog, DialogContent, Stepper, Step, StepLabel, Collapse,
-  Alert, LinearProgress, Fade, Grow, Divider, InputAdornment, Zoom, Tooltip
+  Alert, LinearProgress, Fade, Grow, Divider, InputAdornment, Zoom, Tooltip,
+  ToggleButtonGroup, ToggleButton
 } from '@mui/material';
 import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -310,10 +311,10 @@ function LostPetsSearchView({
           <Box sx={{ position: 'relative', zIndex: 2, textAlign: 'center', px: 2 }}>
             <PetsIcon sx={{ fontSize: 80, color: '#FFA726', mb: 2 }} />
             <Typography variant="h3" sx={{ color: 'white', fontWeight: 900, mb: 1, textShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: { xs: '2rem', md: '3rem' } }}>
-              Δήλωση Εύρεσης Κατοικιδίου
+              Απολεσθέντα Κατοικίδια
             </Typography>
             <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)', mb: 4, fontWeight: 400 }}>
-              Δηλώστε ότι βρήκατε ένα ζωάκι για να επιστρέψει σπίτι
+              Δήλωση από ιδιοκτήτη για το δικό του κατοικίδιο
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
@@ -321,10 +322,10 @@ function LostPetsSearchView({
                 color="secondary"
                 size="large"
                 startIcon={<NotificationsActiveIcon />}
-                onClick={() => navigate('/found-pets')}
+                onClick={() => navigate('/lost-pets?view=form')}
                 sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
               >
-                Δήλωση Εύρεσης
+                Δήλωση Απώλειας
               </Button>
               <Button variant="outlined" size="large" startIcon={<InfoIcon />} onClick={() => setHowItWorksDialogOpen(true)} sx={{ borderRadius: '50px', px: 4, py: 1.5, color: 'white', borderColor: 'white', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}>
                 Πώς Λειτουργεί
@@ -346,7 +347,18 @@ function LostPetsSearchView({
         {/* FILTERS */}
         <Paper sx={{ p: 3, mb: 4, borderRadius: 4, boxShadow: 3 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={2}>
+              <ToggleButtonGroup
+                value="lost"
+                exclusive
+                fullWidth
+                onChange={(_, next) => { if (next === 'found') navigate('/found-pets'); }}
+              >
+                <ToggleButton value="lost">Απολεσθέντα</ToggleButton>
+                <ToggleButton value="found">Ευρεθέντα</ToggleButton>
+              </ToggleButtonGroup>
+            </Grid>
+            <Grid item xs={12} md={4}>
               <TextField 
                 fullWidth placeholder="Αναζήτηση ονόματος, ράτσας, περιοχής..." 
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
@@ -356,7 +368,7 @@ function LostPetsSearchView({
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <FormControl fullWidth>
                 <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} displayEmpty>
                   <MenuItem value="date">Πιο Πρόσφατα</MenuItem>
@@ -701,7 +713,7 @@ function LostPetsFormView({
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3, borderRadius: 4 }}>
-            <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>Δήλωση Εύρεσης</Typography>
+            <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>Δήλωση Απώλειας</Typography>
             <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
               {STEPS.map((step, index) => (
                 <Step key={step.label}>
@@ -1189,7 +1201,7 @@ export default function LostPets() {
     };
   }, [user, view]);
 
-  // Δεν απαιτείται προεπιλογή κατοικιδίου στη δήλωση εύρεσης
+  // Δεν απαιτείται προεπιλογή κατοικιδίου στη δήλωση απώλειας
 
   //prevent key bubbling
   const stopKeyPropagation = useCallback((e) => {
@@ -1210,7 +1222,10 @@ export default function LostPets() {
     loadUserLostPets();
   }, []);
 
-  const allLostPets = useMemo(() => [...LOST_PETS, ...userLostPets], [userLostPets]);
+  const allLostPets = useMemo(() => {
+    const normalized = (userLostPets || []).filter((pet) => pet.type !== 'found' && !pet.animalType);
+    return [...LOST_PETS, ...normalized];
+  }, [userLostPets]);
 
   const filteredPets = useMemo(() => {
     let filtered = [...allLostPets];
@@ -1699,13 +1714,13 @@ export default function LostPets() {
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>Γρήγορος οδηγός 4 βημάτων με ζωντανά παραδείγματα.</Typography>
               </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Με 3 απλά βήματα καταχωρείτε αγγελία για το ζώο που βρήκατε.
+              Με 3 απλά βήματα καταχωρείτε αγγελία για το ζώο που χάσατε.
               Η αγγελία δημοσιεύεται άμεσα στην αναζήτηση (δημόσια προβολή) και μπορείτε να την ενημερώνετε ή να την αφαιρέσετε οποιαδήποτε στιγμή.
               Για την προστασία προσωπικών δεδομένων, δημοσιεύστε μόνο τις πληροφορίες που είναι απαραίτητες για τον εντοπισμό του ζώου.
             </Typography>
 
             <Alert severity="info" sx={{ mb: 3 }}>
-              Για να κάνετε «Δήλωση Εύρεσης» πρέπει να είστε συνδεδεμένος/η.
+              Για να κάνετε «Δήλωση Απώλειας» πρέπει να είστε συνδεδεμένος/η.
             </Alert>
 
             <Grid container spacing={2}>
@@ -1717,7 +1732,7 @@ export default function LostPets() {
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>1) Δημιουργία Αγγελίας</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Πατήστε «Δήλωση Εύρεσης», ανεβάστε μία καθαρή φωτογραφία, γράψτε μια σύντομη περιγραφή και σημειώστε την περιοχή/σημείο που το βρήκατε.
+                    Πατήστε «Δήλωση Απώλειας», ανεβάστε μία καθαρή φωτογραφία, γράψτε μια σύντομη περιγραφή και σημειώστε την περιοχή/σημείο που το είδατε τελευταία φορά.
                     Αποφύγετε να γράψετε ακριβή διεύθυνση κατοικίας ή άλλα στοιχεία που δεν χρειάζονται.
                   </Typography>
                   </Box>
@@ -1782,7 +1797,7 @@ export default function LostPets() {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
               <Button variant="text" onClick={() => setHowItWorksDialogOpen(false)}>Κλείσιμο</Button>
               <Tooltip
-                title={!user ? 'Πρέπει να συνδεθείτε για να ξεκινήσετε δήλωση εύρεσης.' : ''}
+                title={!user ? 'Πρέπει να συνδεθείτε για να ξεκινήσετε δήλωση απώλειας.' : ''}
                 disableHoverListener={Boolean(user)}
                 arrow
               >
