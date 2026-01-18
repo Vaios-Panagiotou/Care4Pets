@@ -275,7 +275,7 @@ export default function Navbar() {
               {/* Γενικά */}
               <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
-                <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)}>
+                <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)} PaperProps={{ sx: { minWidth: 260 } }}>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση χαμένου κατοικιδίου</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/found-pets'); }}>Δήλωση Εύρεσης</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/news'); }}>Νέα και Ενημέρωση</MenuItem>
@@ -285,7 +285,7 @@ export default function Navbar() {
               {/* Κτηνίατροι */}
               <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElVet)} sx={navButtonStyle}>Κτηνίατροι</Button>
-                <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)}>
+                <Menu anchorEl={anchorElVet} open={Boolean(anchorElVet)} onClose={() => handleCloseMenu(setAnchorElVet)} PaperProps={{ sx: { minWidth: 260 } }}>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet'); }}>Σχετικά με Κτηνίατρο</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet/history'); }}>Ιστορικό</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElVet); navigate('/vet/schedule'); }}>Πρόγραμμα</MenuItem>
@@ -297,12 +297,20 @@ export default function Navbar() {
               {/* Ιδιοκτήτες */}
               <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElOwner)} sx={navButtonStyle}>Ιδιοκτήτες</Button>
-                <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)}>
+                <Menu anchorEl={anchorElOwner} open={Boolean(anchorElOwner)} onClose={() => handleCloseMenu(setAnchorElOwner)} PaperProps={{ sx: { minWidth: 260 } }}>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner'); }}>Σχετικά με Ιδιοκτήτη</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/pets'); }}>Το Κατοικίδιό μου</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/history'); }}>Ιστορικό</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/owner/search'); }}>Ραντεβού με Κτηνίατρο</MenuItem>
-                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElOwner); navigate('/lost-pets?view=form'); }}>Δήλωση Απώλειας</MenuItem>
+                  <MenuItem onClick={() => {
+                    handleCloseMenu(setAnchorElOwner);
+                    if (user) {
+                      navigate('/lost-pets?view=form');
+                      return;
+                    }
+                    try { sessionStorage.setItem('postAuthRedirect', '/lost-pets?view=form'); } catch (_) {}
+                    navigate('/login?reason=lost-pets');
+                  }}>Δήλωση Απώλειας</MenuItem>
                 </Menu>
               </Box>
 

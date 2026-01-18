@@ -305,10 +305,10 @@ const LostPetBanner = ({ user }) => {
       <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SearchIcon sx={{ color: 'secondary.main' }} /> Χάσατε ή βρήκατε κατοικίδιο;
+            <SearchIcon sx={{ color: 'secondary.main' }} /> Χάσατε ή βρήκατε ένα κατοικίδιο;
           </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.7 }}>
-            Κάντε αναζήτηση στις αγγελίες ή δηλώστε νέα απώλεια (απαιτεί σύνδεση).
+          <Typography variant="body2" sx={{ opacity: 0.85 }}>
+            Αναζητήστε αγγελίες ή δηλώστε νέα απώλεια εύκολα και γρήγορα.
           </Typography>
         </Box>
 

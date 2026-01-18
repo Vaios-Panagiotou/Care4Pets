@@ -186,30 +186,43 @@ export default function OwnerDashboard() {
                 { label: 'Δήλωση Απώλειας', icon: <NotificationsActiveIcon fontSize="large" />, color: '#1976d2', path: '/lost-pets?view=form' }
               ].map((action) => (
                 <Grid item xs={12} sm={6} md={3} key={action.label}>
-                  <Paper 
+                  <Paper
                     elevation={0}
-                    onClick={() => navigate(action.path)} 
-                    sx={{ 
-                      p: 3, 
-                      textAlign: 'center', 
-                      borderRadius: 4, 
-                      cursor: 'pointer',
-                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', 
-                      bgcolor: action.color, 
-                      color: 'white',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      '&:hover': { 
-                        transform: 'translateY(-8px) scale(1.02)', 
-                        boxShadow: '0 12px 24px rgba(25,118,210,0.4)',
-                        '& .icon-container': {
-                          transform: 'rotate(360deg) scale(1.1)'
-                        }
-                      },
-                      '&:active': {
-                        transform: 'translateY(-4px) scale(0.98)'
-                      }
-                    }}
+                    onClick={() => navigate(action.path)}
+                    sx={{
+                        width: 220,                 // ΣΤΑΘΕΡΟ ΠΛΑΤΟΣ (το κλειδί)
+                        minHeight: 160,
+                        p: 3,
+
+                        borderRadius: 999,          // pill shape
+                        cursor: 'pointer',
+
+                        bgcolor: action.color,
+                        color: 'white',
+
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+
+                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+
+                        '&:hover': {
+                          transform: 'translateY(-8px) scale(1.02)',
+                          boxShadow: '0 12px 24px rgba(25,118,210,0.4)',
+
+                          '& .icon-container': {
+                            transform: 'rotate(360deg) scale(1.1)',
+                          },
+                        },
+
+                        '&:active': {
+                          transform: 'translateY(-4px) scale(0.98)',
+                        },
+                      }}
+
                   >
                     <Box 
                       className="icon-container"
@@ -233,114 +246,7 @@ export default function OwnerDashboard() {
               ))}
             </Grid>
 
-            {/* INFO CARDS */}
-            <Typography 
-              variant="h4" 
-              sx={{ 
-                mb: 4, 
-                fontWeight: 700, 
-                color: '#1e293b',
-                textAlign: 'center',
-                letterSpacing: '-0.5px',
-                maxWidth: '900px',
-                mx: 'auto',
-                ml: { md: '140px' }
-              }}
-            >
-              Τι Τρέχει Τώρα
-            </Typography>
-            <Grid container spacing={4} sx={{ justifyContent: 'center', maxWidth: '900px', mx: 'auto', ml: { md: '180px' } }}>
-              <Grid item xs={12} sm={6}>
-                <Paper 
-                  elevation={0}
-                  onClick={() => navigate('/owner/history')}
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: 4, 
-                    bgcolor: '#f0f7ff',
-                    border: '2px solid #1976d2',
-                    cursor: 'pointer',
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': { 
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 24px rgba(25,118,210,0.3)',
-                      bgcolor: '#e3f2fd'
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box sx={{ fontSize: '32px' }}>📘</Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                      Ιστορικό Επισκέψεων
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Δείτε όλες τις επισκέψεις και ιατρικές πράξεις
-                  </Typography>
-                  <Button 
-                    variant="contained" 
-                    size="small"
-                    onClick={() => navigate('/owner/history')}
-                    sx={{ 
-                      borderRadius: 2,
-                      bgcolor: '#1976d2',
-                      textTransform: 'none',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      '&:hover': { bgcolor: '#1565c0' }
-                    }}
-                  >
-                    Μετάβαση →
-                  </Button>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Paper 
-                  elevation={0} 
-                  onClick={() => navigate('/lost-pets')}
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: 4, 
-                    bgcolor: '#f0fdf4',
-                    border: '2px solid #1976d2',
-                    cursor: 'pointer',
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': { 
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 24px rgba(25,118,210,0.3)',
-                      bgcolor: '#e3f2fd',
-                      borderColor: '#1976d2'
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box sx={{ fontSize: '32px' }}>🔎</Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                      Χαμένα Κατοικίδια
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Δημιουργήστε ή αναζητήστε αγγελίες απολεσθέντων ζώων
-                  </Typography>
-                  <Button 
-                    variant="contained" 
-                    onClick={() => navigate('/lost-pets')}
-                    sx={{ 
-                      borderRadius: 2,
-                      bgcolor: '#1976d2',
-                      textTransform: 'none',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      '&:hover': {
-                        bgcolor: '#1565c0'
-                      }
-                    }}
-                  >
-                    Μετάβαση →
-                  </Button>
-                </Paper>
-              </Grid>
-            </Grid>
+            {/* Info cards removed per request */}
           </Box>
         </Box>
       </Box>
