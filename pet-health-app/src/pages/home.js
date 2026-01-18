@@ -302,7 +302,7 @@ const LostPetBanner = ({ user }) => {
 
   return (
     <Box sx={{ bgcolor: '#263238', py: 4, color: 'white' }}>
-      <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+      <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <SearchIcon sx={{ color: 'secondary.main' }} /> Χάσατε ή βρήκατε κατοικίδιο;
@@ -312,7 +312,7 @@ const LostPetBanner = ({ user }) => {
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', ml: 8 }}>
           <Button
             variant="outlined"
             color="secondary"

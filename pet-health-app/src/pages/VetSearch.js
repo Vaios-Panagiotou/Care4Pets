@@ -605,6 +605,7 @@ export default function VetSearch() {
               </Box>
           </Box>
       </Box>
+      <Box sx={{ width: '100%', maxWidth: 900, mx: 'auto' }}>
       {displayedVets.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center', bgcolor: '#f5f5f5' }}>
           <Typography variant="body1" color="text.secondary">
@@ -679,6 +680,7 @@ export default function VetSearch() {
           ))
         )
       )}
+      </Box>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><Pagination count={pageCount} page={page} onChange={handlePageChange} color="primary" shape="rounded" /></Box>
 
       {/* Filter Dialog */}
@@ -1161,10 +1163,10 @@ export default function VetSearch() {
 
         {/* Sidebar and content layout below hero */}
         <Box sx={{ display: 'flex', flex: 1, maxWidth: '100%', overflow: 'hidden', p: 2, gap: 2 }}>
-          <DashboardSidebar />
-          
+          {user && <DashboardSidebar />}
+
           <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <Container maxWidth="md" sx={{ mt: 2,  ml: 27 }}>
+            <Container maxWidth="md" sx={{ mt: 2 }}>
             
             {activeStep === 0 && <StepVetList />}
             {activeStep === 1 && <StepCalendar />}
