@@ -1161,9 +1161,11 @@ export default function VetSearch() {
             </Box>
         </Box>
 
-        {/* Sidebar and content layout below hero */}
+        {/* Sidebar (overlay, not affecting layout) */}
+        {user && <DashboardSidebar noSpacer />}
+
+        {/* Content layout below hero */}
         <Box sx={{ display: 'flex', flex: 1, maxWidth: '100%', overflow: 'hidden', p: 2, gap: 2 }}>
-          {user && <DashboardSidebar />}
 
           <Box sx={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
             <Container maxWidth="md" sx={{ mt: 2 }}>

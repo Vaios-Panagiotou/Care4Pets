@@ -35,7 +35,7 @@ const VET_NAV = [
   { id: 'help', label: 'Οδηγός Χρήσης', icon: HelpOutlineIcon, path: '/vet/help' },
 ];
 
-export default function DashboardSidebar({ static: isStatic = false }) {
+export default function DashboardSidebar({ static: isStatic = false, noSpacer = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -197,8 +197,8 @@ export default function DashboardSidebar({ static: isStatic = false }) {
         </Box>
       </Box>
       </Box>
-      {/* Spacer only for fixed-follow mode */}
-      {!isStatic && (<Box sx={{ height: metrics.sidebarHeight }} />)}
+      {/* Spacer only for fixed-follow mode (skip when overlay/noSpacer) */}
+      {!isStatic && !noSpacer && (<Box sx={{ height: metrics.sidebarHeight }} />)}
     </Box>
   );
 }
