@@ -29,7 +29,7 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import PersonIcon from '@mui/icons-material/Person';
 
 import DashboardSidebar from '../components/DashboardSidebar';
-import { appointmentsAPI, vetsAPI, usersAPI } from '../services/api';
+import { appointmentsAPI, vetsAPI, usersAPI, visitsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Used only when the server has no appointments.
@@ -426,6 +426,12 @@ export default function VetSchedule() {
     setServerAppointments(prev => prev.map(a => String(a.id) === String(apptId) ? updated : a));
     try {
       await appointmentsAPI.update(apptId, updated);
+      // If appointment completed, record visit on pet and vet user
+      if (newStatus === 'completed') {
+        try {
+          await visitsAPI.recordVisit(updated);
+        } catch (err) { console.error('[record visit after complete]', err); }
+      }
     } catch (e) {
       console.error('Failed to update appointment status', e);
       setServerAppointments(prev => prev.map(a => String(a.id) === String(apptId) ? original : a));

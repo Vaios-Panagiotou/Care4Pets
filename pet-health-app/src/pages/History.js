@@ -438,24 +438,39 @@ export default function History() {
                     statusLabel={item.status === 'completed' ? 'Ολοκληρωμένο' : item.status === 'cancelled' ? 'Ακυρωμένο' : 'Επιβεβαιωμένο'}
                     showReviewButton={item.status === 'completed'}
                         onReviewClick={() => handleOpenReviewDialog(item)}
-                        onClick={() => handleOpenDialog({
-                                type: 'appointment',
-                                data: item,
-                                details: {
-                                    clinic: 'Κτηνιατρική Κλινική Αθηνών',
-                                    address: 'Λεωφ. Κηφισίας 123, Αθήνα',
-                                    phone: '210 1234567',
-                                    duration: '45 λεπτά',
-                                    cost: '€65',
-                      payment: item.status === 'completed' ? 'Πληρώθηκε - Κάρτα' : item.status === 'cancelled' ? 'Δεν χρεώθηκε' : '—',
-                            notes: item.status === 'completed' 
-                              ? 'Το ραντεβού ολοκληρώθηκε επιτυχώς. Το ζώο εξετάστηκε και δεν διαπιστώθηκαν προβλήματα υγείας. Συνιστάται επανεξέταση σε 6 μήνες.'
-                              : (item.cancelledBy === 'vet'
-                                ? `Το ραντεβού ακυρώθηκε από τον κτηνίατρο.${item.cancelReason ? ` Λόγος: ${item.cancelReason}` : ''}`
-                                : `Το ραντεβού ακυρώθηκε από τον ιδιοκτήτη.${item.cancelReason ? ` Λόγος: ${item.cancelReason}` : ''}`),
-                                    prescription: item.status === 'completed' ? 'Συνταγή: Antibiotica 250mg - 2x ημερησίως για 7 ημέρες' : null
-                                }
-                            })}
+                        onClick={() => {
+                      // Prefer vet-provided fields (note, diagnosis, treatment); if none are present, show a concise summary instead
+                      let notesContent = '';
+                      if (item.note && String(item.note).trim()) {
+                        notesContent = item.note;
+                      } else if ((item.diagnosis && String(item.diagnosis).trim()) || (item.treatment && String(item.treatment).trim())) {
+                        const parts = [];
+                        if (item.diagnosis) parts.push(`Διάγνωση: ${item.diagnosis}`);
+                        if (item.treatment) parts.push(`Θεραπεία: ${item.treatment}`);
+                        notesContent = parts.join(' • ');
+                      } else if (item.status === 'completed') {
+                        notesContent = 'Το ραντεβού ολοκληρώθηκε επιτυχώς. Συνιστάται επανεξέταση αν χρειάζεται.';
+                      } else {
+                        notesContent = item.cancelledBy === 'vet'
+                          ? `Το ραντεβού ακυρώθηκε από τον κτηνίατρο.${item.cancelReason ? ` Λόγος: ${item.cancelReason}` : ''}`
+                          : `Το ραντεβού ακυρώθηκε από τον ιδιοκτήτη.${item.cancelReason ? ` Λόγος: ${item.cancelReason}` : ''}`;
+                      }
+
+                      handleOpenDialog({
+                        type: 'appointment',
+                        data: item,
+                        details: {
+                          clinic: 'Κτηνιατρική Κλινική Αθηνών',
+                          address: 'Λεωφ. Κηφισίας 123, Αθήνα',
+                          phone: '210 1234567',
+                          duration: '45 λεπτά',
+                          cost: '€65',
+                          payment: item.status === 'completed' ? 'Πληρώθηκε - Κάρτα' : item.status === 'cancelled' ? 'Δεν χρεώθηκε' : '—',
+                          notes: notesContent,
+                          prescription: item.prescription || (item.status === 'completed' ? (item.diagnosis ? `Διάγνωση: ${item.diagnosis}` : null) : null)
+                        }
+                      });
+                    }}
                         />
                     ))}
                 {loadingAppointments && (

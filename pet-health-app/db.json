@@ -14,7 +14,10 @@
       "email": "ktiniatros@gmail.com",
       "password": "123456",
       "afm": "123456783",
-      "role": "vet"
+      "role": "vet",
+      "visitedPets": [
+        "1767818061514"
+      ]
     },
     {
       "id": "1766231574654",
@@ -72,7 +75,26 @@
       "age": "1",
       "weight": "5",
       "color": "",
-      "image": "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80"
+      "image": "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80",
+      "visits": [
+        {
+          "appointmentId": "1767564945901",
+          "vetId": "1",
+          "date": "Παρασκευή 23 Ιανουαρίου 2026",
+          "type": "Visit",
+          "status": "cancelled",
+          "reason": "r"
+        },
+        {
+          "appointmentId": "1768402082508",
+          "vetUserId": "1768402024631",
+          "vetId": "1768402024653",
+          "date": "Σάββατο 31 Ιανουαρίου 2026",
+          "type": "Visit",
+          "status": "cancelled",
+          "reason": "πλζ"
+        }
+      ]
     },
     {
       "id": "1767818061514",
@@ -84,7 +106,37 @@
       "microchip": "123456789132456",
       "img": "",
       "ownerId": "1765141425145",
-      "registeredAt": "2026-01-07T20:34:21.514Z"
+      "registeredAt": "2026-01-07T20:34:21.514Z",
+      "visits": [
+        {
+          "appointmentId": "1767817958939",
+          "vetUserId": "1765143289475",
+          "vetId": "1",
+          "date": "2026-01-07T20:34:21.522Z",
+          "type": "Registration",
+          "status": "completed",
+          "note": "Καταχώριση κατοικιδίου από ραντεβού"
+        },
+        {
+          "appointmentId": "1767615008243",
+          "vetId": "1",
+          "date": "Πέμπτη 15 Ιανουαρίου 2026",
+          "type": "Visit",
+          "status": "completed",
+          "reason": "Τακτικός Έλεγχος",
+          "note": "Ολα καλα"
+        },
+        {
+          "appointmentId": "1768833227673",
+          "vetUserId": "1765143289475",
+          "vetId": "1",
+          "date": "2026-01-19T14:34:43.278Z",
+          "type": "Visit",
+          "status": "completed",
+          "reason": "Τακτικός Έλεγχος",
+          "note": "ola kala me ton mpoumpi"
+        }
+      ]
     },
     {
       "id": "1768821395404",
@@ -674,6 +726,32 @@
       "detailNotes": {
         "checkup": "φε"
       }
+    },
+    {
+      "id": "1768833227673",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "11:30",
+      "date": "Δευτέρα 19 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "aplo checup"
+      },
+      "updatedAt": "2026-01-19T14:34:43.278Z",
+      "note": "ola kala me ton mpoumpi",
+      "diagnosis": "katharos",
+      "treatment": "tipota",
+      "nextVisit": "2027-01-19"
     }
   ],
   "healthRecords": [

@@ -9,7 +9,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DashboardSidebar from '../components/DashboardSidebar';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import PageHeader from './PageHeader';
-import { petsAPI, usersAPI, appointmentsAPI, prescriptionsAPI, lostPetsAPI, foundPetsAPI } from '../services/api';
+import { petsAPI, usersAPI, appointmentsAPI, prescriptionsAPI, lostPetsAPI, foundPetsAPI, visitsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Icons
@@ -272,6 +272,10 @@ export default function VetRecords() {
         updatedAt: new Date().toISOString()
       };
       await appointmentsAPI.update(apptId, updated);
+      // Record pet visit and update vet visitedPets
+      try {
+        await visitsAPI.recordVisit(updated);
+      } catch (err) { console.error('[record visit after mark complete]', err); }
       // Navigate back to schedule for immediate feedback
       navigate('/vet/schedule');
     } catch (e) {
@@ -425,7 +429,14 @@ export default function VetRecords() {
             return d.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' });
           } catch { return '—'; }
         };
-        const rows = (Array.isArray(pets) ? pets : []).map(p => ({
+        // Only show recent pets that actually visited this vet (derived from appointments)
+        const appts = Array.isArray(await appointmentsAPI.getAll()) ? await appointmentsAPI.getAll() : [];
+        const vetAppointments = appts.filter(getVetMatch);
+        const petIds = new Set(vetAppointments.map(a => String(a.petId || '')).filter(Boolean));
+        const sourcePets = Array.isArray(pets) ? pets : [];
+        const filtered = petIds.size ? sourcePets.filter(p => petIds.has(String(p.id))) : [];
+
+        const rows = (filtered.map(p => ({
           id: String(p.id),
           name: p.name || '—',
           type: toGreekType(p.type),
@@ -435,13 +446,14 @@ export default function VetRecords() {
           microchip: p.microchip || '—',
           date: fmtDate(p.registeredAt),
           registeredAt: p.registeredAt || null
-        }));
+        })));
         // Sort newest first using registeredAt or fallback to id (timestamp-like)
         rows.sort((a, b) => {
           const ta = a.registeredAt ? new Date(a.registeredAt).getTime() : Number(a.id) || 0;
           const tb = b.registeredAt ? new Date(b.registeredAt).getTime() : Number(b.id) || 0;
           return tb - ta;
         });
+        // Only show vet-specific recent pets (empty list if none)
         setRecentPets(rows.slice(0, 12));
       } catch (e) {
         console.warn('Failed to load pets; using fallback.', e);
@@ -469,9 +481,12 @@ export default function VetRecords() {
         if (!mounted) return;
         const ownerList = (Array.isArray(users) ? users : []).filter(u => String(u.role || '').toLowerCase() === 'owner');
         setOwners(ownerList);
-        setAllPets(Array.isArray(pets) ? pets : []);
-
+        // Only show pets that have appointments with this vet
         const vetAppointments = (Array.isArray(appts) ? appts : []).filter(getVetMatch);
+        const petIds = new Set(vetAppointments.map(a => String(a.petId || '')).filter(Boolean));
+        const filteredPets = petIds.size ? (Array.isArray(pets) ? pets : []).filter(p => petIds.has(String(p.id))) : [];
+        setAllPets(filteredPets);
+
         const clientOwnerIds = new Set(vetAppointments.map(a => String(a.ownerId || '')).filter(Boolean));
         const clientList = ownerList.filter(o => clientOwnerIds.has(String(o.id)));
         setClientOwners(clientList.length ? clientList : ownerList);
@@ -1671,9 +1686,17 @@ export default function VetRecords() {
                   const updated = { ...pet, ownerId: transferForm.newOwnerId, updatedAt: new Date().toISOString() };
                   await petsAPI.update(pet.id, updated);
 
-                  // Refresh pets in memory
-                  const refreshedPets = await petsAPI.getAll();
-                  setAllPets(Array.isArray(refreshedPets) ? refreshedPets : []);
+                  // Refresh pets in memory, but filter to pets that have appointments with this vet
+                  const refreshedPets = Array.isArray(await petsAPI.getAll()) ? await petsAPI.getAll() : [];
+                  try {
+                    const refreshedAppts = Array.isArray(await appointmentsAPI.getAll()) ? await appointmentsAPI.getAll() : [];
+                    const vetAppointmentsRef = refreshedAppts.filter(getVetMatch);
+                    const petIdsRef = new Set(vetAppointmentsRef.map(a => String(a.petId || '')).filter(Boolean));
+                    const filteredRefreshed = petIdsRef.size ? refreshedPets.filter(p => petIdsRef.has(String(p.id))) : [];
+                    setAllPets(filteredRefreshed);
+                  } catch (err) {
+                    setAllPets(Array.isArray(refreshedPets) ? refreshedPets : []);
+                  }
 
                   // capture notes before clearing
                   const transferNote = transferForm.notes;

@@ -106,3 +106,54 @@ export const vetClinicsAPI = {
   getByVetId: (vetId) => request(`vetClinics?vetId=${encodeURIComponent(vetId)}`),
   update: (id, clinic) => request(`vetClinics/${id}`, { method: 'PUT', body: JSON.stringify(clinic) }),
 };
+
+// Visits helper: record a completed appointment as a visit on the pet and the vet user
+export const visitsAPI = {
+  recordVisit: async (appt) => {
+    if (!appt) return null;
+    try {
+      // Resolve pet
+      const pets = Array.isArray(await petsAPI.getAll()) ? await petsAPI.getAll() : [];
+      let pet = null;
+      if (appt.petId) pet = pets.find(p => String(p.id) === String(appt.petId));
+      if (!pet) {
+        pet = pets.find(p => String(p.ownerId) === String(appt.ownerId) && ((p.name || '').toLowerCase() === String(appt.petName || '').toLowerCase()));
+      }
+      if (!pet) return null;
+
+      const visit = {
+        appointmentId: appt.id,
+        vetUserId: appt.vetUserId || null,
+        vetId: appt.vetId || null,
+        date: appt.completedAt || appt.updatedAt || new Date().toISOString(),
+        type: appt.type || 'Visit',
+        status: appt.status || 'completed',
+        reason: appt.reason || '',
+        note: appt.note || ''
+      };
+
+      const prev = Array.isArray(pet.visits) ? pet.visits : [];
+      const updatedPet = { ...pet, visits: [...prev, visit] };
+      await petsAPI.update(pet.id, updatedPet);
+
+      // Update vet user visitedPets
+      const users = Array.isArray(await usersAPI.getAll()) ? await usersAPI.getAll() : [];
+      let vetUser = null;
+      if (appt.vetUserId) vetUser = users.find(u => String(u.id) === String(appt.vetUserId));
+      if (!vetUser) {
+        vetUser = users.find(u => (appt.vetEmail && u.email && u.email.toLowerCase() === appt.vetEmail?.toLowerCase()) || (appt.vetName && ((u.fullname || u.name || '').toLowerCase() === appt.vetName?.toLowerCase())));
+      }
+      if (vetUser) {
+        const set = new Set(Array.isArray(vetUser.visitedPets) ? vetUser.visitedPets : []);
+        set.add(String(pet.id));
+        const updatedUser = { ...vetUser, visitedPets: Array.from(set) };
+        await usersAPI.update(vetUser.id, updatedUser);
+      }
+
+      return { petId: pet.id, vetUserId: vetUser?.id || null };
+    } catch (err) {
+      console.error('[visitsAPI.recordVisit] failed', err);
+      return null;
+    }
+  }
+};

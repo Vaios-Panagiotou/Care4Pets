@@ -17,7 +17,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 // Import PageHeader
 import PageHeader from './PageHeader';
 import DashboardSidebar from '../components/DashboardSidebar';
-import { petsAPI, usersAPI, appointmentsAPI, vetsAPI } from '../services/api';
+import { petsAPI, usersAPI, appointmentsAPI, vetsAPI, visitsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Create theme outside component to prevent recreation on every render
@@ -227,8 +227,10 @@ const NewRecord = () => {
               completedAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
-            await appointmentsAPI.update(appt.id, updated);
-          }
+            await appointmentsAPI.update(appt.id, updated);            try {
+              // Record the visit now that the pet exists
+              await visitsAPI.recordVisit(updated);
+            } catch (err) { console.error('[record visit after registration]', err); }          }
         } catch (e) {
           console.warn('Αποτυχία ενημέρωσης του ραντεβού ως completed', e);
         }
