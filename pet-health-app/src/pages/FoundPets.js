@@ -17,6 +17,9 @@ import {
   FormControlLabel,
   Collapse,
   Divider,
+  Dialog,
+  DialogActions,
+  DialogContent,
   InputAdornment,
   IconButton,
   ToggleButtonGroup,
@@ -97,6 +100,73 @@ const heartbeat = keyframes`
   10%, 30% { transform: scale(0.9); }
   20%, 40% { transform: scale(1.1); }
 `;
+
+function buildOsmEmbedSrc(lat, lng) {
+  const d = 0.02;
+  const left = (lng - d).toFixed(6);
+  const right = (lng + d).toFixed(6);
+  const top = (lat + d).toFixed(6);
+  const bottom = (lat - d).toFixed(6);
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
+
+function SimpleMapEmbed({ value, onChange, onLocationChange }) {
+  const [query, setQuery] = useState('');
+  const lat = value?.lat ?? 37.9838;
+  const lng = value?.lng ?? 23.7275;
+  const src = buildOsmEmbedSrc(lat, lng);
+
+  const searchPlace = async () => {
+    if (!query.trim()) return;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=el&q=${encodeURIComponent(query)}`);
+      const results = await res.json();
+      if (results && results[0]) {
+        const { lat, lon, display_name } = results[0];
+        const coords = { lat: parseFloat(lat), lng: parseFloat(lon) };
+        onChange?.(coords);
+        onLocationChange?.(display_name || query);
+      }
+    } catch (e) {
+      console.error('Geocoding failed', e);
+    }
+  };
+
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+        <TextField
+          fullWidth
+          placeholder="Αναζήτηση περιοχής (π.χ. Κυψέλη, Αθήνα)"
+          size="small"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            onLocationChange?.(e.target.value);
+          }}
+          onKeyDown={(e) => { if (e.key === 'Enter') searchPlace(); }}
+        />
+        <Button variant="outlined" onClick={searchPlace}>Αναζήτηση</Button>
+      </Box>
+      <Box sx={{ height: 300, borderRadius: 2, overflow: 'hidden' }}>
+        <iframe
+          title="map-embed"
+          src={src}
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </Box>
+      {value?.lat && value?.lng && (
+        <Typography variant="caption" color="text.secondary">
+          Συντεταγμένες: {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
+        </Typography>
+      )}
+    </Box>
+  );
+}
 
 const useCountUp = (end, duration = 2000, shouldStart = true) => {
   const [count, setCount] = useState(0);
@@ -199,6 +269,8 @@ export default function FoundPets() {
   const navigate = useNavigate();
   const location = useLocation();
   const [view, setView] = useState('search');
+  const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [form, setForm] = useState({
     type: '',
@@ -206,6 +278,7 @@ export default function FoundPets() {
     foundLocation: '',
     foundAt: '',
     hasOwner: false,
+    foundCoords: null,
   });
   const [images, setImages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -302,6 +375,24 @@ export default function FoundPets() {
     }
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleImageUpload({ target: { files: e.dataTransfer.files } });
+    }
+  };
+
   const validate = () => {
     if (!form.type) return 'Επιλέξτε είδος.';
     if (!form.description) return 'Συμπληρώστε μια σύντομη περιγραφή.';
@@ -327,6 +418,7 @@ export default function FoundPets() {
         foundAt: form.foundAt,
         hasOwner: !!form.hasOwner,
         images,
+        coords: form.foundCoords || null,
         createdAt: new Date().toISOString(),
       };
       const created = await foundPetsAPI.create(payload);
@@ -384,7 +476,7 @@ export default function FoundPets() {
               variant="outlined"
               size="large"
               startIcon={<InfoIcon />}
-              onClick={() => document.getElementById('found-search-bar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onClick={() => setHowItWorksDialogOpen(true)}
               sx={{ borderRadius: '50px', px: 4, py: 1.5, color: 'white', borderColor: 'white', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}
             >
               Πώς Λειτουργεί
@@ -403,11 +495,11 @@ export default function FoundPets() {
                   value="found"
                   exclusive
                   fullWidth
-                  sx={{ borderRadius: '999px', overflow: 'hidden' }}
+                  sx={{ borderRadius: '16px', overflow: 'hidden' }}
                   onChange={(_, next) => { if (next === 'lost') navigate('/lost-pets'); }}
                 >
-                  <ToggleButton value="lost" sx={{ borderRadius: '999px' }}>Απολεσθέντα</ToggleButton>
-                  <ToggleButton value="found" sx={{ borderRadius: '999px' }}>Ευρεθέντα</ToggleButton>
+                  <ToggleButton value="lost" sx={{ borderRadius: '16px' }}>Απολεσθέντα</ToggleButton>
+                  <ToggleButton value="found" sx={{ borderRadius: '16px' }}>Ευρεθέντα</ToggleButton>
                 </ToggleButtonGroup>
               </Grid>
               <Grid item xs={12} md={4}>
@@ -416,6 +508,7 @@ export default function FoundPets() {
                   placeholder="Αναζήτηση είδους, περιγραφής, περιοχής..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                   InputProps={{
                     startAdornment: <InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>,
                     endAdornment: searchQuery && (
@@ -430,7 +523,12 @@ export default function FoundPets() {
               </Grid>
               <Grid item xs={12} md={2}>
                 <FormControl fullWidth>
-                  <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} displayEmpty>
+                  <Select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    displayEmpty
+                    sx={{ '& .MuiOutlinedInput-notchedOutline': { borderRadius: '16px' } }}
+                  >
                     <MenuItem value="date">Πιο Πρόσφατα</MenuItem>
                     <MenuItem value="oldest">Παλαιότερα</MenuItem>
                   </Select>
@@ -442,7 +540,7 @@ export default function FoundPets() {
                   variant={hasOwnerOnly ? 'contained' : 'outlined'}
                   startIcon={<CheckCircleIcon />}
                   onClick={() => setHasOwnerOnly(!hasOwnerOnly)}
-                  sx={{ borderRadius: '999px' }}
+                  sx={{ borderRadius: '16px' }}
                 >
                   Έχει ιδιοκτήτη
                 </Button>
@@ -453,7 +551,7 @@ export default function FoundPets() {
                   variant={filtersOpen ? 'contained' : 'outlined'}
                   startIcon={<TuneIcon />}
                   onClick={() => setFiltersOpen(!filtersOpen)}
-                  sx={{ borderRadius: '999px' }}
+                  sx={{ borderRadius: '16px' }}
                 >
                   Φίλτρα
                 </Button>
@@ -487,7 +585,7 @@ export default function FoundPets() {
                     fullWidth
                     variant="outlined"
                     onClick={() => navigate('/found-pets?view=form')}
-                    sx={{ borderRadius: '999px' }}
+                    sx={{ borderRadius: '16px' }}
                   >
                     Δήλωση Εύρεσης
                   </Button>
@@ -558,62 +656,103 @@ export default function FoundPets() {
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mb: 2 }}>Η δήλωση εύρεσης καταχωρίστηκε!</Alert>}
 
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel id="type-label">Είδος Ζώου</InputLabel>
-                  <Select labelId="type-label" label="Είδος Ζώου" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                    <MenuItem value="Σκύλος">Σκύλος</MenuItem>
-                    <MenuItem value="Γάτα">Γάτα</MenuItem>
-                    <MenuItem value="Άλλο">Άλλο</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Ημερομηνία & Ώρα"
-                  type="datetime-local"
-                  InputLabelProps={{ shrink: true }}
-                  value={form.foundAt}
-                  onChange={(e) => setForm({ ...form, foundAt: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Τοποθεσία"
-                  placeholder="Π.χ. Παγκράτι, Αθήνα"
-                  value={form.foundLocation}
-                  onChange={(e) => setForm({ ...form, foundLocation: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  label="Περιγραφή"
-                  placeholder="Χαρακτηριστικά, σημάδια, συμπεριφορά"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.hasOwner}
-                      onChange={(e) => setForm({ ...form, hasOwner: e.target.checked })}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth sx={{ minWidth: 130 }}>
+                      <InputLabel id="type-label">Είδος Ζώου</InputLabel>
+                      <Select
+                        labelId="type-label"
+                        label="Είδος Ζώου"
+                        value={form.type}
+                        onChange={(e) => setForm({ ...form, type: e.target.value })}
+                      >
+                        <MenuItem value="" disabled>Επιλέξτε είδος</MenuItem>
+                        <MenuItem value="Σκύλος">Σκύλος</MenuItem>
+                        <MenuItem value="Γάτα">Γάτα</MenuItem>
+                        <MenuItem value="Άλλο">Άλλο</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Ημερομηνία & Ώρα"
+                      type="datetime-local"
+                      InputLabelProps={{ shrink: true }}
+                      value={form.foundAt}
+                      onChange={(e) => setForm({ ...form, foundAt: e.target.value })}
                     />
-                  }
-                  label="Το ζώο φαίνεται να έχει ιδιοκτήτη (κολάρο κ.λπ.)"
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={4}
+                      label="Περιγραφή"
+                      placeholder="Χαρακτηριστικά, σημάδια, συμπεριφορά"
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={form.hasOwner}
+                          onChange={(e) => setForm({ ...form, hasOwner: e.target.checked })}
+                        />
+                      }
+                      label="Το ζώο φαίνεται να έχει ιδιοκτήτη (κολάρο κ.λπ.)"
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <SimpleMapEmbed
+                  value={form.foundCoords}
+                  onChange={(coords) => setForm((prev) => ({ ...prev, foundCoords: coords }))}
+                  onLocationChange={(text) => setForm((prev) => ({ ...prev, foundLocation: text }))}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <Button variant="outlined" component="label" startIcon={<UploadIcon />}>Ανέβασμα Φωτογραφίας
+              <Grid item xs={12} md={4}>
+                <Paper
+                  component="label"
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    border: '2px dashed',
+                    borderColor: isDragging ? 'primary.main' : 'grey.300',
+                    bgcolor: isDragging ? 'action.hover' : '#fafafa',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    '&:hover': { borderColor: 'primary.main', bgcolor: 'grey.50' },
+                  }}
+                >
                   <input hidden multiple type="file" accept="image/*" onChange={handleImageUpload} />
-                </Button>
+                  <Box sx={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.50',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <UploadIcon sx={{ fontSize: 34, color: 'primary.main' }} />
+                  </Box>
+                  <Typography variant="subtitle1" fontWeight={700}>Σύρετε φωτογραφίες εδώ</Typography>
+                  <Typography variant="body2" color="text.secondary">ή κάντε κλικ για επιλογή αρχείων</Typography>
+                  <Chip label="JPG, PNG • Έως 5MB" size="small" variant="outlined" />
+                </Paper>
                 <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
                   {images.map((src, idx) => (
                     <Box key={idx} sx={{ width: 96, height: 96, borderRadius: 2, overflow: 'hidden', border: '1px solid #eee' }}>
@@ -633,6 +772,63 @@ export default function FoundPets() {
           </Paper>
         </Container>
       )}
+
+      <Dialog open={howItWorksDialogOpen} onClose={() => setHowItWorksDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogContent>
+          <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>Πώς Λειτουργεί η Δήλωση Εύρεσης</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Με 3 απλά βήματα καταχωρείτε μια δήλωση για ζώο που εντοπίστηκε. Η δήλωση εμφανίζεται άμεσα στη λίστα αναζήτησης.
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2, borderLeft: '4px solid #FFA726', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <Box sx={{ bgcolor: '#FFF3E0', color: '#FB8C00', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <NotificationsActiveIcon fontSize="small" />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700}>1) Δήλωση</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Συμπληρώστε είδος, περιγραφή και τοποθεσία όπου βρέθηκε το ζώο.
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2, borderLeft: '4px solid #1976d2', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <Box sx={{ bgcolor: '#E3F2FD', color: '#1976d2', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <UploadIcon fontSize="small" />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700}>2) Φωτογραφίες</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Ανεβάστε καθαρές εικόνες για γρήγορη αναγνώριση.
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2, borderLeft: '4px solid #2E7D32', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <Box sx={{ bgcolor: '#E8F5E9', color: '#2E7D32', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <VisibilityIcon fontSize="small" />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700}>3) Εμφάνιση</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Η δήλωση εμφανίζεται στη λίστα και βοηθάει τον ιδιοκτήτη να την εντοπίσει.
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button variant="text" onClick={() => setHowItWorksDialogOpen(false)}>Κλείσιμο</Button>
+          <Button variant="contained" onClick={() => { setHowItWorksDialogOpen(false); setView('form'); }}>
+            Ξεκινήστε
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
