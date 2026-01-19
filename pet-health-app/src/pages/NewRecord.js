@@ -256,6 +256,24 @@ const NewRecord = () => {
             <PageHeader />
         </Container>
 
+        {/* HERO HEADER (full width, not affected by sidebar) */}
+        <Box sx={{
+          bgcolor: '#1976d2',
+          py: 5,
+          mb: 2,
+          color: 'white',
+          textAlign: 'center',
+          width: '100vw',
+          marginLeft: 'calc(-50vw + 50%)'
+        }}>
+          <Container maxWidth="md">
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Νέα Καταγραφή Ασθενούς</Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Συμπληρώστε τα στοιχεία του ζώου και του ιδιοκτήτη
+            </Typography>
+          </Container>
+        </Box>
+
         <Box sx={{ display: 'flex', flex: 1, maxWidth: '100vw', overflow: 'hidden', p: 2, gap: 2 }}>
           <DashboardSidebar />
           
@@ -268,15 +286,6 @@ const NewRecord = () => {
               WebkitOverflowScrolling: 'touch',
               willChange: 'transform'
             }}>
-            {/* HERO HEADER */}
-            <Box sx={{ bgcolor: '#1976d2', py: 5, mb: 2, color: 'white', textAlign: 'center', mr: -2 }}>
-                <Container maxWidth="md">
-                    <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Νέα Καταγραφή Ασθενούς</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                        Συμπληρώστε τα στοιχεία του ζώου και του ιδιοκτήτη
-                    </Typography>
-                </Container>
-            </Box>
 
             {/* Minimal indicator if opened from a Registration appointment; otherwise show pending banner */}
             {linkedAppt && String(linkedAppt.type).toLowerCase() === 'registration' ? (

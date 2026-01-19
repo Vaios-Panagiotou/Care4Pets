@@ -143,6 +143,7 @@ export default function VetSearch() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
+  const REGISTRATION_REASON = 'Καταχώριση Κατοικιδίου';
   const [appointmentReason, setAppointmentReason] = useState('');
   const [registerAppointment, setRegisterAppointment] = useState(false);
   // Details & notes (user-selectable options)
@@ -152,8 +153,20 @@ export default function VetSearch() {
   // Single-select details: selecting a chip selects only that option; selecting again clears it
   const toggleDetail = (key) => setSelectedDetails(prev => {
     if (prev.length === 1 && prev[0] === key) {
+      if (key === 'new-record') {
+        setRegisterAppointment(false);
+        if (appointmentReason === REGISTRATION_REASON) setAppointmentReason('');
+      }
       setDetailNotes(d => { const c = { ...d }; delete c[key]; return c; });
       return [];
+    }
+    if (key === 'new-record') {
+      setRegisterAppointment(true);
+      setSelectedPet(null);
+      if (!appointmentReason) setAppointmentReason(REGISTRATION_REASON);
+    } else {
+      setRegisterAppointment(false);
+      if (appointmentReason === REGISTRATION_REASON) setAppointmentReason('');
     }
     return [key];
   });
@@ -973,7 +986,7 @@ export default function VetSearch() {
             onClick={() => {
               setRegisterAppointment(true);
               setSelectedPet(null);
-              if (!appointmentReason) setAppointmentReason('Καταχώριση Κατοικιδίου');
+              if (!appointmentReason) setAppointmentReason(REGISTRATION_REASON);
               setActiveStep((prev) => prev + 1);
             }}
           >
@@ -992,11 +1005,12 @@ export default function VetSearch() {
                   setRegisterAppointment(next);
                   if (next) {
                     setSelectedPet(null);
-                    if (!appointmentReason) setAppointmentReason('Καταχώριση Κατοικιδίου');
+                    if (!appointmentReason) setAppointmentReason(REGISTRATION_REASON);
                     // Also select the 'Νέα Καταγραφή' detail so the downstream flow is consistent
                     setSelectedDetails(['new-record']);
                     setDetailNotes(prev => ({ ...prev, ['new-record']: prev['new-record'] || '' }));
                   } else {
+                    if (appointmentReason === REGISTRATION_REASON) setAppointmentReason('');
                     // If user deselects registration, remove the new-record detail
                     setSelectedDetails(prev => prev.filter(d => d !== 'new-record'));
                     setDetailNotes(prev => { const c = { ...prev }; delete c['new-record']; return c; });
@@ -1027,6 +1041,8 @@ export default function VetSearch() {
                   elevation={selectedPet?.id === pet.id ? 4 : 0} 
                   onClick={() => {
                     setSelectedPet(pet);
+                    setRegisterAppointment(false);
+                    if (appointmentReason === REGISTRATION_REASON) setAppointmentReason('');
                     // Clear 'Νέα Καταγραφή' when selecting an existing pet
                     if (selectedDetails.includes('new-record')) {
                       setSelectedDetails([]);

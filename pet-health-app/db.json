@@ -608,6 +608,30 @@
       "cancelReason": "lathos\n",
       "cancelledBy": "vet",
       "updatedAt": "2026-01-19T12:18:36.210Z"
+    },
+    {
+      "id": "1768826533634",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "wht",
+      "time": "11:30",
+      "date": "Σάββατο 31 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "loss"
+      ],
+      "detailNotes": {
+        "loss": "φεφς"
+      },
+      "cancelReason": "φδγδφβ",
+      "cancelledBy": "vet",
+      "updatedAt": "2026-01-19T12:42:28.576Z"
     }
   ],
   "healthRecords": [
