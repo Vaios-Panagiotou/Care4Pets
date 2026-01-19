@@ -3,7 +3,7 @@ import { Box, Breadcrumbs, Link, Typography, IconButton, Tooltip, Button } from 
 import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Icons
+// Εικονίδια
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import HomeIcon from '@mui/icons-material/Home';
 
@@ -31,6 +31,6 @@ const routeNameMap = {
   'find-vet': 'Εύρεση Κτηνιάτρου',  'found-pets': 'Δήλωση Εύρεσης',};
 
 export default function PageHeader() {
-  // This component intentionally renders nothing — breadcrumbs are handled in the top Navbar.
+  // Αυτό το component δεν εμφανίζει περιεχόμενο — τα breadcrumbs χειρίζεται το πάνω Navbar.
   return null;
 }

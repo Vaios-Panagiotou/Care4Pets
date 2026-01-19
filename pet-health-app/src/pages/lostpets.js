@@ -5,12 +5,13 @@ import {
   Slider, Dialog, DialogContent, Stepper, Step, StepLabel, Collapse,
   Alert, LinearProgress, Fade, Grow, Divider, InputAdornment, ToggleButtonGroup, ToggleButton, Zoom, Tooltip
 } from '@mui/material';
+
 import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { lostPetsAPI, petsAPI, usersAPI, appointmentsAPI } from '../services/api';
 
-// Icons
+// Εικονίδια
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -36,7 +37,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Navbar from '../components/Navbar';
 import DashboardSidebar from '../components/DashboardSidebar';
 
-// Keyframe Animations
+// Keyframes (κινούμενα)
 const fadeInUp = keyframes`
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
@@ -69,7 +70,7 @@ const heartbeat = keyframes`
 `;
 
 function buildOsmEmbedSrc(lat, lng) {
-  //created a small bbox around the point for a nice zoom
+  // Δημιούργησα μικρό bbox γύρω από το σημείο για καλύτερο zoom
   const d = 0.02; // ~2km
   const left = (lng - d).toFixed(6);
   const right = (lng + d).toFixed(6);
@@ -80,7 +81,7 @@ function buildOsmEmbedSrc(lat, lng) {
 
 function SimpleMapEmbed({ value, onChange, onLocationChange }) {
   const [query, setQuery] = useState('');
-  const lat = value?.lat ?? 37.9838; //athens default
+  const lat = value?.lat ?? 37.9838; // προεπιλογή: Αθήνα
   const lng = value?.lng ?? 23.7275;
   const src = buildOsmEmbedSrc(lat, lng);
 
@@ -134,7 +135,7 @@ function SimpleMapEmbed({ value, onChange, onLocationChange }) {
   );
 }
 
-// Counter animation hook
+// Hook για μέτρηση (count-up)
 const useCountUp = (end, duration = 2000, shouldStart = true) => {
   const [count, setCount] = useState(0);
   
@@ -178,7 +179,7 @@ const theme = createTheme({
   shape: { borderRadius: 16 }
 });
 
-// Stats Bar Component
+// Στοιχείο μπάρας στατιστικών
 const StatsBar = () => {
   const [isVisible, setIsVisible] = useState(false);
   
@@ -254,7 +255,7 @@ const StatsBar = () => {
   );
 };
 
-// --- MOCK DATA ---
+// --- ΔΕΔΟΜΕΝΑ ΔΟΚΙΜΗΣ ---
 const LOST_PETS = [
   { id: 1, name: 'Μίκυ', type: 'Σκύλος', breed: 'Labrador', gender: 'Αρσενικό', age: '2 ετών', color: 'Μπεζ', date: '20 Οκτ 2025', location: 'Κυψέλη, Αθήνα', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80', reward: '50€', views: 245, urgent: true, description: 'Φιλικός σκύλος με καφέ κολάρο. Πολύ ευαίσθητος στους ξένους.' },
   { id: 2, name: 'Λούνα', type: 'Γάτα', breed: 'Άγνωστη', gender: 'Θηλυκό', age: '1 έτους', color: 'Μαύρο/Άσπρο', date: '18 Οκτ 2025', location: 'Περιστέρι', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80', reward: null, views: 178, urgent: false, description: 'Γάτα με διακριτική μαύρη κηλίδα στη μύτη.' },
@@ -348,33 +349,31 @@ function LostPetsSearchView({
         <Paper sx={{ p: 3, mb: 3, borderRadius: 4, boxShadow: 3, border: '1px solid', borderColor: 'primary.light', bgcolor: 'rgba(25,118,210,0.06)' }}>
           <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
             <Box>
-              <Typography variant="overline" color="primary" fontWeight={700} sx={{ letterSpacing: 1 }}>
-                Τyπος Αγγελiας
-              </Typography>
               <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
-                Προβάλλονται αγγελίες: Απολεσθέντα Κατοικίδια
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Η εναλλαγή αλλάζει κατηγορία αγγελιών, όχι απλό φίλτρο.
+                Απολεσθέντα — Βοηθήστε να επιστρέψουν σπίτι
               </Typography>
             </Box>
             <ToggleButtonGroup
               value="lost"
               exclusive
-              onChange={(_, next) => { if (next === 'found') navigate('/found-pets'); }}
+              onChange={(_, next) => {
+                if (!next) return;
+                navigate(next === 'lost' ? '/lost-pets' : '/found-pets');
+              }}
               sx={{
                 borderRadius: '999px',
-                overflow: 'hidden',
                 bgcolor: 'grey.100',
                 p: 0.5,
+                display: 'inline-flex',
                 '& .MuiToggleButton-root': {
                   border: 0,
-                  textTransform: 'none',
-                  fontWeight: 700,
                   px: 3,
                   py: 1.2,
                   borderRadius: '999px',
+                  fontWeight: 700,
+                  textTransform: 'none',
                   color: 'text.secondary',
+                  transition: 'all 0.25s ease',
                 },
                 '& .MuiToggleButton-root.Mui-selected': {
                   bgcolor: 'primary.main',
@@ -389,6 +388,7 @@ function LostPetsSearchView({
               <ToggleButton value="lost">Απολεσθέντα</ToggleButton>
               <ToggleButton value="found">Ευρεθέντα</ToggleButton>
             </ToggleButtonGroup>
+
           </Box>
         </Paper>
         {/* FILTERS */}
@@ -398,6 +398,7 @@ function LostPetsSearchView({
               <TextField 
                 fullWidth placeholder="Αναζήτηση ονόματος, ράτσας, περιοχής..." 
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                 InputProps={{
                   startAdornment: <InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>,
                   endAdornment: searchQuery && (<InputAdornment position="end"><IconButton size="small" onClick={() => setSearchQuery('')}><CloseIcon fontSize="small" /></IconButton></InputAdornment>)
@@ -406,7 +407,7 @@ function LostPetsSearchView({
             </Grid>
             <Grid item xs={12} md={2}>
               <FormControl fullWidth>
-                <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} displayEmpty>
+                <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} displayEmpty sx={{ '& .MuiOutlinedInput-notchedOutline': { borderRadius: '16px' } }}>
                   <MenuItem value="date">Πιο Πρόσφατα</MenuItem>
                   <MenuItem value="views">Περισσότερες Προβολές</MenuItem>
                   <MenuItem value="reward">Μεγαλύτερη Αμοιβή</MenuItem>
@@ -414,10 +415,10 @@ function LostPetsSearchView({
               </FormControl>
             </Grid>
             <Grid item xs={12} md={2}>
-              <Button fullWidth variant={urgentOnly ? "contained" : "outlined"} color="error" startIcon={<WarningIcon />} onClick={() => setUrgentOnly(!urgentOnly)}>Επείγον</Button>
+              <Button fullWidth variant={urgentOnly ? "contained" : "outlined"} color="error" startIcon={<WarningIcon />} onClick={() => setUrgentOnly(!urgentOnly)} sx={{ borderRadius: '16px' }}>Επείγον</Button>
             </Grid>
             <Grid item xs={12} md={2}>
-              <Button fullWidth variant={filtersOpen ? "contained" : "outlined"} startIcon={<TuneIcon />} onClick={() => setFiltersOpen(!filtersOpen)}>Φίλτρα</Button>
+              <Button fullWidth variant={filtersOpen ? "contained" : "outlined"} startIcon={<TuneIcon />} onClick={() => setFiltersOpen(!filtersOpen)} sx={{ borderRadius: '16px' }}>Φίλτρα</Button>
             </Grid>
           </Grid>
           <Collapse in={filtersOpen}>
@@ -436,7 +437,7 @@ function LostPetsSearchView({
               <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Ράτσα</InputLabel>
-                  <Select label="Ράτσα" value={selectedBreed} onChange={(e) => setSelectedBreed(e.target.value)}>
+                  <Select label="Ράτσα" value={selectedBreed} onChange={(e) => setSelectedBreed(e.target.value)} sx={{ '& .MuiOutlinedInput-notchedOutline': { borderRadius: '16px' } }}>
                     <MenuItem value="">Όλες</MenuItem>
                     <MenuItem value="Labrador">Labrador</MenuItem>
                     <MenuItem value="Golden Retriever">Golden Retriever</MenuItem>
@@ -453,7 +454,7 @@ function LostPetsSearchView({
               <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Φύλο</InputLabel>
-                  <Select label="Φύλο" value={selectedGender} onChange={(e) => setSelectedGender(e.target.value)}>
+                  <Select label="Φύλο" value={selectedGender} onChange={(e) => setSelectedGender(e.target.value)} sx={{ '& .MuiOutlinedInput-notchedOutline': { borderRadius: '16px' } }}>
                     <MenuItem value="">Όλα</MenuItem>
                     <MenuItem value="Αρσενικό">Αρσενικό</MenuItem>
                     <MenuItem value="Θηλυκό">Θηλυκό</MenuItem>
@@ -467,10 +468,11 @@ function LostPetsSearchView({
                   value={selectedColor} 
                   onChange={(e) => setSelectedColor(e.target.value)}
                   placeholder="π.χ. Μαύρο"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
-                <TextField fullWidth label="Περιοχή" value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton size="small"><MyLocationIcon fontSize="small" /></IconButton></InputAdornment>) }} />
+                <TextField fullWidth label="Περιοχή" value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }} InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton size="small"><MyLocationIcon fontSize="small" /></IconButton></InputAdornment>) }} />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
                 <FormControlLabel 
@@ -679,7 +681,7 @@ function LostPetsFormView({
   const progress = ((activeStep + 1) / STEPS.length) * 100;
   const [isDragging, setIsDragging] = useState(false);
 
-  // Drag & Drop Handlers
+  // Χειριστές drag & drop
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -694,7 +696,7 @@ function LostPetsFormView({
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      //create a simulated event for handleImageUpload
+      // δημιουργία προσομοιωμένου event για `handleImageUpload`
       handleImageUpload({ target: { files: e.dataTransfer.files } });
     }
   };
@@ -1190,7 +1192,7 @@ export default function LostPets() {
   const [userPets, setUserPets] = useState([]);
   const [petsLoading, setPetsLoading] = useState(false);
 
-  // Check URL parameter to show form view (auth required)
+  // Έλεγχος query param για εμφάνιση φόρμας (απαιτεί σύνδεση)
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('view') === 'form') {
@@ -1206,7 +1208,7 @@ export default function LostPets() {
     }
   }, [location.search, user, navigate]);
 
-  // Autofill contact fields from logged-in user
+  // Αυτόματη συμπλήρωση στοιχείων επικοινωνίας από συνδεδεμένο χρήστη
   useEffect(() => {
     if (!user || view !== 'form') return;
     setFormData((prev) => {
@@ -1223,7 +1225,7 @@ export default function LostPets() {
     });
   }, [user, view]);
 
-  // Load user's declared pets when in form view
+  // Φόρτωση κατοικιδίων χρήστη όταν είμαστε στη φόρμα
   useEffect(() => {
     let cancelled = false;
     const loadPets = async () => {
@@ -1281,7 +1283,7 @@ export default function LostPets() {
 
   // Δεν απαιτείται προεπιλογή κατοικιδίου στη δήλωση απώλειας
 
-  //prevent key bubbling
+  // αποτροπή bubbling πλήκτρων
   const stopKeyPropagation = useCallback((e) => {
     e.stopPropagation();
   }, []);
@@ -1308,7 +1310,7 @@ export default function LostPets() {
   const filteredPets = useMemo(() => {
     let filtered = [...allLostPets];
 
-    // Search query filter
+    // Φίλτρο αναζήτησης
     if (searchQuery) {
       filtered = filtered.filter(pet => 
         pet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1317,44 +1319,44 @@ export default function LostPets() {
       );
     }
 
-    // Type filter
+    // Φίλτρο είδους
     if (selectedType) {
       filtered = filtered.filter(pet => pet.type === selectedType);
     }
 
-    // Breed filter
+    // Φίλτρο ράτσας
     if (selectedBreed) {
       filtered = filtered.filter(pet => pet.breed === selectedBreed);
     }
 
-    // Gender filter
+    // Φίλτρο φύλου
     if (selectedGender) {
       filtered = filtered.filter(pet => pet.gender === selectedGender);
     }
 
-    // Color filter
+    // Φίλτρο χρώματος
     if (selectedColor) {
       filtered = filtered.filter(pet => pet.color.toLowerCase().includes(selectedColor.toLowerCase()));
     }
 
-    // Location filter
+    // Φίλτρο περιοχής
     if (selectedLocation) {
       filtered = filtered.filter(pet => 
         pet.location.toLowerCase().includes(selectedLocation.toLowerCase())
       );
     }
 
-    // Urgent filter
+    // Φίλτρο επείγοντος
     if (urgentOnly) {
       filtered = filtered.filter(pet => pet.urgent);
     }
 
-    // Reward filter
+    // Φίλτρο αμοιβής
     if (hasReward) {
       filtered = filtered.filter(pet => pet.reward);
     }
 
-    // Sorting
+    // Ταξινόμηση
     switch (sortBy) {
       case 'date':
         filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1377,9 +1379,9 @@ export default function LostPets() {
   }, [allLostPets, searchQuery, selectedType, selectedBreed, selectedGender, selectedColor, selectedLocation, urgentOnly, hasReward, sortBy]);
 
   const handleNext = async () => {
-    // Step 0: photo is optional — proceed without showing a confirmation
+    // Βήμα 0: φωτογραφία προαιρετική — συνεχίστε χωρίς επιβεβαίωση
 
-    // Step 1: απαιτείται περιγραφή
+    // Βήμα 1: απαιτείται περιγραφή
     if (activeStep === 1) {
       const descValid = Boolean((formData.description || '').trim());
       if (!descValid) {
@@ -1388,7 +1390,7 @@ export default function LostPets() {
       }
     }
 
-    // Step 2: τοποθεσία και επικοινωνία
+    // Βήμα 2: τοποθεσία και επικοινωνία
     if (activeStep === 2) {
       const locValid = Boolean((formData.location || '').trim());
       if (!locValid) {
@@ -1411,7 +1413,7 @@ export default function LostPets() {
     }
 
     if (activeStep === STEPS.length - 1) {
-      // Persist to server and then show success
+      // Αποθήκευση στον server και εμφάνιση μηνύματος επιτυχίας
       const payload = {
         id: undefined,
         petId: formData.petId || null,
@@ -1678,7 +1680,7 @@ export default function LostPets() {
                       {selectedPet.phone && selectedPet.showPhone && <Button href={`tel:${selectedPet.phone}`}>Καλέστε</Button>}
                       {selectedPet.email && <Button href={`mailto:${selectedPet.email}?subject=${encodeURIComponent('Βρήκα το κατοικίδιό σας')}`}>Στείλτε Email</Button>}
                       <Button onClick={() => {
-                        // quick report: open mailto to site admins explaining found pet
+                        // γρήγορη αναφορά: ανοίγει mailto προς admins για ενημέρωση
                         const body = `Βρήκα το κατοικίδιο ${selectedPet.name || ''} στη θέση ${selectedPet.location || ''}. Παρακαλώ επικοινωνήστε.`;
                         window.location.href = `mailto:contact@petcare.local?subject=${encodeURIComponent('Βρήκα κατοικίδιο')}&body=${encodeURIComponent(body)}`;
                       }}>Αναφορά στην πλατφόρμα</Button>

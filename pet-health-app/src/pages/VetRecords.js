@@ -12,7 +12,7 @@ import PageHeader from './PageHeader';
 import { petsAPI, usersAPI, appointmentsAPI, prescriptionsAPI, lostPetsAPI, foundPetsAPI, visitsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-// Icons
+// Εικονίδια
 import PetsIcon from '@mui/icons-material/Pets';
 import DescriptionIcon from '@mui/icons-material/Description';
 import MedicationIcon from '@mui/icons-material/Medication';
@@ -40,14 +40,14 @@ const theme = createTheme({
   shape: { borderRadius: 12 },
 });
 
-// Mock Data
+// Mock δεδομένα
 const PRESCRIPTIONS = [
   { id: 1, date: '20 Δεκ 2024', petName: 'Μπόμπι', ownerName: 'Γιάννης Παπαδόπουλος', medicine: 'Antibiotica 250mg', dosage: '2x ημερησίως', duration: '7 ημέρες', notes: 'Μετά από γεύμα' },
   { id: 2, date: '18 Δεκ 2024', petName: 'Λούλα', ownerName: 'Μαρία Γεωργίου', medicine: 'Antiparasitic Drops', dosage: '1 φορά', duration: 'Μία δόση', notes: 'Εξωτερική χρήση' },
   { id: 3, date: '15 Δεκ 2024', petName: 'Ρεξ', ownerName: 'Νίκος Αθανασίου', medicine: 'Pain Relief', dosage: '1x ημερησίως', duration: '5 ημέρες', notes: 'Σε περίπτωση πόνου' },
 ];
 
-// Live prescriptions state moved into the VetRecords component to satisfy rules-of-hooks and avoid ESLint errors
+// Η κατάσταση ζωντανών συνταγών μεταφέρθηκε στο VetRecords για να τηρηθούν οι κανόνες hooks
 
 
 // Fallback data in case server is unavailable
@@ -63,7 +63,7 @@ export default function VetRecords() {
   const [tabValue, setTabValue] = useState(0);
   const [searchParams] = useSearchParams();
 
-  // Open dialogs based on query params (e.g. ?open=prescription&appointmentId=123)
+  // Άνοιγμα διαλόγων με βάση τα query params (π.χ. ?open=prescription&appointmentId=123)
   useEffect(() => {
     try {
       const open = searchParams.get('open');

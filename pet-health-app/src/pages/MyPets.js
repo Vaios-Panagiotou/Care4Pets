@@ -1,15 +1,14 @@
 ﻿import React, { useEffect, useState } from 'react';
 import {
   Box, Container, Grid, Typography, Button, Paper, Avatar, IconButton, TextField,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton, Tabs, Tab
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, Skeleton, Tabs, Tab, Snackbar
 } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import MuiAlert from '@mui/material/Alert';
+import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardSidebar from '../components/DashboardSidebar';
 import PageHeader from './PageHeader';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MaleIcon from '@mui/icons-material/Male';
 import FemaleIcon from '@mui/icons-material/Female';
 import PetsIcon from '@mui/icons-material/Pets';
@@ -21,7 +20,9 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { petsAPI } from '../services/api';
+import InfoIcon from '@mui/icons-material/Info';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { petsAPI, appointmentsAPI } from '../services/api';
 
 const theme = createTheme({
   palette: { 
@@ -31,7 +32,15 @@ const theme = createTheme({
     text: { primary: '#1e293b', secondary: '#64748b' }
   },
   shape: { borderRadius: 12 }
-});const QuickActionCard = ({ icon, title, onClick }) => (
+});
+
+const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+`;
+
+const QuickActionCard = ({ icon, title, onClick }) => (
   <Paper sx={{ 
     px: 2, py: 1.5, 
     cursor: 'pointer', 
@@ -114,7 +123,7 @@ const AppointmentCard = ({ appointment, onViewDetails, onCancel }) => (
   </Paper>
 );
 
-// Shared date helpers moved to module-level so CalendarWidget (top-level) can use them
+// Βοηθητές ημερομηνιών σε module-level ώστε το CalendarWidget να τους χρησιμοποιεί
 function parseApptDate(appt) {
   if (!appt) return null;
 
@@ -174,7 +183,7 @@ const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDayS
   const [hoveredDay, setHoveredDay] = React.useState(null);
   const [appointmentsByDay, setAppointmentsByDay] = React.useState({});
 
-  // Sync external selected date (if provided) into the calendar view
+  // Συγχρονισμός εξωτερικής επιλεγμένης ημερομηνίας στην προβολή ημερολογίου
   React.useEffect(() => {
     if (!selectedDateExternal) return;
     if (Object.prototype.toString.call(selectedDateExternal) === '[object Date]') {
@@ -191,7 +200,7 @@ const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDayS
   const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
 
-  // Build appointments map for the current month/year
+  // Δημιουργία map ραντεβού για τον τρέχοντα μήνα/έτος
   React.useEffect(() => {
     const map = {};
     const normalizeDate = (appt) => {
@@ -200,7 +209,7 @@ const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDayS
         if (!s) return null;
         const d = new Date(s);
         if (!isNaN(d)) return d;
-        // dd/mm/yyyy or dd-mm-yyyy
+        // dd/mm/yyyy ή dd-mm-yyyy
         const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
         if (m) {
           const day = parseInt(m[1], 10);
@@ -208,7 +217,7 @@ const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDayS
           const year = parseInt(m[3], 10);
           return new Date(year, month, day);
         }
-        // Greek month name - support nominative and genitive (e.g., 'Ιανουάριος' and 'Ιανουαρίου')
+        // Ελληνικό όνομα μήνα - υποστήριξη ονομαστικής και γενικής π.χ. 'Ιανουάριος', 'Ιανουαρίου'
         const monthNamesGen = ['Ιανουαρίου','Φεβρουαρίου','Μαρτίου','Απριλίου','Μαΐου','Ιουνίου','Ιουλίου','Αυγούστου','Σεπτεμβρίου','Οκτωβρίου','Νοεμβρίου','Δεκεμβρίου'];
         for (let i = 0; i < monthNames.length; i++) {
           const sLower = s.toLowerCase();
@@ -223,14 +232,14 @@ const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDayS
         return null;
       };
 
-      // try common fields
+      // Δοκιμή κοινών πεδίων
       const candidates = [appt.date, appt.dateTime, appt.registeredAt, appt.dateStr, appt.createdAt];
       for (const c of candidates) {
         const parsed = tryParse(c);
         if (parsed) return parsed;
       }
 
-      // try combining date + time fields
+      // Δοκιμή συνδυασμού πεδίων ημερομηνίας + ώρας
       if (appt.date && appt.time) {
         const s = `${appt.date} ${appt.time}`;
         const parsed = tryParse(s);
@@ -248,7 +257,7 @@ const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDayS
       if (!map[day]) map[day] = { count: 0, details: [], type: null };
       map[day].count += 1;
       map[day].details.push(a);
-      // decide type priority: cancelled > completed > confirmed > pending
+      // Προτεραιότητα τύπου: cancelled > completed > confirmed > pending
       const status = a.status;
       const priority = { cancelled: 4, completed: 3, confirmed: 2, pending: 1 };
       const currentPriority = map[day].type ? (priority[map[day].type] || 0) : 0;
@@ -342,23 +351,23 @@ const CalendarWidget = ({ appointments = [], selectedDateExternal = null, onDayS
 
   const calendar = [];
   
-  // Previous month days
+  // Ημέρες προηγούμενου μήνα
   for (let i = firstDay === 0 ? 6 : firstDay - 1; i > 0; i--) {
     calendar.push({ day: prevMonthDays - i + 1, isCurrentMonth: false });
   }
   
-  // Current month days
+  // Ημέρες τρέχοντος μήνα
   for (let i = 1; i <= daysInMonth; i++) {
     calendar.push({ day: i, isCurrentMonth: true });
   }
   
-  // Next month days to fill the grid
+  // Ημέρες επόμενου μήνα για συμπλήρωση πλέγματος
   const remainingDays = 42 - calendar.length;
   for (let i = 1; i <= remainingDays; i++) {
     calendar.push({ day: i, isCurrentMonth: false });
   }
 
-  // Allow external control of selected day (via Date)
+  // Επιτρέπεται εξωτερικός έλεγχος της επιλεγμένης ημέρας (μέσω Date)
   const selectedDayUsed = (selectedDateExternal && Object.prototype.toString.call(selectedDateExternal) === '[object Date]') ? selectedDateExternal.getDate() : selectedDay;
   
   return (
@@ -502,32 +511,17 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
               sx={{ fontWeight: 600, fontSize: '0.7rem' }}
             />
           )}
+          {pet.deceased && (
+            <Chip
+              label="Απεβίωσε"
+              size="small"
+              sx={{ bgcolor: '#f5f5f5', color: 'text.secondary', fontWeight: 700 }}
+            />
+          )}
         </Box>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 0.5 }}>
-        <IconButton 
-          size="small" 
-          onClick={() => onEdit(pet)}
-          sx={{ 
-            bgcolor: '#f5f5f5',
-            '&:hover': { bgcolor: '#e3f2fd', color: '#1976d2' }
-          }}
-        >
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton 
-          size="small" 
-          color="error" 
-          onClick={() => onDelete(pet.id)}
-          sx={{ 
-            bgcolor: '#f5f5f5',
-            '&:hover': { bgcolor: '#ffebee' }
-          }}
-        >
-          <DeleteOutlineIcon fontSize="small" />
-        </IconButton>
-      </Box>
+
     </Box>
 
     <Box sx={{ display: 'flex', gap: 1.5 }}>
@@ -585,7 +579,13 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [petDetailsDialogOpen, setPetDetailsDialogOpen] = useState(false);
+    // Κατάσταση για "σημείωμα αποβίωσης"
+    const [deceasedDialogOpen, setDeceasedDialogOpen] = useState(false);
+    const [deceasedDate, setDeceasedDate] = useState('');
+    const [deathNote, setDeathNote] = useState('');
+    const [deceasedSubmitting, setDeceasedSubmitting] = useState(false);
     const [selectedPet, setSelectedPet] = useState(null);
+    const [snack, setSnack] = useState({ open: false, message: '', severity: 'info' });
       const [apptTab, setApptTab] = useState(() => {
         try {
           const saved = localStorage.getItem('ownerApptTab');
@@ -596,12 +596,12 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
       });
     const [calendarFilterDate, setCalendarFilterDate] = useState(null);
 
-    // Using module-level helpers parseApptDate/isSameDay (declared above)
+    // Χρήση βοηθητικών συναρτήσεων σε module-level parseApptDate/isSameDay (ορισμένες παραπάνω)
 
     const handleCalendarDaySelect = (day, month, year) => {
       const d = new Date(year, month, day);
       setCalendarFilterDate(d);
-      // Focus the appointments view -- optional
+      // Εστίαση στην προβολή ραντεβού — προαιρετικό
       window.requestAnimationFrame(() => {
         const el = document.querySelector('#appointments-list');
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -619,7 +619,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                 return; 
             }
             try {
-                // Direct fetch to ensure data is retrieved
+                // Άμεσο fetch για να διασφαλιστεί η ανάκτηση δεδομένων
                 const response = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
                 if (response.ok) {
                     const data = await response.json();
@@ -637,7 +637,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
         fetchPets();
     }, [user]);
 
-    // Fetch appointments
+    // Ανάκτηση ραντεβού
     useEffect(() => {
         const fetchAppointments = async () => {
             if (!user?.id) return;
@@ -654,7 +654,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
         fetchAppointments();
     }, [user]);
 
-    //Addition of pets by users is disabled per policy (vet-only via national registry)
+    // Η προσθήκη κατοικιδίων από χρήστες απενεργοποιήθηκε (μόνο κτηνίατροι μέσω μητρώου)
     const openEdit = (pet) => { setEditing(pet.id); setForm({ name: pet.name || '', breed: pet.breed || '', gender: (pet.gender || 'male'), age: pet.age || '', weight: pet.weight || '', img: pet.img || '' }); setDialogOpen(true); };
     const closeDialog = () => { setDialogOpen(false); setEditing(null); };
 
@@ -686,7 +686,40 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
         }
     };
 
-    // Appointment handlers
+    const handleMarkDeceased = async () => {
+      if (!selectedPet) return;
+      if (!window.confirm('Είστε σίγουροι/ες ότι θέλετε να σημειώσετε αυτό το κατοικίδιο ως Απεβίωσε;')) return;
+      try {
+        setDeceasedSubmitting(true);
+        const updated = { ...selectedPet, deceased: true, deceasedAt: deceasedDate ? new Date(deceasedDate).toISOString() : new Date().toISOString(), deathNote: deathNote || '' };
+        const updatedPet = await petsAPI.update(selectedPet.id, updated);
+        setPets(prev => prev.map(p => p.id === updatedPet.id ? updatedPet : p));
+        setSelectedPet(updatedPet);
+
+        // Ακύρωση σχετικών ραντεβού
+        try {
+          const allAppts = Array.isArray(await appointmentsAPI.getAll()) ? await appointmentsAPI.getAll() : [];
+          const toCancel = allAppts.filter(a => String(a.petId) === String(selectedPet.id) && a.status !== 'cancelled');
+          for (const ap of toCancel) {
+            try { await appointmentsAPI.update(ap.id, { ...ap, status: 'cancelled', cancelReason: 'Απεβίωσε' }); } catch (e) { console.warn('Failed cancelling appointment', e); }
+          }
+          setAppointments(prev => prev.map(a => (String(a.petId) === String(selectedPet.id) && a.status !== 'cancelled') ? { ...a, status: 'cancelled', cancelReason: 'Απεβίωσε' } : a));
+        } catch (e) { console.warn('Could not fetch/cancel appointments', e); }
+
+        setDeceasedDialogOpen(false);
+        setPetDetailsDialogOpen(false);
+        setSnack({ open: true, message: 'Καταχωρήθηκε ως Απεβίωσε και τα μελλοντικά ραντεβού ακυρώθηκαν.', severity: 'success' });
+      } catch (e) {
+        console.error(e);
+        setSnack({ open: true, message: 'Αποτυχία καταγραφής. Προσπαθήστε ξανά.', severity: 'error' });
+      } finally {
+        setDeceasedSubmitting(false);
+        setDeceasedDate('');
+        setDeathNote('');
+      }
+    }; 
+
+    // Χειριστές ραντεβού
     const handleViewPetDetails = (pet) => {
         setSelectedPet(pet);
         setPetDetailsDialogOpen(true);
@@ -701,7 +734,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
       if (window.confirm('Είστε σίγουροι ότι θέλετε να ακυρώσετε το ραντεβού;')) {
         const note = window.prompt('Λόγος ακύρωσης (προαιρετικό):', '') || '';
         try {
-          // Update appointment status to cancelled with metadata
+          // Ενημέρωση κατάστασης ραντεβού σε cancelled με μεταδεδομένα
           const response = await fetch(`http://localhost:3001/appointments/${appointment.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -709,7 +742,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
           });
                 
           if (response.ok) {
-            // Update local state
+            // Ενημέρωση τοπικής κατάστασης
             setAppointments(prev => prev.map(a => 
               a.id === appointment.id ? { ...a, status: 'cancelled', cancelReason: note, cancelledBy: 'owner', updatedAt: new Date().toISOString() } : a
             ));
@@ -846,13 +879,26 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                               </Button>
                             </Paper>
                           ) : (
-                            <Grid container spacing={3}>
-                              {pets.map(pet => (
-                                <Grid item xs={12} sm={6} md={4} key={pet.id}>
-                                  <PetCard pet={pet} navigate={navigate} onEdit={openEdit} onDelete={deletePet} onViewDetails={handleViewPetDetails} />
-                                </Grid>
-                              ))}
-                            </Grid>
+                            <>
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  startIcon={<InfoIcon />}
+                                  onClick={() => navigate('/owner/search')}
+                                  sx={{ textTransform: 'none', boxShadow: '0 6px 18px rgba(25,118,210,0.12)', animation: `${pulse} 2.2s ease-in-out infinite`, borderRadius: 20 }}
+                                >
+                                  Πρόσθεσε νέο κατοικίδιο
+                                </Button>
+                              </Box>
+                              <Grid container spacing={3}>
+                                {pets.map(pet => (
+                                  <Grid item xs={12} sm={6} md={4} key={pet.id}>
+                                    <PetCard pet={pet} navigate={navigate} onEdit={openEdit} onDelete={deletePet} onViewDetails={handleViewPetDetails} />
+                                  </Grid>
+                                ))}
+                              </Grid>
+                            </>
                           )}
                         </Box>
 
@@ -903,7 +949,7 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                                 const bx = typeof b.id === 'number' ? b.id : 0;
                                 const ta = a.updatedAt ? Date.parse(a.updatedAt) : ax;
                                 const tb = b.updatedAt ? Date.parse(b.updatedAt) : bx;
-                                return tb - ta; // newest first
+                                return tb - ta; // πιο πρόσφατα πρώτα
                               })
                               .slice(0,5)
                               .map(app => (
@@ -1103,12 +1149,72 @@ const PetCard = ({ pet, navigate, onEdit, onDelete, onViewDetails }) => (
                             )}
                         </DialogContent>
                         <DialogActions>
-                            <Button onClick={() => setPetDetailsDialogOpen(false)}>Κλείσιμο</Button>
+                            {!selectedPet?.deceased && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Button
+                                  variant="outlined"
+                                  color="error"
+                                  size="small"
+                                  startIcon={<WarningAmberIcon sx={{ fontSize: 18 }} />}
+                                  onClick={() => setDeceasedDialogOpen(true)}
+                                  sx={{ textTransform: 'none', borderWidth: 1 }}
+                                >
+                                  Σημειώστε ως απεβίωσε
+                                </Button>
+                              </Box>
+                            )}
+                            <Button variant="text" size="small" onClick={() => setPetDetailsDialogOpen(false)} sx={{ textTransform: 'none' }}>Κλείσιμο</Button>
                         </DialogActions>
+
+                    {/* Deceased confirmation dialog */}
+                    <Dialog open={deceasedDialogOpen} onClose={() => setDeceasedDialogOpen(false)} maxWidth="xs" fullWidth>
+                      <DialogTitle>Σημείωση Απεβίωσης</DialogTitle>
+                      <DialogContent>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Επιβεβαίωση καταγραφής θανάτου κατοικιδίου. Προαιρετικά εισάγετε ημερομηνία και σύντομη σημείωση.</Typography>
+                        <TextField
+                          label="Ημερομηνία"
+                          type="date"
+                          fullWidth
+                          size="small"
+                          value={deceasedDate}
+                          onChange={(e) => setDeceasedDate(e.target.value)}
+                          InputLabelProps={{ shrink: true }}
+                          sx={{ mb: 2 }}
+                        />
+                        <TextField
+                          label="Σημείωση (προαιρετικό)"
+                          fullWidth
+                          size="small"
+                          multiline
+                          minRows={2}
+                          value={deathNote}
+                          onChange={(e) => setDeathNote(e.target.value)}
+                        />
+                      </DialogContent>
+                      <DialogActions sx={{ px: 3, pb: 2 }}>
+                        <Button variant="text" size="small" onClick={() => setDeceasedDialogOpen(false)} sx={{ textTransform: 'none' }}>Άκυρο</Button>
+                        <Box sx={{ flex: 1 }} />
+                        <Button
+                          color="error"
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleMarkDeceased()}
+                          disabled={deceasedSubmitting}
+                          sx={{ textTransform: 'none', borderRadius: 1, boxShadow: 'none' }}
+                        >
+                          {deceasedSubmitting ? 'Επεξεργασία...' : 'Σημειώστε ως απεβίωσε'}
+                        </Button>
+                      </DialogActions>
+                    </Dialog> 
                     </Dialog>
                 </Container>
             </Box>
         </Box>
+        <Snackbar open={snack.open} autoHideDuration={4000} onClose={() => setSnack({ ...snack, open: false })}>
+          <MuiAlert onClose={() => setSnack({ ...snack, open: false })} severity={snack.severity} sx={{ width: '100%' }}>
+            {snack.message}
+          </MuiAlert>
+        </Snackbar>
         </ThemeProvider>
     );
 }

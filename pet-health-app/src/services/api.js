@@ -107,12 +107,12 @@ export const vetClinicsAPI = {
   update: (id, clinic) => request(`vetClinics/${id}`, { method: 'PUT', body: JSON.stringify(clinic) }),
 };
 
-// Visits helper: record a completed appointment as a visit on the pet and the vet user
+// Βοηθητικό visits: καταγράφει ολοκληρωμένο ραντεβού ως επίσκεψη στο κατοικίδιο και στον κτηνίατρο
 export const visitsAPI = {
   recordVisit: async (appt) => {
     if (!appt) return null;
     try {
-      // Resolve pet
+      // Εύρεση κατοικιδίου
       const pets = Array.isArray(await petsAPI.getAll()) ? await petsAPI.getAll() : [];
       let pet = null;
       if (appt.petId) pet = pets.find(p => String(p.id) === String(appt.petId));
@@ -136,7 +136,7 @@ export const visitsAPI = {
       const updatedPet = { ...pet, visits: [...prev, visit] };
       await petsAPI.update(pet.id, updatedPet);
 
-      // Update vet user visitedPets
+      // Ενημέρωση visitedPets για τον χρήστη-κτηνίατρο
       const users = Array.isArray(await usersAPI.getAll()) ? await usersAPI.getAll() : [];
       let vetUser = null;
       if (appt.vetUserId) vetUser = users.find(u => String(u.id) === String(appt.vetUserId));

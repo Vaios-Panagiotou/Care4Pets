@@ -3,14 +3,14 @@ import { Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divi
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Owner Icons
+// Εικονίδια ιδιοκτήτη
 import PetsIcon from '@mui/icons-material/Pets';
 import HistoryIcon from '@mui/icons-material/History';
 import SearchIcon from '@mui/icons-material/Search';
 import Person2Icon from '@mui/icons-material/Person2';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
-// Vet Icons
+// Εικονίδια κτηνιάτρου
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -60,7 +60,7 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
   });
 
   useEffect(() => {
-    if (isStatic) return; // No scroll listeners in static mode
+    if (isStatic) return; // Χωρίς listeners κύλισης στη static λειτουργία
     const applyTransform = (y) => {
       const sidebar = sidebarRef.current;
       if (!sidebar) return;
@@ -86,7 +86,7 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
       };
       metricsRef.current = next;
       setMetrics(next);
-      // Also update transform after measuring
+      // Ενημέρωση transform μετά τη μέτρηση
       const topMargin = 24;
       const bottomMargin = 24;
       const minTopAbs = next.containerTop + topMargin;
@@ -125,17 +125,17 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
     };
   }, [isStatic]);
 
-  // Choose nav based on user role
+  // Επιλογή μενού ανάλογα με το ρόλο χρήστη
   const navItems = user?.role === 'vet' ? VET_NAV : OWNER_NAV;
 
-  // Check if current path matches
+  // Έλεγχος αν το τρέχον path ταιριάζει
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
 
   const dashboardPath = user?.role === 'vet' ? '/vet' : '/owner';
   const rolePrimary = user?.role === 'vet' ? '#00897B' : '#1976d2';
   const roleTint = user?.role === 'vet' ? '#e0f2f1' : '#e3f2fd';
 
-  // Sticky positioning without scroll listeners to avoid jitter.
+  // Επικόλληση/σταθερή θέση χωρίς listeners κύλισης για αποφυγή jitter.
 
   return (
     <Box ref={containerRef} sx={{ width: { xs: '100%', sm: 260 }, flexShrink: 0 }}>
@@ -143,7 +143,7 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
         ref={sidebarRef}
         sx={{
           bgcolor: 'white',
-          borderRadius: 4,
+          borderRadius: 2,
           border: '2px solid #cfd8dc',
           boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
           p: 2,
@@ -209,7 +209,7 @@ export default function DashboardSidebar({ static: isStatic = false, noSpacer = 
         {/* Tip box removed per request */}
       </Box>
       </Box>
-      {/* Spacer only for fixed-follow mode (skip when overlay/noSpacer) */}
+      {/* Spacer μόνο για fixed-follow mode (παράλειψη όταν overlay/noSpacer) */}
       {!isStatic && !noSpacer && (<Box sx={{ height: metrics.sidebarHeight }} />)}
     </Box>
   );

@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardSidebar from '../components/DashboardSidebar';
 import { useAuth } from '../context/AuthContext';
 
-// Icons
+// Εικονίδια
 import HistoryIcon from '@mui/icons-material/History';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -24,10 +24,10 @@ import InfoIcon from '@mui/icons-material/Info';
 import StarIcon from '@mui/icons-material/Star';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 
-//Import PageHeader
+// Εισαγωγή PageHeader
 import PageHeader from './PageHeader';
 
-//--- THEME ---
+// --- ΘΕΜΑ ---
 const theme = createTheme({
   palette: {
     primary: { main: '#00695c' },
@@ -45,7 +45,7 @@ const theme = createTheme({
   }
 });
 
-// --- MOCK DATA ---
+// --- ΔΕΔΟΜΕΝΑ ΔΟΚΙΜΗΣ ---
 const HISTORY_DATA = {
   appointments: [
     { id: 1, date: '15 Οκτ 2024', title: 'Ετήσιος Εμβολιασμός', vet: 'Δρ. Νίκος Παπαδόπουλος', pet: 'Kouvelaj', status: 'completed' },
@@ -68,9 +68,9 @@ const HISTORY_DATA = {
   ]
 };
 
-// --- SUB-COMPONENTS ---
+// --- ΥΠΟ-ΣΥΣΤΑΤΙΚΑ ---
 
-// 1. History Item Row
+// 1. Σειρά ιστορικού
 const HistoryItem = ({ icon, title, subtitle, date, status, statusLabel, onClick, showReviewButton, onReviewClick }) => (
   <Paper sx={{ mb: 2, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: '0.2s', '&:hover': { bgcolor: '#f5f5f5' } }} onClick={onClick}>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -156,7 +156,7 @@ export default function History() {
         const res = await fetch(`http://localhost:3001/appointments?ownerId=${user.id}`);
         if (res.ok) {
           const data = await res.json();
-          // sort newest first by updatedAt/id
+          // Ταξινόμηση: πιο πρόσφατα πρώτα (updatedAt/id)
           const sorted = [...(data || [])].sort((a,b) => {
             const ax = typeof a.id === 'number' ? a.id : 0;
             const bx = typeof b.id === 'number' ? b.id : 0;
@@ -165,11 +165,11 @@ export default function History() {
             return tb - ta;
           });
 
-          // Enrich appointments with resolved pet/vet names when missing
+          // Εμπλουτισμός ραντεβού με ονόματα κατοικιδίου/κτηνιάτρου αν λείπουν
           const petIds = Array.from(new Set(sorted.map(s => s.petId).filter(Boolean)));
           const vetIds = Array.from(new Set(sorted.map(s => s.vetId).filter(Boolean)));
 
-          // fetch pets for the owner and any petIds referenced
+          // Ανάκτηση κατοικιδίων ιδιοκτήτη και όποιων petIds αναφέρονται
           let petMap = {};
           try {
             const petsRes = await fetch(`http://localhost:3001/pets?ownerId=${user.id}`);
@@ -177,7 +177,7 @@ export default function History() {
               const pets = await petsRes.json();
               pets.forEach(p => { if (p.id) petMap[String(p.id)] = p.name || p.name || p.id; });
             }
-            // also fetch by petId if there are external petIds
+            // Επίσης ανάκτηση με petId αν υπάρχουν εξωτερικά petIds
             const externalPetIds = petIds.filter(id => !petMap[String(id)]);
             for (const pid of externalPetIds) {
               const pr = await fetch(`http://localhost:3001/pets?id=${encodeURIComponent(pid)}`);
@@ -187,10 +187,10 @@ export default function History() {
               }
             }
           } catch (e) {
-            // ignore pet fetch errors
+            // Αγνόηση σφαλμάτων κατά την ανάκτηση κατοικιδίων
           }
 
-          // fetch vets info
+          // Ανάκτηση πληροφοριών κτηνιάτρων
           let vetMap = {};
           try {
             for (const vid of vetIds) {
@@ -199,7 +199,7 @@ export default function History() {
                 const arr = await vr.json();
                 if (Array.isArray(arr) && arr[0] && arr[0].name) vetMap[String(vid)] = arr[0].name;
               }
-              // fallback: try users by userId
+              // Εναλλακτική: δοκιμή στους users με userId
               if (!vetMap[String(vid)]) {
                 const ur = await fetch(`http://localhost:3001/users?id=${encodeURIComponent(vid)}`);
                 if (ur.ok) {
@@ -209,7 +209,7 @@ export default function History() {
               }
             }
           } catch (e) {
-            // ignore
+            // Αγνόηση
           }
 
           const enriched = sorted.map(s => ({
@@ -225,7 +225,7 @@ export default function History() {
       } catch (e) {
         console.error('Error fetching history appointments:', e);
         setApptError('Σφάλμα φόρτωσης ραντεβού ιστορικού. Βεβαιώσου ότι τρέχει το json-server στο 3001.');
-        // fallback to mock data on error
+        // Επιστροφή σε mock δεδομένα σε περίπτωση σφάλματος
         setAppointments(HISTORY_DATA.appointments);
       } finally {
         setLoadingAppointments(false);
@@ -234,7 +234,7 @@ export default function History() {
     fetchAppointments();
   }, [user]);
 
-  // Fetch owner's reviews for the Reviews tab
+  // Ανάκτηση αξιολογήσεων ιδιοκτήτη για το tab Αξιολογήσεις
   useEffect(() => {
     const fetchOwnerReviews = async () => {
       if (!user?.id) return;
@@ -247,7 +247,7 @@ export default function History() {
           const sorted = [...(data || [])].sort((a,b) => {
             const ta = a.date ? Date.parse(a.date) : 0;
             const tb = b.date ? Date.parse(b.date) : 0;
-            return tb - ta; // newest first
+            return tb - ta; // πιο πρόσφατα πρώτα
           });
           setOwnerReviews(sorted);
         } else {
@@ -269,7 +269,7 @@ export default function History() {
   };
 
   const handleOpenDialog = (content) => {
-    // Normalize data fields so dialogs always receive 'pet' and 'vet' strings
+    // Κανονικοποίηση πεδίων ώστε διαλόγοι να λαμβάνουν πάντα 'pet' και 'vet'
     const data = content?.data || {};
     const normalizedData = {
       ...data,
@@ -308,10 +308,10 @@ export default function History() {
       setSnackbar({ open: true, message: 'Παρακαλώ γράψτε ένα σχόλιο', severity: 'warning' });
       return;
     }
-    // Persist review to JSON Server so vet can see it
+    // Αποθήκευση αξιολόγησης στον JSON Server ώστε ο κτηνίατρος να τη δει
     (async () => {
       try {
-        // Map appointment vetId to vet userId if needed
+        // Χάρτης vetId ραντεβού σε vet userId αν χρειαστεί
         let targetVetId = reviewData?.vetId;
         try {
           if (targetVetId) {
@@ -329,7 +329,7 @@ export default function History() {
           id: String(Date.now()),
           ownerId: user?.id,
           ownerName: user?.fullname || '—',
-          vetId: targetVetId || user?.id, // fallback to current user id if missing
+          vetId: targetVetId || user?.id, // εναλλακτικά το id του τρέχοντος χρήστη αν λείπει
           vetName: reviewData?.vetName || 'Κτηνίατρος',
           clinic: '—',
           appointmentId: reviewData?.id,
@@ -439,7 +439,7 @@ export default function History() {
                     showReviewButton={item.status === 'completed'}
                         onReviewClick={() => handleOpenReviewDialog(item)}
                         onClick={() => {
-                      // Prefer vet-provided fields (note, diagnosis, treatment); if none are present, show a concise summary instead
+                                  // Προτίμηση πεδίων από κτηνίατρο (note, diagnosis, treatment). Αν δεν υπάρχουν, εμφάνιση σύντομης περίληψης
                       let notesContent = '';
                       if (item.note && String(item.note).trim()) {
                         notesContent = item.note;
@@ -490,7 +490,7 @@ export default function History() {
                             title={item.title}
                             subtitle={`${item.pet} • ${item.notes}`}
                             date={item.date}
-                            status="completed" //reuse styling
+                            status="completed" // επαναχρησιμοποίηση στυλ
                             statusLabel={item.type}
                             onClick={() => handleOpenDialog({
                                 type: 'medical',

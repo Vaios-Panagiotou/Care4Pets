@@ -9,7 +9,7 @@ import { keyframes } from '@mui/system';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Icons
+// Εικονίδια
 import StarIcon from '@mui/icons-material/Star';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -27,7 +27,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ClearIcon from '@mui/icons-material/Clear';
 
-// Import Header
+// Εισαγωγή Header
 import PageHeader from './PageHeader';
 import DashboardSidebar from '../components/DashboardSidebar';
 import { appointmentsAPI, vetsAPI, usersAPI } from '../services/api';
@@ -49,7 +49,7 @@ const theme = createTheme({
   shape: { borderRadius: 8 }
 });
 
-// Fallback mock vets (used only if server fails)
+// Mock κτηνίατροι (εφεδρικά αν ο server αποτύχει)
 const FALLBACK_VETS = [
   { id: 1, name: 'Δρ. Ιωάννης Σμυρνής', address: 'Πανεπιστημίου 16 - Αθήνα', specialty: 'Παθολογία Ζώων', availability: 'Παρ, 24 Ιαν 2025', views: 1873, rating: 4.9, likes: 280, price: 50, image: 'https://randomuser.me/api/portraits/men/32.jpg' },
   { id: 2, name: 'Δρ. Ελένη Καρρά', address: 'Λεωφόρος Βουλιαγμένης 289', specialty: 'Κτηνιατρική Καρδιολογία', availability: 'Πεμ, 30 Ιαν 2025', views: 732, rating: 4.8, likes: 130, price: 30, image: 'https://randomuser.me/api/portraits/women/44.jpg' },
@@ -92,7 +92,7 @@ export default function VetSearch() {
   const { user } = useAuth();
   const [hasPets, setHasPets] = useState(true);
   const userLabel = user?.name || user?.fullName || user?.email || 'τον λογαριασμό σας';
-  // Vets data (server + derived from users + fallback)
+  // Δεδομένα κτηνιάτρων (server + προερχόμενοι από users + εφεδρικά)
   const [allVets, setAllVets] = useState([]);
   const [vetUsers, setVetUsers] = useState([]);
   const [vetsLoaded, setVetsLoaded] = useState(false);
@@ -110,7 +110,7 @@ export default function VetSearch() {
     color: ''
   });
   
-  // Load user's pets from database
+  // Φόρτωση κατοικιδίων χρήστη από βάση
   useEffect(() => {
     const loadUserPets = async () => {
       if (!user?.id) return;

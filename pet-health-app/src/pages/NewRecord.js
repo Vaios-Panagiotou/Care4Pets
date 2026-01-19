@@ -6,7 +6,7 @@ import {
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-// Icons
+// Εικονίδια
 import UploadIcon from '@mui/icons-material/Upload';
 import PetsIcon from '@mui/icons-material/Pets';
 import PersonIcon from '@mui/icons-material/Person';
@@ -14,13 +14,13 @@ import SaveIcon from '@mui/icons-material/Save';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-// Import PageHeader
+// Εισαγωγή PageHeader
 import PageHeader from './PageHeader';
 import DashboardSidebar from '../components/DashboardSidebar';
 import { petsAPI, usersAPI, appointmentsAPI, vetsAPI, visitsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-// Create theme outside component to prevent recreation on every render
+// Δημιουργία theme έξω από το component για να μην αναδημιουργείται κάθε render
 const theme = createTheme({
   palette: {
     primary: { main: '#1976d2' },

@@ -41,7 +41,11 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import InfoIcon from '@mui/icons-material/Info';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import DashboardSidebar from '../components/DashboardSidebar';
+import { useAuth } from '../context/AuthContext';
 import { foundPetsAPI } from '../services/api';
+
+
 
 const FOUND_PETS = [
   {
@@ -148,7 +152,7 @@ function SimpleMapEmbed({ value, onChange, onLocationChange }) {
         />
         <Button variant="outlined" onClick={searchPlace}>Αναζήτηση</Button>
       </Box>
-      <Box sx={{ height: 300, borderRadius: 2, overflow: 'hidden' }}>
+      <Box sx={{ height: 300, borderRadius: 20, overflow: 'hidden' }}>
         <iframe
           title="map-embed"
           src={src}
@@ -207,7 +211,7 @@ const StatsBar = ({ total, withOwner }) => {
       <Paper sx={{
         p: 3,
         mb: 4,
-        borderRadius: 4,
+        borderRadius: 20,
         background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
         position: 'relative',
@@ -271,7 +275,7 @@ export default function FoundPets() {
   const [view, setView] = useState('search');
   const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-
+  const adType = 'found';
   const [form, setForm] = useState({
     type: '',
     description: '',
@@ -293,6 +297,7 @@ export default function FoundPets() {
   const [hasOwnerOnly, setHasOwnerOnly] = useState(false);
 
   const [userFoundPets, setUserFoundPets] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -486,24 +491,26 @@ export default function FoundPets() {
       </Box>
 
       {view === 'search' ? (
-        <Container maxWidth="xl" sx={{ px: 2 }}>
-          <StatsBar total={stats.total} withOwner={stats.withOwner} />
-          <Paper sx={{ p: 3, mb: 3, borderRadius: 4, boxShadow: 3, border: '1px solid', borderColor: 'primary.light', bgcolor: 'rgba(25,118,210,0.06)' }}>
+        <Box sx={{ display: 'flex', gap: 3, px: 2, mb: 4, alignItems: 'flex-start' }}>
+        {user && (
+        <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0 }}>
+          <DashboardSidebar />
+        </Box>
+        )}
+          <Box sx={{ flexGrow: 1 }}>
+            <Container maxWidth="xl" sx={{ px: 2 }}>
+              <StatsBar total={stats.total} withOwner={stats.withOwner} />
+          <Paper sx={{ p: 3, mb: 3, borderRadius: 20, boxShadow: 3, border: '1px solid', borderColor: 'primary.light', bgcolor: 'rgba(25,118,210,0.06)' }}>
             <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
               <Box>
-                <Typography variant="overline" color="primary" fontWeight={700} sx={{ letterSpacing: 1 }}>
-                  Τυπος Αγγελιας
-                </Typography>
                 <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
-                  Προβάλλονται αγγελίες: Ευρεθέντα Κατοικίδια
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Η εναλλαγή αλλάζει κατηγορία αγγελιών, όχι απλό φίλτρο.
+                  Ευρεθέντα — Βοηθήστε να βρουν τον δρόμο σπίτι
                 </Typography>
               </Box>
               <ToggleButtonGroup
-                value="found"
+                value={adType}
                 exclusive
+                
                 sx={{
                   borderRadius: '999px',
                   overflow: 'hidden',
@@ -534,7 +541,7 @@ export default function FoundPets() {
               </ToggleButtonGroup>
             </Box>
           </Paper>
-          <Paper id="found-search-bar" sx={{ p: 3, mb: 4, borderRadius: 4, boxShadow: 3 }}>
+          <Paper id="found-search-bar" sx={{ p: 3, mb: 4, borderRadius: 20, boxShadow: 3 }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} md={6}>
                 <TextField
@@ -542,7 +549,7 @@ export default function FoundPets() {
                   placeholder="Αναζήτηση είδους, περιγραφής, περιοχής..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '20px' } }}
                   InputProps={{
                     startAdornment: <InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>,
                     endAdornment: searchQuery && (
@@ -561,7 +568,7 @@ export default function FoundPets() {
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     displayEmpty
-                    sx={{ '& .MuiOutlinedInput-notchedOutline': { borderRadius: '16px' } }}
+                    sx={{ '& .MuiOutlinedInput-notchedOutline': { borderRadius: '20px' } }}
                   >
                     <MenuItem value="date">Πιο Πρόσφατα</MenuItem>
                     <MenuItem value="oldest">Παλαιότερα</MenuItem>
@@ -574,7 +581,7 @@ export default function FoundPets() {
                   variant={hasOwnerOnly ? 'contained' : 'outlined'}
                   startIcon={<CheckCircleIcon />}
                   onClick={() => setHasOwnerOnly(!hasOwnerOnly)}
-                  sx={{ borderRadius: '16px' }}
+                  sx={{ borderRadius: '20px' }}
                 >
                   Έχει ιδιοκτήτη
                 </Button>
@@ -585,7 +592,7 @@ export default function FoundPets() {
                   variant={filtersOpen ? 'contained' : 'outlined'}
                   startIcon={<TuneIcon />}
                   onClick={() => setFiltersOpen(!filtersOpen)}
-                  sx={{ borderRadius: '16px' }}
+                  sx={{ borderRadius: '20px' }}
                 >
                   Φίλτρα
                 </Button>
@@ -619,7 +626,7 @@ export default function FoundPets() {
                     fullWidth
                     variant="outlined"
                     onClick={() => navigate('/found-pets?view=form')}
-                    sx={{ borderRadius: '16px' }}
+                    sx={{ borderRadius: '20px' }}
                   >
                     Δήλωση Εύρεσης
                   </Button>
@@ -679,9 +686,11 @@ export default function FoundPets() {
             )}
           </Grid>
         </Container>
+        </Box>
+        </Box>
       ) : (
         <Container maxWidth="lg" sx={{ px: 2, pb: 6 }}>
-          <Paper sx={{ p: 3, borderRadius: 4 }}>
+          <Paper sx={{ p: 3, borderRadius: 4, boxShadow: 3 }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>Δήλωση Εύρεσης Κατοικιδίου</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Η δήλωση αφορά άγνωστο ζώο που βρέθηκε. Δεν δημιουργείται προφίλ κατοικιδίου.

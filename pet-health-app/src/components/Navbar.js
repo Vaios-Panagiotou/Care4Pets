@@ -23,6 +23,7 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 
 // News data for search suggestions
 import { NEWS_DATA } from '../pages/News';
+import Login from '../pages/login';
 
 // Styling is inherited from the app's global theme
 
@@ -108,7 +109,14 @@ export default function Navbar() {
     schedule: 'Πρόγραμμα',
     clinic: 'Κλινική',
     records: 'Καταγραφές',
-    news: 'Νέα'
+    news: 'Νέα',
+    gdpr: 'GDPR',
+    privacy: 'Πολιτική Απορρήτου',
+    terms: 'Όροι Χρήσης',
+    help: 'Οδηγός Χρήσης',
+    login: 'Σύνδεση',
+    register: 'Εγγραφή',
+
   };
   const pathnames = location.pathname.split('/').filter(Boolean);
 

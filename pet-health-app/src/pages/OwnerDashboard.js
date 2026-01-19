@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardSidebar from '../components/DashboardSidebar';
 
-// Icons
+// Εικονίδια
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PetsIcon from '@mui/icons-material/Pets';
 import HistoryIcon from '@mui/icons-material/History';
@@ -23,7 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
-// Import PageHeader
+// Εισαγωγή PageHeader
 import PageHeader from './PageHeader'; 
 import Footer from '../components/Footer';
 import RoleHelpHint from '../components/RoleHelpHint';
