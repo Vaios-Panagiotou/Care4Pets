@@ -222,6 +222,11 @@ const ApptCard = ({ item, dueMeta, busy, onComplete, onCancel, onGoRegistration 
               <Chip size="small" label={item.type} sx={{ bgcolor: 'action.hover' }} />
               <Chip size="small" label={statusLabel(item.status)} variant="outlined" />
             </Box>
+            {item.reason ? (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
+                {item.reason}
+              </Typography>
+            ) : null}
           </Box>
         </Box>
 
@@ -431,6 +436,35 @@ export default function VetSchedule() {
   };
 
   const requestStatusChange = (apptId, newStatus) => {
+    // If completing, route to the appropriate page depending on appointment details/reason
+    if (newStatus === 'completed') {
+      const appt = serverAppointments.find(a => String(a.id) === String(apptId));
+      const details = Array.isArray(appt?.details) ? appt.details : [];
+      const reason = (appt?.reason || '').toLowerCase();
+
+      if (details.includes('new-record') || appt?.type === 'Registration' || reason.includes('καταχώρι')) {
+        navigate(`/vet/new-record?appointmentId=${apptId}`);
+        return;
+      }
+      if (details.includes('new-prescription') || reason.includes('συνταγ')) {
+        navigate(`/vet/records?open=prescription&appointmentId=${apptId}`);
+        return;
+      }
+      if (details.includes('loss') || reason.includes('απώλεια')) {
+        navigate(`/vet/records?open=loss&appointmentId=${apptId}`);
+        return;
+      }
+      if (details.includes('found') || reason.includes('εύρεση')) {
+        navigate(`/vet/records?open=found&appointmentId=${apptId}`);
+        return;
+      }
+      if (details.includes('transfer') || reason.includes('μεταβίβαση') || reason.includes('υιοθεσ')) {
+        navigate(`/vet/records?open=transfer&appointmentId=${apptId}`);
+        return;
+      }
+      // Default: open the status dialog (general complete flow)
+    }
+
     setStatusDialog({
       open: true,
       apptId,

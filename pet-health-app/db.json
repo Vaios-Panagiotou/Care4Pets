@@ -85,6 +85,18 @@
       "img": "",
       "ownerId": "1765141425145",
       "registeredAt": "2026-01-07T20:34:21.514Z"
+    },
+    {
+      "id": "1768821395404",
+      "name": "αλεξ",
+      "type": "dog",
+      "breed": "λαμπραντορ",
+      "gender": "male",
+      "age": "3",
+      "microchip": "123456789012345",
+      "img": "",
+      "ownerId": "1765141425145",
+      "registeredAt": "2026-01-19T11:16:35.404Z"
     }
   ],
   "appointments": [
@@ -456,6 +468,146 @@
       "diagnosis": "-",
       "treatment": "-",
       "nextVisit": ""
+    },
+    {
+      "id": "1768821262635",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "αλεξ",
+      "time": "13:00",
+      "date": "Δευτέρα 19 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Registration",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "updatedAt": "2026-01-19T11:16:35.417Z",
+      "petId": "1768821395404",
+      "completedAt": "2026-01-19T11:16:35.417Z"
+    },
+    {
+      "id": "1768823958499",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "09:00",
+      "date": "Δευτέρα 19 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ετησιο checkup"
+      },
+      "updatedAt": "2026-01-19T12:03:46.040Z",
+      "cancelReason": "λαθος πελατη",
+      "cancelledBy": "vet"
+    },
+    {
+      "id": "1768824256091",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "αλεξ",
+      "time": "18:30",
+      "date": "Δευτέρα 19 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ετησιο checkup"
+      },
+      "updatedAt": "2026-01-19T12:04:55.905Z",
+      "note": "Ολα καλα με το ζωακι",
+      "diagnosis": "-",
+      "treatment": "-",
+      "nextVisit": "2027-01-19"
+    },
+    {
+      "id": "1768824389566",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "αλεξ",
+      "time": "09:00",
+      "date": "Δευτέρα 19 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "new-prescription"
+      ],
+      "detailNotes": {
+        "new-prescription": "θελουμε συνταγη για νεο φαρμακο"
+      },
+      "updatedAt": "2026-01-19T12:14:42.793Z",
+      "note": "-",
+      "diagnosis": "λοιμωξη αναπνευστικου",
+      "treatment": "",
+      "nextVisit": "2026-02-06"
+    },
+    {
+      "id": "1768824959340",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "09:00",
+      "date": "Πέμπτη 22 Ιανουαρίου 2026",
+      "status": "confirmed",
+      "type": "Visit",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ετησιο checkup"
+      },
+      "updatedAt": "2026-01-19T12:16:09.157Z"
+    },
+    {
+      "id": "1768825100674",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "αλεξ",
+      "time": "09:00",
+      "date": "Πέμπτη 29 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "details": [
+        "new-prescription"
+      ],
+      "detailNotes": {
+        "new-prescription": "sdds"
+      },
+      "cancelReason": "lathos\n",
+      "cancelledBy": "vet",
+      "updatedAt": "2026-01-19T12:18:36.210Z"
     }
   ],
   "healthRecords": [
@@ -578,6 +730,36 @@
       "duration": "Μία δόση",
       "notes": "Εξωτερική χρήση",
       "diagnosis": "Πρόληψη παρασίτων"
+    },
+    {
+      "id": "1768824439021",
+      "petName": "αλεξ",
+      "ownerName": "vaios",
+      "petType": "",
+      "diagnosis": "λοιμωξη αναπνευστικου",
+      "medicine": "Antiparasitic Drops",
+      "dosage": "1",
+      "frequency": "",
+      "duration": "6 μερες",
+      "date": "2026-01-19",
+      "nextVisit": "2026-01-31",
+      "warnings": "μετα απο γευματα",
+      "notes": "Να μην βγαινει εξω σε κρυο καιρο"
+    },
+    {
+      "id": "1768824882636",
+      "petName": "αλεξ",
+      "ownerName": "vaios",
+      "petType": "",
+      "diagnosis": "λοιμωξη αναπνευστικου",
+      "medicine": "Pain Relief",
+      "dosage": "1",
+      "frequency": "",
+      "duration": "7 μερες",
+      "date": "2026-01-19",
+      "nextVisit": "2026-02-06",
+      "warnings": "-",
+      "notes": "-"
     }
   ],
   "reviews": [

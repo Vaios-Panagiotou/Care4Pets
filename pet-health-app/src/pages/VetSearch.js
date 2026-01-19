@@ -145,6 +145,19 @@ export default function VetSearch() {
   const [selectedPet, setSelectedPet] = useState(null);
   const [appointmentReason, setAppointmentReason] = useState('');
   const [registerAppointment, setRegisterAppointment] = useState(false);
+  // Details & notes (user-selectable options)
+  const [selectedDetails, setSelectedDetails] = useState([]);
+  const [detailNotes, setDetailNotes] = useState({});
+  const detailRefs = useRef({});
+  // Single-select details: selecting a chip selects only that option; selecting again clears it
+  const toggleDetail = (key) => setSelectedDetails(prev => {
+    if (prev.length === 1 && prev[0] === key) {
+      setDetailNotes(d => { const c = { ...d }; delete c[key]; return c; });
+      return [];
+    }
+    return [key];
+  });
+  const [detailError, setDetailError] = useState(false);
 
   // Restore progress if coming from auth
   useEffect(() => {
@@ -159,6 +172,8 @@ export default function VetSearch() {
           if (p.selectedTime) { setSelectedTime(p.selectedTime); }
           if (typeof p.registerAppointment === 'boolean') { setRegisterAppointment(p.registerAppointment); }
           if (p.reason) { setAppointmentReason(p.reason); }
+          if (p.details) { setSelectedDetails(Array.isArray(p.details) ? p.details : []); }
+          if (p.detailNotes) { setDetailNotes(p.detailNotes); }
           if (typeof p.step === 'number') { setActiveStep(Math.min(Math.max(p.step, 0), STEPS.length - 1)); }
         }
         sessionStorage.removeItem('vetSearchProgress');
@@ -468,7 +483,9 @@ export default function VetSearch() {
           selectedDate,
           selectedTime,
           registerAppointment,
-          reason: appointmentReason
+          reason: appointmentReason,
+          details: selectedDetails,
+          detailNotes
         };
         sessionStorage.setItem('vetSearchProgress', JSON.stringify(payload));
         sessionStorage.setItem('postAuthRedirect', '/find-vet?find=1');
@@ -478,6 +495,21 @@ export default function VetSearch() {
       return;
     }
     if (activeStep === 2 && !selectedPet && !registerAppointment) { alert("Παρακαλώ επιλέξτε κατοικίδιο ή επιλέξτε ραντεβού για καταχώριση κατοικιδίου."); return; }
+    // Require one selected detail with non-empty note before proceeding
+    if (activeStep === 2) {
+      const key = selectedDetails[0];
+      if (!key) {
+        setDetailError(true);
+        alert('Παρακαλώ επιλέξτε ένα από τα κουμπιά λεπτομερειών και προσθέστε μια σύντομη περιγραφή.');
+        return;
+      }
+      const note = (detailNotes[key] || '').toString().trim();
+      if (!note) {
+        setDetailError(true);
+        alert('Παρακαλώ προσθέστε περιγραφή για την επιλεγμένη λεπτομέρεια πριν προχωρήσετε.');
+        return;
+      }
+    }
     if (activeStep === 3 && !selectedPet) { setSelectedPet({ name: 'Kouvelaj', type: 'Golden Retriever', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80' }); }
     if (activeStep < STEPS.length - 1) {
         setActiveStep((prev) => prev + 1);
@@ -508,7 +540,9 @@ export default function VetSearch() {
               selectedDate,
               selectedTime,
               registerAppointment,
-              reason: appointmentReason
+              reason: appointmentReason,
+              details: selectedDetails,
+              detailNotes
             };
             sessionStorage.setItem('vetSearchProgress', JSON.stringify(payload));
             sessionStorage.setItem('postAuthRedirect', '/find-vet?find=1');
@@ -530,7 +564,9 @@ export default function VetSearch() {
           date: selectedDate || new Date().toLocaleDateString('el-GR'),
           status: 'pending',
           type: registerAppointment ? 'Registration' : 'Visit',
-          reason: appointmentReason || (registerAppointment ? 'Καταχώριση Κατοικιδίου' : 'Τακτικός Έλεγχος')
+          reason: appointmentReason || (registerAppointment ? 'Καταχώριση Κατοικιδίου' : 'Τακτικός Έλεγχος'),
+          details: selectedDetails,
+          detailNotes
         };
         try {
           await appointmentsAPI.create(payload);
@@ -957,6 +993,13 @@ export default function VetSearch() {
                   if (next) {
                     setSelectedPet(null);
                     if (!appointmentReason) setAppointmentReason('Καταχώριση Κατοικιδίου');
+                    // Also select the 'Νέα Καταγραφή' detail so the downstream flow is consistent
+                    setSelectedDetails(['new-record']);
+                    setDetailNotes(prev => ({ ...prev, ['new-record']: prev['new-record'] || '' }));
+                  } else {
+                    // If user deselects registration, remove the new-record detail
+                    setSelectedDetails(prev => prev.filter(d => d !== 'new-record'));
+                    setDetailNotes(prev => { const c = { ...prev }; delete c['new-record']; return c; });
                   }
                 }}
                 sx={{
@@ -982,7 +1025,14 @@ export default function VetSearch() {
               <Grid item xs={12} sm={5} key={pet.id}>
                 <Paper 
                   elevation={selectedPet?.id === pet.id ? 4 : 0} 
-                  onClick={() => setSelectedPet(pet)}
+                  onClick={() => {
+                    setSelectedPet(pet);
+                    // Clear 'Νέα Καταγραφή' when selecting an existing pet
+                    if (selectedDetails.includes('new-record')) {
+                      setSelectedDetails([]);
+                      setDetailNotes(prev => { const c = { ...prev }; delete c['new-record']; return c; });
+                    }
+                  }}
                   sx={{ 
                     p: 2, 
                     border: selectedPet?.id === pet.id ? '2px solid #00695c' : '1px solid #333', 
@@ -1017,56 +1067,75 @@ export default function VetSearch() {
           </Grid>
 
           
-          <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              label="Λόγος Ραντεβιού"
-              placeholder="Περιγράψτε τον λόγο του ραντεβού (π.χ. εμβολιασμός, τακτικός έλεγχος, πρόβλημα υγείας)"
-              value={appointmentReason}
-              inputRef={reasonRef}
-              onChange={(e) => {
-                // Preserve caret/focus across re-renders
-                try {
-                  const newVal = e.target.value;
-                  const selStart = e.target.selectionStart;
-                  const selEnd = e.target.selectionEnd;
-                  setAppointmentReason(newVal);
-                  // restore caret and focus after DOM updates
-                  requestAnimationFrame(() => {
-                    try {
-                      const el = reasonRef.current;
-                      if (el) {
-                        // If focus moved elsewhere, return focus; otherwise keep current
-                        if (document.activeElement !== el) el.focus();
-                        // clamp selection positions to new value length
-                        const len = (el.value || '').length;
-                        const s = Math.min(selStart ?? len, len);
-                        const epos = Math.min(selEnd ?? len, len);
-                        if (typeof el.setSelectionRange === 'function') el.setSelectionRange(s, epos);
-                      }
-                    } catch (err) { console.error('[restore caret]', err); }
-                  });
-                } catch (err) {
-                  console.error('[reason onChange error]', err);
-                }
-              }}
-              onFocus={() => console.debug('[reason] focus')}
-              onBlur={() => console.debug('[reason] blur')}
-              variant="outlined"
-              sx={{ 
-                bgcolor: 'white',
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#00695c',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#00695c',
-                  },
-                }
-              }}
-            />
+          <Box sx={{ maxWidth: 760, mx: 'auto', mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, px: 2 }}>
+            <Typography variant="subtitle1" sx={{ mb: 0, fontWeight: 700, alignSelf: 'flex-start' }}>Λεπτομέρειες</Typography>
+              <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap', mb: 0, justifyContent: 'center', width: '100%' }}>
+              {[
+                { key: 'new-prescription', label: 'Νέα Συνταγή' },
+                { key: 'new-record', label: 'Νέα Καταγραφή' },
+                { key: 'loss', label: 'Απώλεια Ζώου' },
+                { key: 'found', label: 'Εύρεση Ζώου' },
+                { key: 'transfer', label: 'Μεταβίβαση / Υιοθεσία' },
+                { key: 'checkup', label: 'Checkup' }
+              ].map(opt => {
+                const active = selectedDetails.includes(opt.key);
+                return (
+                  <Chip
+                    key={opt.key}
+                    label={opt.label}
+                    clickable
+                    color={active ? 'primary' : 'default'}
+                    variant={active ? 'filled' : 'outlined'}
+                    onClick={() => toggleDetail(opt.key)}
+                    sx={{ fontWeight: 700, minWidth: 140, px: 1.5, justifyContent: 'center' }}
+                  />
+                );
+              })}
+            </Box>
+
+            {selectedDetails.map(key => {
+              const label = (key === 'new-prescription' && 'Νέα Συνταγή') || (key === 'new-record' && 'Νέα Καταγραφή') || (key === 'loss' && 'Απώλεια Ζώου') || (key === 'found' && 'Εύρεση Ζώο') || (key === 'transfer' && 'Μεταβίβαση / Υιοθεσία') || (key === 'checkup' && 'Checkup') || key;
+              const val = (detailNotes[key] || '').toString();
+              const showError = detailError && (!val || !val.trim());
+              return (
+                <Box key={`note-${key}`} sx={{ mb: 2, width: '100%' }}>
+                  <TextField
+                    fullWidth
+                    label={`Προσθήκη λεπτομερειών — ${label}`}
+                    placeholder="Προσθέστε περισσότερες πληροφορίες για αυτή την επιλογή (π.χ. συμπτώματα, διάρκεια, προηγούμενες θεραπείες)"
+                    value={detailNotes[key] || ''}
+                    inputRef={(el) => { detailRefs.current[key] = el; }}
+                    onChange={(e) => {
+                      try {
+                        const newVal = e.target.value;
+                        const selStart = e.target.selectionStart;
+                        const selEnd = e.target.selectionEnd;
+                        setDetailNotes(prev => ({ ...prev, [key]: newVal }));
+                        if (detailError) setDetailError(false);
+                        // Restore caret after React updates
+                        requestAnimationFrame(() => {
+                          try {
+                            const el = detailRefs.current[key];
+                            if (el) {
+                              if (document.activeElement !== el) el.focus();
+                              const len = (el.value || '').length;
+                              const s = Math.min(selStart ?? len, len);
+                              const epos = Math.min(selEnd ?? len, len);
+                              if (typeof el.setSelectionRange === 'function') el.setSelectionRange(s, epos);
+                            }
+                          } catch (err) { /* ignore */ }
+                        });
+                      } catch (err) { /* ignore */ }
+                    }}
+                    size="small"
+                    error={showError}
+                    helperText={showError ? 'Απαιτείται περιγραφή για να συνεχίσετε.' : ''}
+                  />
+                </Box>
+              );
+            })}
+
+
           </Box>
         </Box>
       )}

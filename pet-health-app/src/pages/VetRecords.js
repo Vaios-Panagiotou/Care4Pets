@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DashboardSidebar from '../components/DashboardSidebar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import PageHeader from './PageHeader';
 import { petsAPI, usersAPI, appointmentsAPI, prescriptionsAPI, lostPetsAPI, foundPetsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -61,6 +61,68 @@ export default function VetRecords() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [tabValue, setTabValue] = useState(0);
+  const [searchParams] = useSearchParams();
+
+  // Open dialogs based on query params (e.g. ?open=prescription&appointmentId=123)
+  useEffect(() => {
+    try {
+      const open = searchParams.get('open');
+      const apptId = searchParams.get('appointmentId');
+      if (!open) return;
+      if (open === 'prescription') {
+        // Prefill prescription from appointment when possible
+        if (apptId) {
+          (async () => {
+            try {
+              const data = await appointmentsAPI.getAll();
+              const appt = (Array.isArray(data) ? data : []).find(a => String(a.id) === String(apptId));
+              if (appt) {
+                setPrescriptionForm(prev => ({ ...prev, petName: appt.petName || appt.pet?.name || '', ownerName: appt.ownerName || appt.owner?.name || '' }));
+              }
+            } catch (e) { /* ignore */ }
+            setOpenPrescription(true);
+          })();
+        } else setOpenPrescription(true);
+      }
+      if (open === 'loss') {
+        if (apptId) {
+          (async () => {
+            try {
+              const data = await appointmentsAPI.getAll();
+              const appt = (Array.isArray(data) ? data : []).find(a => String(a.id) === String(apptId));
+              if (appt) setLossForm(prev => ({ ...prev, description: (appt.detailNotes && appt.detailNotes['loss']) || appt.reason || prev.description }));
+            } catch (e) {}
+            setOpenLoss(true);
+          })();
+        } else setOpenLoss(true);
+      }
+      if (open === 'found') {
+        if (apptId) {
+          (async () => {
+            try {
+              const data = await appointmentsAPI.getAll();
+              const appt = (Array.isArray(data) ? data : []).find(a => String(a.id) === String(apptId));
+              if (appt) setFoundForm(prev => ({ ...prev, description: (appt.detailNotes && appt.detailNotes['found']) || appt.reason || prev.description }));
+            } catch (e) {}
+            setOpenFound(true);
+          })();
+        } else setOpenFound(true);
+      }
+      if (open === 'transfer') {
+        // If appointment contains transfer notes, prefill
+        if (apptId) {
+          (async () => {
+            try {
+              const data = await appointmentsAPI.getAll();
+              const appt = (Array.isArray(data) ? data : []).find(a => String(a.id) === String(apptId));
+              if (appt) setTransferForm(prev => ({ ...prev, notes: (appt.detailNotes && appt.detailNotes['transfer']) || appt.reason || prev.notes }));
+            } catch (e) {}
+            setOpenTransfer(true);
+          })();
+        } else setOpenTransfer(true);
+      }
+    } catch (err) { console.error('[open param effect]', err); }
+  }, [searchParams]);
   const [recentPets, setRecentPets] = useState([]);
   const [loadingPets, setLoadingPets] = useState(false);
   const [pendingRegCount, setPendingRegCount] = useState(0);
@@ -193,6 +255,30 @@ export default function VetRecords() {
     setTabValue(newValue);
   };
 
+  // Mark appointment completed helper
+  const markAppointmentCompleted = async (apptId, meta = {}) => {
+    if (!apptId) return;
+    try {
+      const all = await appointmentsAPI.getAll();
+      const appt = (Array.isArray(all) ? all : []).find(a => String(a.id) === String(apptId));
+      if (!appt) return;
+      const updated = {
+        ...appt,
+        status: 'completed',
+        note: meta.note || appt.note || '',
+        diagnosis: meta.diagnosis || appt.diagnosis || '',
+        treatment: meta.treatment || appt.treatment || '',
+        nextVisit: meta.nextVisit || appt.nextVisit || '',
+        updatedAt: new Date().toISOString()
+      };
+      await appointmentsAPI.update(apptId, updated);
+      // Navigate back to schedule for immediate feedback
+      navigate('/vet/schedule');
+    } catch (e) {
+      console.error('[markAppointmentCompleted]', e);
+    }
+  };
+
   const handleSavePrescription = async () => {
     setSavingPrescription(true);
     setPrescriptionError('');
@@ -230,6 +316,12 @@ export default function VetRecords() {
         notes: ''
       });
       setSuccessDialog(true);
+
+      // If opened via appointment, mark appointment completed
+      try {
+        const apptId = searchParams.get('appointmentId');
+        if (apptId) await markAppointmentCompleted(apptId, { note: payload.notes, diagnosis: payload.diagnosis, nextVisit: payload.nextVisit });
+      } catch (err) { console.error('[complete appt after prescription]', err); }
     } catch (e) {
       console.error('Error saving prescription', e);
       setPrescriptionError('Σφάλμα κατά την αποθήκευση της συνταγής. Δοκιμάστε ξανά.');
@@ -238,7 +330,7 @@ export default function VetRecords() {
     }
   }; 
 
-  const handleSavePet = () => {
+  const handleSavePet = async () => {
     // Save pet logic
     setOpenNewPet(false);
     setPetForm({
@@ -256,6 +348,12 @@ export default function VetRecords() {
       ownerAddress: ''
     });
     setSuccessDialog(true);
+
+    // If opened via appointment, mark it completed
+    try {
+      const apptId = searchParams.get('appointmentId');
+      if (apptId) await markAppointmentCompleted(apptId, { note: 'Καταχώριση Κατοικιδίου' });
+    } catch (err) { console.error('[complete appt after new pet]', err); }
   };
 
   const toGreekTypeLabel = (t) => {
@@ -1221,6 +1319,12 @@ export default function VetRecords() {
                   });
                   setSuccessMessage('Η απώλεια δηλώθηκε επιτυχώς και εμφανίζεται στον ιδιοκτήτη.');
                   setSuccessDialog(true);
+
+                  // If opened from an appointment, mark the appointment completed
+                  try {
+                    const apptId = searchParams.get('appointmentId');
+                    if (apptId) await markAppointmentCompleted(apptId, { note: payload.description });
+                  } catch (err) { console.error('[complete appt after loss]', err); }
                 } catch (e) {
                   console.error(e);
                   setLossError('Αποτυχία καταχώρησης απώλειας. Βεβαιωθείτε ότι τρέχει το json-server.');
@@ -1397,6 +1501,12 @@ export default function VetRecords() {
                   setFoundImages([]);
                   setSuccessMessage('Η εύρεση καταχωρήθηκε επιτυχώς και εμφανίζεται δημόσια.');
                   setSuccessDialog(true);
+
+                  // If opened from appointment, mark completed
+                  try {
+                    const apptId = searchParams.get('appointmentId');
+                    if (apptId) await markAppointmentCompleted(apptId, { note: payload.description });
+                  } catch (err) { console.error('[complete appt after found]', err); }
                 } catch (e) {
                   console.error(e);
                   setFoundError('Αποτυχία καταχώρησης εύρεσης. Βεβαιωθείτε ότι τρέχει το json-server.');
@@ -1565,6 +1675,9 @@ export default function VetRecords() {
                   const refreshedPets = await petsAPI.getAll();
                   setAllPets(Array.isArray(refreshedPets) ? refreshedPets : []);
 
+                  // capture notes before clearing
+                  const transferNote = transferForm.notes;
+
                   setOpenTransfer(false);
                   setTransferForm({
                     ownerId: '',
@@ -1578,6 +1691,12 @@ export default function VetRecords() {
                     ? 'Η υιοθεσία ολοκληρώθηκε και το ζώο εμφανίζεται στον νέο ιδιοκτήτη.'
                     : 'Η μεταβίβαση ολοκληρώθηκε και το ζώο εμφανίζεται στον νέο ιδιοκτήτη.');
                   setSuccessDialog(true);
+
+                  // If opened from appointment, mark appointment completed
+                  try {
+                    const apptId = searchParams.get('appointmentId');
+                    if (apptId) await markAppointmentCompleted(apptId, { note: transferNote });
+                  } catch (err) { console.error('[complete appt after transfer]', err); }
                 } catch (e) {
                   console.error(e);
                   setTransferError('Αποτυχία μεταβίβασης/υιοθεσίας. Βεβαιωθείτε ότι τρέχει το json-server.');
