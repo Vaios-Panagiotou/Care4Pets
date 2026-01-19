@@ -632,6 +632,48 @@
       "cancelReason": "φδγδφβ",
       "cancelledBy": "vet",
       "updatedAt": "2026-01-19T12:42:28.576Z"
+    },
+    {
+      "id": "1768827409994",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "wht",
+      "time": "18:30",
+      "date": "Σάββατο 31 Ιανουαρίου 2026",
+      "status": "pending",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ς"
+      }
+    },
+    {
+      "id": "1768827426347",
+      "ownerId": "1766231574654",
+      "ownerName": "George",
+      "vetId": "1768402024653",
+      "vetUserId": "1768402024631",
+      "vetEmail": "Ogvet@gmail.com",
+      "vetName": "giorgos",
+      "petName": "wht",
+      "time": "18:30",
+      "date": "Παρασκευή 30 Ιανουαρίου 2026",
+      "status": "pending",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "φε"
+      }
     }
   ],
   "healthRecords": [

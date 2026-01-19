@@ -143,6 +143,9 @@ export default function VetSearch() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
+  const [unavailableTimes, setUnavailableTimes] = useState([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState('');
   const REGISTRATION_REASON = 'Καταχώριση Κατοικιδίου';
   const [appointmentReason, setAppointmentReason] = useState('');
   const [registerAppointment, setRegisterAppointment] = useState(false);
@@ -193,6 +196,59 @@ export default function VetSearch() {
       }
     } catch (_) {}
   }, []);
+
+  // Load time availability for selected vet + date
+  useEffect(() => {
+    let mounted = true;
+    const loadAvailability = async () => {
+      if (!selectedVet || !selectedDate) {
+        if (mounted) {
+          setUnavailableTimes([]);
+          setLoadingTimes(false);
+          setAvailabilityError('');
+        }
+        return;
+      }
+      setLoadingTimes(true);
+      setAvailabilityError('');
+      try {
+        const data = await appointmentsAPI.getAll();
+        const list = Array.isArray(data) ? data : [];
+        const vetId = String(selectedVet.id || '');
+        const vetUserId = String(selectedVet.userId || '');
+        const vetEmail = (selectedVet.email || selectedVet.userEmail || '').toLowerCase();
+        const vetName = (selectedVet.name || '').toLowerCase();
+        const booked = list.filter(a => (
+          (String(a.vetId || '') === vetId) ||
+          (vetUserId && String(a.vetUserId || '') === vetUserId) ||
+          (vetEmail && (a.vetEmail || '').toLowerCase() === vetEmail) ||
+          (vetName && (a.vetName || '').toLowerCase() === vetName)
+        ) &&
+          String(a.date || '') === String(selectedDate || '') &&
+          String(a.status || '').toLowerCase() !== 'cancelled'
+        );
+        const times = Array.from(new Set(booked.map(a => String(a.time || '')).filter(Boolean)));
+        if (mounted) setUnavailableTimes(times);
+      } catch (e) {
+        console.warn('Αδυναμία ελέγχου διαθεσιμότητας.', e);
+        if (mounted) {
+          setUnavailableTimes([]);
+          setAvailabilityError('Δεν ήταν δυνατός ο έλεγχος διαθεσιμότητας.');
+        }
+      } finally {
+        if (mounted) setLoadingTimes(false);
+      }
+    };
+    loadAvailability();
+    return () => { mounted = false; };
+  }, [selectedVet, selectedDate]);
+
+  // Clear selected time if it became unavailable
+  useEffect(() => {
+    if (selectedTime && unavailableTimes.includes(selectedTime)) {
+      setSelectedTime(null);
+    }
+  }, [selectedTime, unavailableTimes]);
   
   // Reason change handler
   const handleReasonChange = (e) => {
@@ -909,7 +965,10 @@ export default function VetSearch() {
 
             {/* Times section */}
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><AccessTimeIcon fontSize="small"/> Διαθέσιμες Ώρες</Typography>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}><AccessTimeIcon fontSize="small"/> Διαθέσιμες Ώρες</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                {loadingTimes ? 'Έλεγχος διαθεσιμότητας...' : availabilityError ? availabilityError : (selectedVet && selectedDate ? `Μη διαθέσιμες ώρες: ${unavailableTimes.length}` : 'Επιλέξτε κτηνίατρο και ημερομηνία για έλεγχο διαθεσιμότητας.')}
+              </Typography>
               {/* Morning */}
               {groupedSlots.morning.length > 0 && (
                 <Box sx={{ mb: 1 }}>
@@ -917,8 +976,22 @@ export default function VetSearch() {
                   <Box sx={{ mt: 0.5, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
                     {groupedSlots.morning.map((time) => {
                       const picked = selectedTime === time;
+                      const isUnavailable = !!selectedVet && !!selectedDate && unavailableTimes.includes(time);
                       return (
-                        <Chip size="small" key={`m-${time}`} label={time} clickable onClick={() => setSelectedTime(time)} color={picked ? 'success' : 'default'} variant={picked ? 'filled' : 'outlined'} sx={{ fontWeight: 700 }} />
+                        <Tooltip key={`m-${time}`} title={isUnavailable ? 'Μη διαθέσιμη ώρα' : ''} disableHoverListener={!isUnavailable}>
+                          <span>
+                            <Chip
+                              size="small"
+                              label={time}
+                              clickable={!isUnavailable}
+                              onClick={() => !isUnavailable && setSelectedTime(time)}
+                              color={picked ? 'success' : 'default'}
+                              variant={picked ? 'filled' : 'outlined'}
+                              disabled={isUnavailable}
+                              sx={{ fontWeight: 700, opacity: isUnavailable ? 0.55 : 1 }}
+                            />
+                          </span>
+                        </Tooltip>
                       );
                     })}
                   </Box>
@@ -931,8 +1004,22 @@ export default function VetSearch() {
                   <Box sx={{ mt: 0.5, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
                     {groupedSlots.afternoon.map((time) => {
                       const picked = selectedTime === time;
+                      const isUnavailable = !!selectedVet && !!selectedDate && unavailableTimes.includes(time);
                       return (
-                        <Chip size="small" key={`a-${time}`} label={time} clickable onClick={() => setSelectedTime(time)} color={picked ? 'success' : 'default'} variant={picked ? 'filled' : 'outlined'} sx={{ fontWeight: 700 }} />
+                        <Tooltip key={`a-${time}`} title={isUnavailable ? 'Μη διαθέσιμη ώρα' : ''} disableHoverListener={!isUnavailable}>
+                          <span>
+                            <Chip
+                              size="small"
+                              label={time}
+                              clickable={!isUnavailable}
+                              onClick={() => !isUnavailable && setSelectedTime(time)}
+                              color={picked ? 'success' : 'default'}
+                              variant={picked ? 'filled' : 'outlined'}
+                              disabled={isUnavailable}
+                              sx={{ fontWeight: 700, opacity: isUnavailable ? 0.55 : 1 }}
+                            />
+                          </span>
+                        </Tooltip>
                       );
                     })}
                   </Box>
@@ -945,8 +1032,22 @@ export default function VetSearch() {
                   <Box sx={{ mt: 0.5, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
                     {groupedSlots.evening.map((time) => {
                       const picked = selectedTime === time;
+                      const isUnavailable = !!selectedVet && !!selectedDate && unavailableTimes.includes(time);
                       return (
-                        <Chip size="small" key={`e-${time}`} label={time} clickable onClick={() => setSelectedTime(time)} color={picked ? 'success' : 'default'} variant={picked ? 'filled' : 'outlined'} sx={{ fontWeight: 700 }} />
+                        <Tooltip key={`e-${time}`} title={isUnavailable ? 'Μη διαθέσιμη ώρα' : ''} disableHoverListener={!isUnavailable}>
+                          <span>
+                            <Chip
+                              size="small"
+                              label={time}
+                              clickable={!isUnavailable}
+                              onClick={() => !isUnavailable && setSelectedTime(time)}
+                              color={picked ? 'success' : 'default'}
+                              variant={picked ? 'filled' : 'outlined'}
+                              disabled={isUnavailable}
+                              sx={{ fontWeight: 700, opacity: isUnavailable ? 0.55 : 1 }}
+                            />
+                          </span>
+                        </Tooltip>
                       );
                     })}
                   </Box>
