@@ -2,13 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box, Container, Grid, Typography, Paper, Tabs, Tab, TextField, Button,
   FormControl, InputLabel, Select, MenuItem, Chip, Dialog, DialogTitle,
-  DialogContent, DialogActions, Alert, Divider, IconButton, Avatar
+  DialogContent, DialogActions, Alert, Divider, IconButton, Avatar,
+  Checkbox, FormControlLabel
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DashboardSidebar from '../components/DashboardSidebar';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from './PageHeader';
-import { petsAPI, usersAPI, appointmentsAPI, prescriptionsAPI } from '../services/api';
+import { petsAPI, usersAPI, appointmentsAPI, prescriptionsAPI, lostPetsAPI, foundPetsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Icons
@@ -22,6 +23,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 
 const theme = createTheme({
   palette: {
@@ -60,6 +64,12 @@ export default function VetRecords() {
   const [recentPets, setRecentPets] = useState([]);
   const [loadingPets, setLoadingPets] = useState(false);
   const [pendingRegCount, setPendingRegCount] = useState(0);
+
+  const [owners, setOwners] = useState([]);
+  const [clientOwners, setClientOwners] = useState([]);
+  const [allPets, setAllPets] = useState([]);
+  const [loadingOwners, setLoadingOwners] = useState(false);
+  const [loadingAllPets, setLoadingAllPets] = useState(false);
   
   // Prescription Dialog
   const [openPrescription, setOpenPrescription] = useState(false);
@@ -134,6 +144,50 @@ export default function VetRecords() {
   });
 
   const [successDialog, setSuccessDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('Η καταχώρηση ολοκληρώθηκε με επιτυχία.');
+
+  // Vet Actions: Loss, Found, Transfer/Adoption
+  const [openLoss, setOpenLoss] = useState(false);
+  const [openFound, setOpenFound] = useState(false);
+  const [openTransfer, setOpenTransfer] = useState(false);
+
+  const [lossForm, setLossForm] = useState({
+    ownerId: '',
+    petId: '',
+    lostDate: new Date().toISOString().split('T')[0],
+    location: '',
+    description: '',
+    reward: '',
+    urgent: false,
+    phone: '',
+    email: '',
+    preferredContact: 'Τηλέφωνο',
+  });
+  const [lossError, setLossError] = useState('');
+  const [savingLoss, setSavingLoss] = useState(false);
+
+  const [foundForm, setFoundForm] = useState({
+    type: '',
+    description: '',
+    location: '',
+    foundAt: '',
+    hasOwner: false,
+  });
+  const [foundImages, setFoundImages] = useState([]);
+  const [foundImageUrl, setFoundImageUrl] = useState('');
+  const [foundError, setFoundError] = useState('');
+  const [savingFound, setSavingFound] = useState(false);
+
+  const [transferForm, setTransferForm] = useState({
+    ownerId: '',
+    petId: '',
+    newOwnerId: '',
+    type: 'transfer',
+    notes: '',
+    effectiveDate: new Date().toISOString().split('T')[0],
+  });
+  const [transferError, setTransferError] = useState('');
+  const [savingTransfer, setSavingTransfer] = useState(false);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -204,6 +258,55 @@ export default function VetRecords() {
     setSuccessDialog(true);
   };
 
+  const toGreekTypeLabel = (t) => {
+    const v = String(t || '').toLowerCase();
+    if (v === 'dog' || v === 'σκύλος') return 'Σκύλος';
+    if (v === 'cat' || v === 'γάτα') return 'Γάτα';
+    if (v === 'other' || v === 'άλλο') return 'Άλλο';
+    return 'Ζώο';
+  };
+
+  const toGreekGender = (g) => {
+    const v = String(g || '').toLowerCase();
+    if (v === 'male' || v === 'αρσενικό') return 'Αρσενικό';
+    if (v === 'female' || v === 'θηλυκό') return 'Θηλυκό';
+    return 'Άγνωστο';
+  };
+
+  const formatGreekDate = (iso) => {
+    try {
+      if (!iso) return new Date().toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' });
+      const d = new Date(iso);
+      return d.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+      return new Date().toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+  };
+
+  const getVetMatch = (appt) => {
+    const userId = String(user?.id || '');
+    const email = (user?.email || '').toLowerCase();
+    const name = (user?.fullname || user?.fullName || user?.name || '').toLowerCase();
+    return (
+      String(appt.vetUserId || '') === userId ||
+      String(appt.vetId || '') === userId ||
+      (appt.vetEmail && appt.vetEmail.toLowerCase() === email) ||
+      (appt.vetName && appt.vetName.toLowerCase() === name)
+    );
+  };
+
+  const ownersForVet = useMemo(() => (clientOwners.length ? clientOwners : owners), [clientOwners, owners]);
+
+  const lossPetsForOwner = useMemo(() => {
+    if (!lossForm.ownerId) return [];
+    return (allPets || []).filter(p => String(p.ownerId || '') === String(lossForm.ownerId));
+  }, [allPets, lossForm.ownerId]);
+
+  const transferPetsForOwner = useMemo(() => {
+    if (!transferForm.ownerId) return [];
+    return (allPets || []).filter(p => String(p.ownerId || '') === String(transferForm.ownerId));
+  }, [allPets, transferForm.ownerId]);
+
   // Load pets from server and compose "new animals" cards
   useEffect(() => {
     let mounted = true;
@@ -252,6 +355,42 @@ export default function VetRecords() {
     })();
     return () => { mounted = false; };
   }, []);
+
+  // Load owners, pets, and vet clients
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoadingOwners(true);
+      setLoadingAllPets(true);
+      try {
+        const [users, pets, appts] = await Promise.all([
+          usersAPI.getAll(),
+          petsAPI.getAll(),
+          appointmentsAPI.getAll(),
+        ]);
+        if (!mounted) return;
+        const ownerList = (Array.isArray(users) ? users : []).filter(u => String(u.role || '').toLowerCase() === 'owner');
+        setOwners(ownerList);
+        setAllPets(Array.isArray(pets) ? pets : []);
+
+        const vetAppointments = (Array.isArray(appts) ? appts : []).filter(getVetMatch);
+        const clientOwnerIds = new Set(vetAppointments.map(a => String(a.ownerId || '')).filter(Boolean));
+        const clientList = ownerList.filter(o => clientOwnerIds.has(String(o.id)));
+        setClientOwners(clientList.length ? clientList : ownerList);
+      } catch (e) {
+        if (!mounted) return;
+        setOwners([]);
+        setClientOwners([]);
+        setAllPets([]);
+      } finally {
+        if (mounted) {
+          setLoadingOwners(false);
+          setLoadingAllPets(false);
+        }
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user]);
 
   // Minimal indicator: count open Registration appointments for this vet (pending or confirmed)
   useEffect(() => {
@@ -340,6 +479,33 @@ export default function VetRecords() {
                 sx={{ px: 3, py: 1.5 }}
               >
                 Νέα Καταγραφή
+              </Button>
+              <Button 
+                variant="contained" 
+                color="warning" 
+                startIcon={<ReportProblemIcon />}
+                onClick={() => navigate('/lost-pets?view=form')}
+                sx={{ px: 3, py: 1.5 }}
+              >
+                Απώλεια Ζώου
+              </Button>
+              <Button 
+                variant="contained" 
+                color="info" 
+                startIcon={<TravelExploreIcon />}
+                onClick={() => navigate('/found-pets?view=form')}
+                sx={{ px: 3, py: 1.5 }}
+              >
+                Εύρεση Ζώου
+              </Button>
+              <Button 
+                variant="contained" 
+                color="success" 
+                startIcon={<SwapHorizIcon />}
+                onClick={() => setOpenTransfer(true)}
+                sx={{ px: 3, py: 1.5 }}
+              >
+                Μεταβίβαση / Υιοθεσία
               </Button>
               {pendingRegCount > 0 && (
                 <Chip 
@@ -836,9 +1002,593 @@ export default function VetRecords() {
           <DialogContent sx={{ textAlign: 'center', p: 5 }}>
             <CheckCircleIcon color="success" sx={{ fontSize: 60, mb: 2 }} />
             <Typography variant="h5" fontWeight="bold">Επιτυχής Καταχώρηση!</Typography>
-            <Typography sx={{ mb: 3, mt: 1 }}>Η καταχώρηση ολοκληρώθηκε με επιτυχία.</Typography>
+            <Typography sx={{ mb: 3, mt: 1 }}>{successMessage}</Typography>
             <Button variant="contained" onClick={() => setSuccessDialog(false)}>OK</Button>
           </DialogContent>
+        </Dialog>
+
+        {/* LOSS DIALOG */}
+        <Dialog
+          open={openLoss}
+          onClose={() => setOpenLoss(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 3 } }}
+        >
+          <DialogTitle sx={{ bgcolor: 'warning.main', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" fontWeight="bold">Καταγραφή Απώλειας Ζώου</Typography>
+            <IconButton onClick={() => setOpenLoss(false)} sx={{ color: 'white' }}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ pt: 3 }}>
+            {lossError && (<Alert severity="error" sx={{ mb: 2 }}>{lossError}</Alert>)}
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Πελάτης & Ζώο</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Ιδιοκτήτης</InputLabel>
+                  <Select
+                    label="Ιδιοκτήτης"
+                    value={lossForm.ownerId}
+                    onChange={(e) => {
+                      const ownerId = e.target.value;
+                      const owner = ownersForVet.find(o => String(o.id) === String(ownerId));
+                      setLossForm(prev => ({
+                        ...prev,
+                        ownerId,
+                        petId: '',
+                        email: owner?.email || prev.email || '',
+                        phone: owner?.phone || prev.phone || '',
+                      }));
+                    }}
+                  >
+                    {(ownersForVet || []).map(o => (
+                      <MenuItem key={o.id} value={o.id}>{o.fullname || o.fullName || o.name || o.email}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small" disabled={!lossForm.ownerId || loadingAllPets}>
+                  <InputLabel>Ζώο</InputLabel>
+                  <Select
+                    label="Ζώο"
+                    value={lossForm.petId}
+                    onChange={(e) => setLossForm(prev => ({ ...prev, petId: e.target.value }))}
+                  >
+                    {lossPetsForOwner.map(p => (
+                      <MenuItem key={p.id} value={p.id}>{p.name || 'Χωρίς όνομα'} ({toGreekTypeLabel(p.type)})</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Στοιχεία Απώλειας</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="date"
+                  label="Ημερομηνία"
+                  InputLabelProps={{ shrink: true }}
+                  value={lossForm.lostDate}
+                  onChange={(e) => setLossForm(prev => ({ ...prev, lostDate: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Τοποθεσία"
+                  value={lossForm.location}
+                  onChange={(e) => setLossForm(prev => ({ ...prev, location: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Περιγραφή"
+                  multiline
+                  rows={3}
+                  value={lossForm.description}
+                  onChange={(e) => setLossForm(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Αμοιβή (προαιρετικό)"
+                  value={lossForm.reward}
+                  onChange={(e) => setLossForm(prev => ({ ...prev, reward: e.target.value }))}
+                  placeholder="π.χ. 50€"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={lossForm.urgent}
+                      onChange={(e) => setLossForm(prev => ({ ...prev, urgent: e.target.checked }))}
+                    />
+                  }
+                  label="Επείγον"
+                />
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Επικοινωνία</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Τηλέφωνο"
+                  value={lossForm.phone}
+                  onChange={(e) => setLossForm(prev => ({ ...prev, phone: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Email"
+                  value={lossForm.email}
+                  onChange={(e) => setLossForm(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Προτιμώμενη Επικοινωνία</InputLabel>
+                  <Select
+                    label="Προτιμώμενη Επικοινωνία"
+                    value={lossForm.preferredContact}
+                    onChange={(e) => setLossForm(prev => ({ ...prev, preferredContact: e.target.value }))}
+                  >
+                    <MenuItem value="Τηλέφωνο">Τηλέφωνο</MenuItem>
+                    <MenuItem value="Email">Email</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setOpenLoss(false)} color="inherit">Ακύρωση</Button>
+            <Button
+              variant="contained"
+              color="warning"
+              startIcon={<SaveIcon />}
+              disabled={savingLoss || loadingOwners}
+              onClick={async () => {
+                setLossError('');
+                if (!lossForm.ownerId) {
+                  setLossError('Επιλέξτε ιδιοκτήτη.');
+                  return;
+                }
+                if (!lossForm.location.trim()) {
+                  setLossError('Συμπληρώστε τοποθεσία.');
+                  return;
+                }
+                if (!lossForm.description.trim()) {
+                  setLossError('Συμπληρώστε περιγραφή.');
+                  return;
+                }
+                setSavingLoss(true);
+                try {
+                  const owner = ownersForVet.find(o => String(o.id) === String(lossForm.ownerId));
+                  const pet = (allPets || []).find(p => String(p.id) === String(lossForm.petId));
+                  const payload = {
+                    petId: pet?.id || null,
+                    name: pet?.name || 'Χωρίς όνομα',
+                    type: toGreekTypeLabel(pet?.type || 'Ζώο'),
+                    breed: pet?.breed || 'Άγνωστη',
+                    gender: toGreekGender(pet?.gender),
+                    age: pet?.age ? String(pet.age) : '',
+                    color: pet?.color || '',
+                    date: formatGreekDate(lossForm.lostDate),
+                    location: lossForm.location || '',
+                    img: pet?.image || pet?.img || 'https://via.placeholder.com/400',
+                    reward: lossForm.reward || null,
+                    views: 0,
+                    urgent: !!lossForm.urgent,
+                    description: lossForm.description || '',
+                    phone: lossForm.phone || owner?.phone || '',
+                    email: lossForm.email || owner?.email || '',
+                    preferredContact: lossForm.preferredContact || 'Τηλέφωνο',
+                    ownerId: owner?.id || null,
+                    reportedByVetId: user?.id || null,
+                    reportedByVetName: user?.fullname || user?.fullName || user?.name || '',
+                  };
+                  await lostPetsAPI.create(payload);
+                  setOpenLoss(false);
+                  setLossForm({
+                    ownerId: '',
+                    petId: '',
+                    lostDate: new Date().toISOString().split('T')[0],
+                    location: '',
+                    description: '',
+                    reward: '',
+                    urgent: false,
+                    phone: '',
+                    email: '',
+                    preferredContact: 'Τηλέφωνο',
+                  });
+                  setSuccessMessage('Η απώλεια δηλώθηκε επιτυχώς και εμφανίζεται στον ιδιοκτήτη.');
+                  setSuccessDialog(true);
+                } catch (e) {
+                  console.error(e);
+                  setLossError('Αποτυχία καταχώρησης απώλειας. Βεβαιωθείτε ότι τρέχει το json-server.');
+                } finally {
+                  setSavingLoss(false);
+                }
+              }}
+            >
+              Καταχώρηση
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* FOUND DIALOG */}
+        <Dialog
+          open={openFound}
+          onClose={() => setOpenFound(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 3 } }}
+        >
+          <DialogTitle sx={{ bgcolor: 'info.main', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" fontWeight="bold">Καταγραφή Εύρεσης Ζώου</Typography>
+            <IconButton onClick={() => setOpenFound(false)} sx={{ color: 'white' }}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ pt: 3 }}>
+            {foundError && (<Alert severity="error" sx={{ mb: 2 }}>{foundError}</Alert>)}
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Είδος</InputLabel>
+                  <Select
+                    label="Είδος"
+                    value={foundForm.type}
+                    onChange={(e) => setFoundForm(prev => ({ ...prev, type: e.target.value }))}
+                  >
+                    <MenuItem value="Σκύλος">Σκύλος</MenuItem>
+                    <MenuItem value="Γάτα">Γάτα</MenuItem>
+                    <MenuItem value="Άλλο">Άλλο</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="datetime-local"
+                  label="Ημερομηνία/Ώρα Εύρεσης"
+                  InputLabelProps={{ shrink: true }}
+                  value={foundForm.foundAt}
+                  onChange={(e) => setFoundForm(prev => ({ ...prev, foundAt: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Περιγραφή"
+                  multiline
+                  rows={3}
+                  value={foundForm.description}
+                  onChange={(e) => setFoundForm(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Τοποθεσία Εύρεσης"
+                  value={foundForm.location}
+                  onChange={(e) => setFoundForm(prev => ({ ...prev, location: e.target.value }))}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={foundForm.hasOwner}
+                      onChange={(e) => setFoundForm(prev => ({ ...prev, hasOwner: e.target.checked }))}
+                    />
+                  }
+                  label="Υπάρχει γνωστός ιδιοκτήτης"
+                />
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Φωτογραφίες (URL)</Typography>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={9}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="URL Φωτογραφίας"
+                  value={foundImageUrl}
+                  onChange={(e) => setFoundImageUrl(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => {
+                    if (!foundImageUrl.trim()) return;
+                    setFoundImages(prev => [...prev, foundImageUrl.trim()]);
+                    setFoundImageUrl('');
+                  }}
+                >
+                  Προσθήκη
+                </Button>
+              </Grid>
+              {foundImages.length > 0 && (
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {foundImages.map((url, idx) => (
+                      <Chip
+                        key={`${url}-${idx}`}
+                        label={`Φωτογραφία ${idx + 1}`}
+                        onDelete={() => setFoundImages(prev => prev.filter((_, i) => i !== idx))}
+                      />
+                    ))}
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setOpenFound(false)} color="inherit">Ακύρωση</Button>
+            <Button
+              variant="contained"
+              color="info"
+              startIcon={<SaveIcon />}
+              disabled={savingFound}
+              onClick={async () => {
+                setFoundError('');
+                if (!foundForm.type) {
+                  setFoundError('Επιλέξτε είδος.');
+                  return;
+                }
+                if (!foundForm.description.trim()) {
+                  setFoundError('Συμπληρώστε περιγραφή.');
+                  return;
+                }
+                if (!foundForm.location.trim()) {
+                  setFoundError('Συμπληρώστε τοποθεσία.');
+                  return;
+                }
+                if (!foundForm.foundAt) {
+                  setFoundError('Συμπληρώστε ημερομηνία/ώρα.');
+                  return;
+                }
+                if (!foundImages.length) {
+                  setFoundError('Προσθέστε τουλάχιστον μία φωτογραφία (URL).');
+                  return;
+                }
+                setSavingFound(true);
+                try {
+                  const payload = {
+                    type: foundForm.type,
+                    description: foundForm.description,
+                    location: foundForm.location,
+                    foundAt: foundForm.foundAt,
+                    hasOwner: !!foundForm.hasOwner,
+                    images: foundImages,
+                    createdAt: new Date().toISOString(),
+                    reportedByVetId: user?.id || null,
+                    reportedByVetName: user?.fullname || user?.fullName || user?.name || '',
+                  };
+                  await foundPetsAPI.create(payload);
+                  setOpenFound(false);
+                  setFoundForm({ type: '', description: '', location: '', foundAt: '', hasOwner: false });
+                  setFoundImages([]);
+                  setSuccessMessage('Η εύρεση καταχωρήθηκε επιτυχώς και εμφανίζεται δημόσια.');
+                  setSuccessDialog(true);
+                } catch (e) {
+                  console.error(e);
+                  setFoundError('Αποτυχία καταχώρησης εύρεσης. Βεβαιωθείτε ότι τρέχει το json-server.');
+                } finally {
+                  setSavingFound(false);
+                }
+              }}
+            >
+              Καταχώρηση
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* TRANSFER / ADOPTION DIALOG */}
+        <Dialog
+          open={openTransfer}
+          onClose={() => setOpenTransfer(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 3 } }}
+        >
+          <DialogTitle sx={{ bgcolor: 'success.main', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" fontWeight="bold">Μεταβίβαση / Υιοθεσία Ζώου</Typography>
+            <IconButton onClick={() => setOpenTransfer(false)} sx={{ color: 'white' }}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ pt: 3, pb: 2 }}>
+            {transferError && (<Alert severity="error" sx={{ mb: 2 }}>{transferError}</Alert>)}
+            <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#f6f8f9', borderRadius: 2, mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Τρέχων Ιδιοκτήτης & Ζώο</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControl fullWidth sx={{ minWidth: 180 }}>
+                    <InputLabel id="transfer-current-owner-label">Τρέχων Ιδιοκτήτης</InputLabel>
+                    <Select
+                      labelId="transfer-current-owner-label"
+                      label="Τρέχων Ιδιοκτήτης"
+                      value={transferForm.ownerId}
+                      onChange={(e) => setTransferForm(prev => ({ ...prev, ownerId: e.target.value, petId: '' }))}
+                    >
+                      {(ownersForVet || []).map(o => (
+                        <MenuItem key={o.id} value={o.id}>{o.fullname || o.fullName || o.name || o.email}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl fullWidth sx={{ minWidth: 130 }} disabled={!transferForm.ownerId}>
+                    <InputLabel id="transfer-pet-label">Ζώο</InputLabel>
+                    <Select
+                      labelId="transfer-pet-label"
+                      label="Ζώο"
+                      value={transferForm.petId}
+                      onChange={(e) => setTransferForm(prev => ({ ...prev, petId: e.target.value }))}
+                    >
+                      {transferPetsForOwner.map(p => (
+                        <MenuItem key={p.id} value={p.id}>{p.name || 'Χωρίς όνομα'} ({toGreekTypeLabel(p.type)})</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#f1f8e9', borderRadius: 2, mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Τύπος Πράξης & Ημερομηνία</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth sx={{ minWidth: 170 }}>
+                    <InputLabel id="transfer-type-label">Τύπος Πράξης</InputLabel>
+                    <Select
+                      labelId="transfer-type-label"
+                      label="Τύπος Πράξης"
+                      value={transferForm.type}
+                      onChange={(e) => setTransferForm(prev => ({ ...prev, type: e.target.value }))}
+                    >
+                      <MenuItem value="transfer">Μεταβίβαση</MenuItem>
+                      <MenuItem value="adoption">Υιοθεσία</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type="date"
+                    label="Ημερομηνία"
+                    InputLabelProps={{ shrink: true }}
+                    value={transferForm.effectiveDate}
+                    onChange={(e) => setTransferForm(prev => ({ ...prev, effectiveDate: e.target.value }))}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+
+            <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#e8f5e9', borderRadius: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Νέος Ιδιοκτήτης & Σημειώσεις</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControl fullWidth sx={{ minWidth: 170 }}>
+                    <InputLabel id="transfer-new-owner-label">Νέος Ιδιοκτήτης</InputLabel>
+                    <Select
+                      labelId="transfer-new-owner-label"
+                      label="Νέος Ιδιοκτήτης"
+                      value={transferForm.newOwnerId}
+                      onChange={(e) => setTransferForm(prev => ({ ...prev, newOwnerId: e.target.value }))}
+                    >
+                      {(owners || []).map(o => (
+                        <MenuItem key={o.id} value={o.id}>{o.fullname || o.fullName || o.name || o.email}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Σημειώσεις"
+                    multiline
+                    rows={3}
+                    value={transferForm.notes}
+                    onChange={(e) => setTransferForm(prev => ({ ...prev, notes: e.target.value }))}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setOpenTransfer(false)} color="inherit">Ακύρωση</Button>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<SaveIcon />}
+              disabled={savingTransfer}
+              onClick={async () => {
+                setTransferError('');
+                if (!transferForm.ownerId) {
+                  setTransferError('Επιλέξτε τρέχοντα ιδιοκτήτη.');
+                  return;
+                }
+                if (!transferForm.petId) {
+                  setTransferError('Επιλέξτε ζώο.');
+                  return;
+                }
+                if (!transferForm.newOwnerId) {
+                  setTransferError('Επιλέξτε νέο ιδιοκτήτη.');
+                  return;
+                }
+                if (String(transferForm.newOwnerId) === String(transferForm.ownerId)) {
+                  setTransferError('Ο νέος ιδιοκτήτης δεν μπορεί να είναι ο ίδιος.');
+                  return;
+                }
+                setSavingTransfer(true);
+                try {
+                  const pet = (allPets || []).find(p => String(p.id) === String(transferForm.petId));
+                  if (!pet) {
+                    setTransferError('Δεν βρέθηκε το ζώο.');
+                    setSavingTransfer(false);
+                    return;
+                  }
+                  const updated = { ...pet, ownerId: transferForm.newOwnerId, updatedAt: new Date().toISOString() };
+                  await petsAPI.update(pet.id, updated);
+
+                  // Refresh pets in memory
+                  const refreshedPets = await petsAPI.getAll();
+                  setAllPets(Array.isArray(refreshedPets) ? refreshedPets : []);
+
+                  setOpenTransfer(false);
+                  setTransferForm({
+                    ownerId: '',
+                    petId: '',
+                    newOwnerId: '',
+                    type: 'transfer',
+                    notes: '',
+                    effectiveDate: new Date().toISOString().split('T')[0],
+                  });
+                  setSuccessMessage(transferForm.type === 'adoption'
+                    ? 'Η υιοθεσία ολοκληρώθηκε και το ζώο εμφανίζεται στον νέο ιδιοκτήτη.'
+                    : 'Η μεταβίβαση ολοκληρώθηκε και το ζώο εμφανίζεται στον νέο ιδιοκτήτη.');
+                  setSuccessDialog(true);
+                } catch (e) {
+                  console.error(e);
+                  setTransferError('Αποτυχία μεταβίβασης/υιοθεσίας. Βεβαιωθείτε ότι τρέχει το json-server.');
+                } finally {
+                  setSavingTransfer(false);
+                }
+              }}
+            >
+              Ολοκλήρωση
+            </Button>
+          </DialogActions>
         </Dialog>
 
       </Box>

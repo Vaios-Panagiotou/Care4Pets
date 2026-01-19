@@ -43,6 +43,11 @@ export const foundPetsAPI = {
   delete: (id) => request(`foundPets/${id}`, { method: 'DELETE' }),
 };
 
+export const petTransfersAPI = {
+  getAll: () => request('petTransfers'),
+  create: (transfer) => request('petTransfers', { method: 'POST', body: JSON.stringify({ id: toId(), ...transfer }) }),
+};
+
 export const appointmentsAPI = {
   getAll: () => request('appointments'),
   getByOwnerId: (ownerId) => request(`appointments?ownerId=${encodeURIComponent(ownerId)}`),

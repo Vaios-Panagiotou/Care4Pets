@@ -9,7 +9,7 @@ import {
 import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { lostPetsAPI, petsAPI } from '../services/api';
+import { lostPetsAPI, petsAPI, usersAPI, appointmentsAPI } from '../services/api';
 
 // Icons
 import SearchIcon from '@mui/icons-material/Search';
@@ -1173,6 +1173,7 @@ export default function LostPets() {
       }
       if (!next.preferredContact) next.preferredContact = 'Τηλέφωνο';
       if (typeof next.showPhone !== 'boolean') next.showPhone = true;
+      if (!next.ownerId && String(user.role || '').toLowerCase() !== 'vet') next.ownerId = user.id;
       return next;
     });
   }, [user, view]);
@@ -1184,9 +1185,41 @@ export default function LostPets() {
       if (!user || view !== 'form') return;
       setPetsLoading(true);
       try {
-        const pets = await petsAPI.getByOwnerId(user.id);
-        if (cancelled) return;
-        setUserPets(Array.isArray(pets) ? pets : []);
+        if (String(user.role || '').toLowerCase() === 'vet') {
+          const [pets, users, appointments] = await Promise.all([
+            petsAPI.getAll(),
+            usersAPI.getAll(),
+            appointmentsAPI.getAll(),
+          ]);
+          if (cancelled) return;
+          const userId = String(user.id || '');
+          const email = (user.email || '').toLowerCase();
+          const name = (user.fullname || user.fullName || user.name || '').toLowerCase();
+          const mine = (Array.isArray(appointments) ? appointments : []).filter(a => (
+            String(a.vetUserId || '') === userId ||
+            String(a.vetId || '') === userId ||
+            (a.vetEmail && a.vetEmail.toLowerCase() === email) ||
+            (a.vetName && a.vetName.toLowerCase() === name)
+          ));
+          const ownerIds = new Set(mine.map(a => String(a.ownerId || '')).filter(Boolean));
+          const ownerMap = new Map((Array.isArray(users) ? users : [])
+            .filter(u => String(u.role || '').toLowerCase() === 'owner')
+            .map(u => [String(u.id), u]));
+          const filtered = (Array.isArray(pets) ? pets : [])
+            .filter(p => ownerIds.has(String(p.ownerId || '')))
+            .map(p => ({
+              ...p,
+              ownerName: ownerMap.get(String(p.ownerId || ''))?.fullname
+                || ownerMap.get(String(p.ownerId || ''))?.fullName
+                || ownerMap.get(String(p.ownerId || ''))?.name
+                || ''
+            }));
+          setUserPets(filtered);
+        } else {
+          const pets = await petsAPI.getByOwnerId(user.id);
+          if (cancelled) return;
+          setUserPets(Array.isArray(pets) ? pets : []);
+        }
       } catch (e) {
         console.error(e);
         if (cancelled) return;
@@ -1358,7 +1391,7 @@ export default function LostPets() {
         socialLink: formData.socialLink || '',
         contactNotes: formData.contactNotes || '',
         showPhone: !!formData.showPhone,
-        ownerId: user ? user.id : null,
+        ownerId: formData.ownerId || (user ? user.id : null),
         lat: formData.coords?.lat ?? null,
         lng: formData.coords?.lng ?? null,
       };
