@@ -322,6 +322,7 @@ function LostPetsSearchView({
                 size="large"
                 startIcon={<NotificationsActiveIcon />}
                 onClick={() => navigate('/lost-pets?view=form')}
+                disabled={!canReportLoss}
                 sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
               >
                 Δήλωση Απώλειας
@@ -334,7 +335,7 @@ function LostPetsSearchView({
         </Box>
       </Fade>
       <Box sx={{ display: 'flex', gap: 3, px: 2, mb: 4, alignItems: 'flex-start' }}>
-        {!canReportLoss && (
+        {canReportLoss && (
         <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0 }}>
           <DashboardSidebar />
         </Box>
@@ -343,21 +344,57 @@ function LostPetsSearchView({
         <Box sx={{ flexGrow: 1 }}>
           <Container maxWidth="xl">
         <StatsBar />
+        {/* AD TYPE SWITCH */}
+        <Paper sx={{ p: 3, mb: 3, borderRadius: 4, boxShadow: 3, border: '1px solid', borderColor: 'primary.light', bgcolor: 'rgba(25,118,210,0.06)' }}>
+          <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+            <Box>
+              <Typography variant="overline" color="primary" fontWeight={700} sx={{ letterSpacing: 1 }}>
+                Τyπος Αγγελiας
+              </Typography>
+              <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
+                Προβάλλονται αγγελίες: Απολεσθέντα Κατοικίδια
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Η εναλλαγή αλλάζει κατηγορία αγγελιών, όχι απλό φίλτρο.
+              </Typography>
+            </Box>
+            <ToggleButtonGroup
+              value="lost"
+              exclusive
+              onChange={(_, next) => { if (next === 'found') navigate('/found-pets'); }}
+              sx={{
+                borderRadius: '999px',
+                overflow: 'hidden',
+                bgcolor: 'grey.100',
+                p: 0.5,
+                '& .MuiToggleButton-root': {
+                  border: 0,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 3,
+                  py: 1.2,
+                  borderRadius: '999px',
+                  color: 'text.secondary',
+                },
+                '& .MuiToggleButton-root.Mui-selected': {
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  boxShadow: '0 6px 14px rgba(0,105,92,0.35)',
+                },
+                '& .MuiToggleButton-root.Mui-selected:hover': {
+                  bgcolor: 'primary.dark',
+                },
+              }}
+            >
+              <ToggleButton value="lost">Απολεσθέντα</ToggleButton>
+              <ToggleButton value="found">Ευρεθέντα</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </Paper>
         {/* FILTERS */}
         <Paper sx={{ p: 3, mb: 4, borderRadius: 4, boxShadow: 3 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={2}>
-              <ToggleButtonGroup
-                value="lost"
-                exclusive
-                fullWidth
-                onChange={(_, next) => { if (next === 'found') navigate('/found-pets'); }}
-              >
-                <ToggleButton value="lost">Απολεσθέντα</ToggleButton>
-                <ToggleButton value="found">Ευρεθέντα</ToggleButton>
-              </ToggleButtonGroup>
-            </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <TextField 
                 fullWidth placeholder="Αναζήτηση ονόματος, ράτσας, περιοχής..." 
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
@@ -1124,6 +1161,7 @@ export default function LostPets() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const canReportLoss = !!user;
   const [view, setView] = useState('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -1152,13 +1190,21 @@ export default function LostPets() {
   const [userPets, setUserPets] = useState([]);
   const [petsLoading, setPetsLoading] = useState(false);
 
-  // Check URL parameter to show form view (no auth required)
+  // Check URL parameter to show form view (auth required)
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('view') === 'form') {
+      if (!user) {
+        try {
+          sessionStorage.setItem('postAuthRedirect', '/lost-pets?view=form');
+        } catch (_) {}
+        setView('search');
+        navigate('/login?reason=lost-pets');
+        return;
+      }
       setView('form');
     }
-  }, [location.search]);
+  }, [location.search, user, navigate]);
 
   // Autofill contact fields from logged-in user
   useEffect(() => {
@@ -1446,7 +1492,7 @@ export default function LostPets() {
                    setView={() => setView('form')}
                   stopKeyPropagation={stopKeyPropagation}
                   setHowItWorksDialogOpen={setHowItWorksDialogOpen}
-                  canReportLoss={true}
+                  canReportLoss={canReportLoss}
                 />
                 ) : (
                   <LostPetsFormView

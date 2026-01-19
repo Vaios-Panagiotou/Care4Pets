@@ -488,21 +488,55 @@ export default function FoundPets() {
       {view === 'search' ? (
         <Container maxWidth="xl" sx={{ px: 2 }}>
           <StatsBar total={stats.total} withOwner={stats.withOwner} />
+          <Paper sx={{ p: 3, mb: 3, borderRadius: 4, boxShadow: 3, border: '1px solid', borderColor: 'primary.light', bgcolor: 'rgba(25,118,210,0.06)' }}>
+            <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+              <Box>
+                <Typography variant="overline" color="primary" fontWeight={700} sx={{ letterSpacing: 1 }}>
+                  Τυπος Αγγελιας
+                </Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
+                  Προβάλλονται αγγελίες: Ευρεθέντα Κατοικίδια
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Η εναλλαγή αλλάζει κατηγορία αγγελιών, όχι απλό φίλτρο.
+                </Typography>
+              </Box>
+              <ToggleButtonGroup
+                value="found"
+                exclusive
+                sx={{
+                  borderRadius: '999px',
+                  overflow: 'hidden',
+                  bgcolor: 'grey.100',
+                  p: 0.5,
+                  '& .MuiToggleButton-root': {
+                    border: 0,
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 3,
+                    py: 1.2,
+                    borderRadius: '999px',
+                    color: 'text.secondary',
+                  },
+                  '& .MuiToggleButton-root.Mui-selected': {
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                    boxShadow: '0 6px 14px rgba(25,118,210,0.35)',
+                  },
+                  '& .MuiToggleButton-root.Mui-selected:hover': {
+                    bgcolor: 'primary.dark',
+                  },
+                }}
+                onChange={(_, next) => { if (next === 'lost') navigate('/lost-pets'); }}
+              >
+                <ToggleButton value="lost">Απολεσθέντα</ToggleButton>
+                <ToggleButton value="found">Ευρεθέντα</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Paper>
           <Paper id="found-search-bar" sx={{ p: 3, mb: 4, borderRadius: 4, boxShadow: 3 }}>
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={2}>
-                <ToggleButtonGroup
-                  value="found"
-                  exclusive
-                  fullWidth
-                  sx={{ borderRadius: '16px', overflow: 'hidden' }}
-                  onChange={(_, next) => { if (next === 'lost') navigate('/lost-pets'); }}
-                >
-                  <ToggleButton value="lost" sx={{ borderRadius: '16px' }}>Απολεσθέντα</ToggleButton>
-                  <ToggleButton value="found" sx={{ borderRadius: '16px' }}>Ευρεθέντα</ToggleButton>
-                </ToggleButtonGroup>
-              </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
                   placeholder="Αναζήτηση είδους, περιγραφής, περιοχής..."
