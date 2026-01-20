@@ -680,19 +680,19 @@ export default function VetRecords() {
                         </Box>
                         <Divider sx={{ my: 2 }} />
                         <Grid container spacing={2}>
-                          <Grid size={{ xs: 12, sm: 4 }}>
+                          <Grid item xs={12} sm={4}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΦΑΡΜΑΚΟ</Typography>
                             <Typography variant="body1">{item.medicine}</Typography>
                           </Grid>
-                          <Grid size={{ xs: 6, sm: 2 }}>
+                          <Grid item xs={6} sm={2}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΔΟΣΟΛΟΓΙΑ</Typography>
                             <Typography variant="body1">{item.dosage}</Typography>
                           </Grid>
-                          <Grid size={{ xs: 6, sm: 2 }}>
+                          <Grid item xs={6} sm={2}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΔΙΑΡΚΕΙΑ</Typography>
                             <Typography variant="body1">{item.duration}</Typography>
                           </Grid>
-                          <Grid size={{ xs: 12, sm: 4 }}>
+                          <Grid item xs={12} sm={4}>
                             <Typography variant="caption" color="text.secondary" fontWeight="bold">ΣΗΜΕΙΩΣΕΙΣ</Typography>
                             <Typography variant="body2">{item.notes}</Typography>
                           </Grid>

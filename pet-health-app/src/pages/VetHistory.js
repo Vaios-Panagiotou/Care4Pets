@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   Box, Container, Typography, Paper, Chip, Tabs, Tab, List, 
   Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton,
-  Rating, Avatar, Card, CardContent
+  Rating, Avatar, Card, CardContent, TextField, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DashboardSidebar from '../components/DashboardSidebar';
@@ -70,6 +70,12 @@ export default function VetHistory() {
   const [appointments, setAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [appointmentsError, setAppointmentsError] = useState('');
+
+  // Filters for appointments
+  const [filterQuery, setFilterQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
 
   const monthMap = {
     'Ιανουαρίου': 0, 'Φεβρουαρίου': 1, 'Μαρτίου': 2, 'Απριλίου': 3, 'Μαΐου': 4, 'Ιουνίου': 5,
@@ -252,6 +258,40 @@ export default function VetHistory() {
     : (VET_HISTORY_DATA.reviews.reduce((acc, r) => acc + r.rating, 0) / VET_HISTORY_DATA.reviews.length)
   ).toFixed(1);
 
+  // Derived filtered appointments (applies client-side filters)
+  const filteredAppointments = (() => {
+    const src = (appointments && appointments.length > 0) ? appointments : VET_HISTORY_DATA.visits.map(v => ({
+      id: v.id,
+      petName: v.petName,
+      ownerName: v.ownerName,
+      date: v.date,
+      time: v.duration || '',
+      status: v.status || 'completed',
+      type: v.service,
+      note: v.notes
+    }));
+
+    const q = (filterQuery || '').trim().toLowerCase();
+    const fromTS = filterFrom ? new Date(filterFrom + 'T00:00:00').getTime() : null;
+    const toTS = filterTo ? new Date(filterTo + 'T23:59:59').getTime() : null;
+
+    return src.filter(appt => {
+      try {
+        if (q) {
+          const hay = `${appt.petName||''} ${appt.ownerName||''} ${appt.type||''}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        if (filterStatus && filterStatus !== 'all') {
+          const st = (appt.status || 'completed').toString().toLowerCase(); if (st !== String(filterStatus).toLowerCase()) return false;
+        }
+        if (fromTS || toTS) {
+          const ts = toTimestamp(appt) || 0; if (fromTS && ts < fromTS) return false; if (toTS && ts > toTS) return false;
+        }
+        return true;
+      } catch (e) { return true; }
+    });
+  })();
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -323,18 +363,28 @@ export default function VetHistory() {
             {/*tab 0:Επισκέψεις Ζώων*/}
             {tabValue === 0 && (
               <Box>
-                <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>Πρόσφατες Επισκέψεις ({appointments.length || VET_HISTORY_DATA.visits.length})</Typography>
+                <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>Πρόσφατες Επισκέψεις ({filteredAppointments.length})</Typography>
+
+                <Paper sx={{ p: 2, mb: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <TextField size="small" placeholder="Αναζήτηση κατοικίδιου / ιδιοκτήτη / υπηρεσίας..." value={filterQuery} onChange={e => setFilterQuery(e.target.value)} sx={{ minWidth: 240, flex: 1 }} />
+                  <FormControl size="small" sx={{ minWidth: 160 }}>
+                    <InputLabel id="filter-status-label">Κατάσταση</InputLabel>
+                    <Select labelId="filter-status-label" value={filterStatus} label="Κατάσταση" onChange={e => setFilterStatus(e.target.value)}>
+                      <MenuItem value="all">Όλες</MenuItem>
+                      <MenuItem value="completed">Ολοκληρωμένες</MenuItem>
+                      <MenuItem value="cancelled">Ακυρωμένες</MenuItem>
+                      <MenuItem value="draft">Πρόχειρα</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField size="small" label="Από" type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)} InputLabelProps={{ shrink: true }} />
+                  <TextField size="small" label="Έως" type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)} InputLabelProps={{ shrink: true }} />
+                  <Button size="small" variant="outlined" onClick={() => { setFilterQuery(''); setFilterStatus('all'); setFilterFrom(''); setFilterTo(''); }}>Καθαρισμός</Button>
+                </Paper>
+
                 {appointmentsError && (<Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>{appointmentsError}</Typography>)}
+
                 <List>
-                  {(appointments.length > 0 ? appointments : VET_HISTORY_DATA.visits.map(v => ({
-                    id: v.id,
-                    petName: v.petName,
-                    ownerName: v.ownerName,
-                    date: v.date,
-                    time: v.duration || '',
-                    status: 'completed',
-                    type: v.service,
-                  }))).map((appt) => (
+                  {filteredAppointments.map((appt) => (
                     <React.Fragment key={appt.id}>
                       <Paper 
                         sx={{ 

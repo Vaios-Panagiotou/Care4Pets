@@ -9,7 +9,7 @@ import {
 import { createTheme, ThemeProvider, keyframes } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { lostPetsAPI, petsAPI, usersAPI, appointmentsAPI } from '../services/api';
+import { lostPetsAPI, foundPetsAPI, petsAPI, usersAPI, appointmentsAPI } from '../services/api';
 
 // Εικονίδια
 import SearchIcon from '@mui/icons-material/Search';
@@ -317,17 +317,32 @@ function LostPetsSearchView({
               Δήλωση από ιδιοκτήτη για το δικό του κατοικίδιο
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                color="secondary"
-                size="large"
-                startIcon={<NotificationsActiveIcon />}
-                onClick={() => navigate('/lost-pets?view=form')}
-                disabled={!canReportLoss}
-                sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
-              >
-                Δήλωση Απώλειας
-              </Button>
+              {canReportLoss ? (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  startIcon={<NotificationsActiveIcon />}
+                  onClick={() => navigate('/lost-pets?view=form')}
+                  sx={{ borderRadius: '50px', px: 4, py: 1.5 }}
+                >
+                  Δήλωση Απώλειας
+                </Button>
+              ) : (
+                <Tooltip title="Συνδεθείτε για να δηλώσετε απώλεια" arrow>
+                  <span>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      startIcon={<NotificationsActiveIcon />}
+                      disabled
+                      sx={{ borderRadius: '50px', px: 4, py: 1.5, bgcolor: 'grey.400', color: 'rgba(0,0,0,0.7)' }}
+                    >
+                      Δήλωση Απώλειας
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
               <Button variant="outlined" size="large" startIcon={<InfoIcon />} onClick={() => setHowItWorksDialogOpen(true)} sx={{ borderRadius: '50px', px: 4, py: 1.5, color: 'white', borderColor: 'white', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}>
                 Πώς Λειτουργεί
               </Button>
@@ -1188,6 +1203,10 @@ export default function LostPets() {
   const [howItWorksDialogOpen, setHowItWorksDialogOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [foundDialogOpen, setFoundDialogOpen] = useState(false);
+  const [foundForm, setFoundForm] = useState({ description: '', location: '', date: '', finderName: '', finderPhone: '', finderEmail: '', showPhone: true });
+  const [foundImages, setFoundImages] = useState([]);
+  const [foundErrors, setFoundErrors] = useState({});
+  const [foundSubmitting, setFoundSubmitting] = useState(false);
 
   const [userPets, setUserPets] = useState([]);
   const [petsLoading, setPetsLoading] = useState(false);
@@ -1666,24 +1685,122 @@ export default function LostPets() {
                   </DialogContent>
                 </Dialog>
 
-                {/* 'Found' dialog */}
-                <Dialog open={foundDialogOpen} onClose={() => setFoundDialogOpen(false)}>
+                {/* 'Found' report dialog - form to submit a found-pet report */}
+                <Dialog open={foundDialogOpen} onClose={() => setFoundDialogOpen(false)} maxWidth="sm" fullWidth>
                   <DialogContent>
-                    <Typography variant="h6" fontWeight={700} gutterBottom>Το βρήκα — Τι να κάνετε</Typography>
-                    <Typography variant="body2" sx={{ mb: 2 }}>Ευχαριστούμε που βρίσκετε το κατοικίδιο! Μπορείτε να κάνετε τα εξής:</Typography>
-                    <Box component="ol" sx={{ pl: 3, mb: 2 }}>
-                      <li>Επικοινωνήστε άμεσα με τον ιδιοκτήτη (αν υπάρχει διαθέσιμος αριθμός).</li>
-                      <li>Επιβεβαιώστε την τοποθεσία και αν είναι ασφαλές, κρατήστε το κοντά σας μέχρι να το παραλάβει ο ιδιοκτήτης.</li>
-                      <li>Αν δεν μπορείτε να το κρατήσετε, παραδώστε το σε κοντινό κτηνιατρείο ή φιλοζωική οργάνωση.</li>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      {selectedPet.phone && selectedPet.showPhone && <Button href={`tel:${selectedPet.phone}`}>Καλέστε</Button>}
-                      {selectedPet.email && <Button href={`mailto:${selectedPet.email}?subject=${encodeURIComponent('Βρήκα το κατοικίδιό σας')}`}>Στείλτε Email</Button>}
-                      <Button onClick={() => {
-                        // γρήγορη αναφορά: ανοίγει mailto προς admins για ενημέρωση
-                        const body = `Βρήκα το κατοικίδιο ${selectedPet.name || ''} στη θέση ${selectedPet.location || ''}. Παρακαλώ επικοινωνήστε.`;
-                        window.location.href = `mailto:contact@petcare.local?subject=${encodeURIComponent('Βρήκα κατοικίδιο')}&body=${encodeURIComponent(body)}`;
-                      }}>Αναφορά στην πλατφόρμα</Button>
+                    <Typography variant="h6" fontWeight={700} gutterBottom>Αναφορά Εύρεσης</Typography>
+                    <Typography variant="body2" sx={{ mb: 2 }}>Συμπληρώστε τις πληροφορίες για να βοηθήσετε τον/την ιδιοκτήτη/τρια να εντοπίσει το ζώο.</Typography>
+
+                    <Box component="form" noValidate onSubmit={async (e) => { e.preventDefault();
+                      // basic validation
+                      const errs = {};
+                      if (!foundForm.location || !foundForm.location.trim()) errs.location = 'Τοποθεσία είναι υποχρεωτική';
+                      if (!foundForm.description || !foundForm.description.trim()) errs.description = 'Περιγραφή είναι υποχρεωτική';
+                      const hasPhone = String(foundForm.finderPhone || '').replace(/\D/g, '').length === 10;
+                      const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(foundForm.finderEmail || ''));
+                      if (!hasPhone && !hasEmail) errs.contact = 'Δώστε τουλάχιστον τηλέφωνο ή email επικοινωνίας';
+                      setFoundErrors(errs);
+                      if (Object.keys(errs).length > 0) return;
+
+                      setFoundSubmitting(true);
+                      try {
+                        const payload = {
+                          petId: selectedPet?.id || null,
+                          name: selectedPet?.name || (foundForm.description || '').slice(0,30),
+                          type: selectedPet?.type || 'Άγνωστο',
+                          description: foundForm.description || '',
+                          location: foundForm.location || '',
+                          foundAt: foundForm.date || new Date().toISOString(),
+                          img: (foundImages[0] && foundImages[0].url) || selectedPet?.img || 'https://via.placeholder.com/400',
+                          finderName: foundForm.finderName || '',
+                          finderPhone: foundForm.finderPhone || '',
+                          finderEmail: foundForm.finderEmail || '',
+                          showPhone: !!foundForm.showPhone,
+                          createdAt: new Date().toISOString()
+                        };
+                        await foundPetsAPI.create(payload);
+                        setSnack({ open: true, message: 'Ευχαριστούμε — η αναφορά δημοσιεύτηκε.', severity: 'success' });
+                        setFoundDialogOpen(false);
+                      } catch (err) {
+                        console.error(err);
+                        setSnack({ open: true, message: 'Αποτυχία υποβολής. Βεβαιωθείτε ότι ο server τρέχει.', severity: 'error' });
+                      } finally {
+                        setFoundSubmitting(false);
+                      }
+                    }}>
+
+                      <TextField
+                        label="Περιγραφή (π.χ. συμπεριφορά, κολάρο, σημάδια)"
+                        name="description"
+                        required
+                        fullWidth
+                        multiline
+                        minRows={3}
+                        value={foundForm.description}
+                        onChange={(e) => setFoundForm({ ...foundForm, description: e.target.value })}
+                        error={Boolean(foundErrors.description)}
+                        helperText={foundErrors.description}
+                        sx={{ mb: 2 }}
+                      />
+
+                      <TextField
+                        label="Τοποθεσία εύρεσης"
+                        name="location"
+                        required
+                        fullWidth
+                        value={foundForm.location}
+                        onChange={(e) => setFoundForm({ ...foundForm, location: e.target.value })}
+                        error={Boolean(foundErrors.location)}
+                        helperText={foundErrors.location}
+                        sx={{ mb: 2 }}
+                      />
+
+                      <TextField
+                        label="Ημερομηνία/Ώρα εύρεσης"
+                        name="date"
+                        type="datetime-local"
+                        fullWidth
+                        value={foundForm.date}
+                        onChange={(e) => setFoundForm({ ...foundForm, date: e.target.value })}
+                        sx={{ mb: 2 }}
+                        InputLabelProps={{ shrink: true }}
+                      />
+
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        <Grid item xs={12} md={6}>
+                          <TextField fullWidth label="Όνομα Ευρέτη" value={foundForm.finderName} onChange={(e) => setFoundForm({ ...foundForm, finderName: e.target.value })} />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField fullWidth label="Τηλέφωνο Ευρέτη" value={foundForm.finderPhone} onChange={(e) => setFoundForm({ ...foundForm, finderPhone: e.target.value })} error={Boolean(foundErrors.contact)} />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <TextField fullWidth label="Email Ευρέτη" value={foundForm.finderEmail} onChange={(e) => setFoundForm({ ...foundForm, finderEmail: e.target.value })} error={Boolean(foundErrors.contact)} helperText={foundErrors.contact} />
+                        </Grid>
+                      </Grid>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Button variant="outlined" component="label" startIcon={<CloudUploadIcon />}>
+                          Ανέβασμα Φωτογραφίας
+                          <input hidden accept="image/*" type="file" onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            const newImgs = files.map(f => ({ id: Date.now() + Math.random(), file: f, url: URL.createObjectURL(f) }));
+                            setFoundImages(prev => [...prev, ...newImgs]);
+                          }} />
+                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+                          {foundImages.map(img => (
+                            <Box key={img.id} sx={{ position: 'relative' }}>
+                              <Box component="img" src={img.url} sx={{ width: 96, height: 72, objectFit: 'cover', borderRadius: 1, border: '1px solid #eee' }} />
+                              <IconButton size="small" onClick={() => setFoundImages(prev => prev.filter(x => x.id !== img.id))} sx={{ position: 'absolute', top: -6, right: -6, bgcolor: 'white' }}><CloseIcon fontSize="small" /></IconButton>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <Button onClick={() => setFoundDialogOpen(false)} disabled={foundSubmitting}>Άκυρο</Button>
+                        <Button type="submit" variant="contained" disabled={foundSubmitting}>{foundSubmitting ? 'Υποβολή...' : 'Υποβολή Αναφοράς'}</Button>
+                      </Box>
                     </Box>
                   </DialogContent>
                 </Dialog>

@@ -67,6 +67,59 @@ export default function Register() {
     }
   };
 
+  // Validate a single field (used onBlur and can be reused elsewhere)
+  const validateField = (name, value) => {
+    const v = (value || '').toString().trim();
+    const errs = { ...fieldErrors };
+
+    const setErr = (msg) => { errs[name] = msg; setFieldErrors(errs); };
+    const clearErr = () => { if (errs[name]) { delete errs[name]; setFieldErrors(errs); } };
+
+    if (name === 'fullname') {
+      if (!v) return setErr('Το ονοματεπώνυμο είναι υποχρεωτικό');
+      return clearErr();
+    }
+    if (name === 'email') {
+      if (!v) return setErr('Το email είναι υποχρεωτικό');
+      if (!isValidEmail(v)) return setErr('Μη έγκυρο email');
+      return clearErr();
+    }
+    if (name === 'password') {
+      if (!v) return setErr('Ο κωδικός είναι υποχρεωτικός');
+      if (v.length < 8) return setErr('Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες');
+      return clearErr();
+    }
+    if (name === 'afm') {
+      if (!v) return setErr('ΑΦΜ είναι υποχρεωτικό');
+      if (!isValidAFM(v)) return setErr('Το ΑΦΜ πρέπει να έχει 9 ψηφία');
+      return clearErr();
+    }
+    if (name === 'phone') {
+      if (!v && role === 'vet') return setErr('Τηλέφωνο ιατρείου είναι υποχρεωτικό');
+      if (v && !isValidGreekPhone(v)) return setErr('Έγκυρο ελληνικό τηλέφωνο: 10 ψηφία, αρχίζει με 2 ή 69');
+      return clearErr();
+    }
+    if (name === 'address') {
+      if (!v && role === 'vet') return setErr('Διεύθυνση ιατρείου είναι υποχρεωτική');
+      return clearErr();
+    }
+    if (name === 'specialty') {
+      if (!v && role === 'vet') return setErr('Ειδικότητα είναι υποχρεωτική');
+      return clearErr();
+    }
+    if (name === 'price') {
+      if (v && isNaN(Number(v))) return setErr('Η τιμή πρέπει να είναι αριθμός');
+      return clearErr();
+    }
+    return null;
+  };
+
+  // Clear errors when switching role
+  React.useEffect(() => {
+    setFieldErrors({});
+    setError('');
+  }, [role]);
+
   // Update map preview when address changes
   useEffect(() => {
     if (formData.address && formData.address.trim().length > 3) {
@@ -83,46 +136,36 @@ export default function Register() {
 
     const emailTrimmed = (formData.email || '').trim();
 
-    if (!emailTrimmed || !formData.password || !formData.fullname) {
-      setError('Παρακαλώ συμπληρώστε όλα τα βασικά πεδία.');
-      return;
-    }
-
-    if (!isValidEmail(emailTrimmed)) {
-      setError('Παρακαλώ εισάγετε έγκυρο email (π.χ. name@example.com).');
-      return;
-    }
+    // Build field-level errors so we can show helperText on specific inputs
+    const newFieldErrors = {};
+    if (!formData.fullname || !formData.fullname.trim()) newFieldErrors.fullname = 'Το ονοματεπώνυμο είναι υποχρεωτικό';
+    if (!emailTrimmed) newFieldErrors.email = 'Το email είναι υποχρεωτικό';
+    else if (!isValidEmail(emailTrimmed)) newFieldErrors.email = 'Μη έγκυρο email (π.χ. name@example.com)';
+    if (!formData.password) newFieldErrors.password = 'Ο κωδικός είναι υποχρεωτικός';
+    else if ((formData.password || '').length < 8) newFieldErrors.password = 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες';
 
     // Επιπλέον έλεγχοι για εγγραφή κτηνιάτρου
     if (role === 'vet') {
-      const vetFieldErrors = {};
-      if (!formData.afm) vetFieldErrors.afm = 'ΑΦΜ είναι υποχρεωτικό';
-      if (!formData.address) vetFieldErrors.address = 'Διεύθυνση ιατρείου είναι υποχρεωτική';
-      if (!formData.specialty) vetFieldErrors.specialty = 'Ειδικότητα είναι υποχρεωτική';
-      if (!formData.phone) vetFieldErrors.phone = 'Τηλέφωνο ιατρείου είναι υποχρεωτικό';
-      else if (!isValidGreekPhone(formData.phone)) vetFieldErrors.phone = 'Έγκυρο ελληνικό τηλέφωνο: 10 ψηφία, αρχίζει με 2 ή 69';
-      if (formData.price && isNaN(Number(formData.price))) vetFieldErrors.price = 'Η τιμή πρέπει να είναι αριθμός';
-
-      if (formData.afm && !isValidAFM(formData.afm)) vetFieldErrors.afm = 'Το ΑΦΜ πρέπει να έχει 9 ψηφία.';
-
-      if (Object.keys(vetFieldErrors).length > 0) {
-        setFieldErrors(vetFieldErrors);
-        setError('Συμπληρώστε σωστά τα υποχρεωτικά πεδία κτηνιάτρου.');
-        return;
-      }
+      if (!formData.afm) newFieldErrors.afm = 'ΑΦΜ είναι υποχρεωτικό';
+      else if (!isValidAFM(formData.afm)) newFieldErrors.afm = 'Το ΑΦΜ πρέπει να έχει 9 ψηφία.';
+      if (!formData.phone) newFieldErrors.phone = 'Τηλέφωνο ιατρείου είναι υποχρεωτικό';
+      else if (!isValidGreekPhone(formData.phone)) newFieldErrors.phone = 'Έγκυρο ελληνικό τηλέφωνο: 10 ψηφία, αρχίζει με 2 ή 69';
+      if (!formData.address) newFieldErrors.address = 'Διεύθυνση ιατρείου είναι υποχρεωτική';
+      if (!formData.specialty) newFieldErrors.specialty = 'Ειδικότητα είναι υποχρεωτική';
+      if (formData.price && isNaN(Number(formData.price))) newFieldErrors.price = 'Η τιμή πρέπει να είναι αριθμός';
     }
 
     // Έλεγχοι για owner
     if (role === 'owner') {
-      const ownerFieldErrors = {};
-      if (!formData.afm) ownerFieldErrors.afm = 'ΑΦΜ είναι υποχρεωτικό';
-      else if (!isValidAFM(formData.afm)) ownerFieldErrors.afm = 'Το ΑΦΜ πρέπει να έχει 9 ψηφία.';
-      if (formData.phone && !isValidGreekPhone(formData.phone)) ownerFieldErrors.phone = 'Έγκυρο ελληνικό τηλέφωνο: 10 ψηφία, αρχίζει με 2 ή 69';
-      if (Object.keys(ownerFieldErrors).length > 0) {
-        setFieldErrors(ownerFieldErrors);
-        setError('Συμπληρώστε σωστά τα στοιχεία ιδιοκτήτη.');
-        return;
-      }
+      if (!formData.afm) newFieldErrors.afm = 'ΑΦΜ είναι υποχρεωτικό';
+      else if (!isValidAFM(formData.afm)) newFieldErrors.afm = 'Το ΑΦΜ πρέπει να έχει 9 ψηφία.';
+      if (formData.phone && !isValidGreekPhone(formData.phone)) newFieldErrors.phone = 'Έγκυρο ελληνικό τηλέφωνο: 10 ψηφία, αρχίζει με 2 ή 69';
+    }
+
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
+      setError('Συμπληρώστε σωστά τα υποχρεωτικά πεδία.');
+      return;
     }
 
     const newUser = {
@@ -267,19 +310,25 @@ export default function Register() {
           <Box component="form" onSubmit={handleSubmit} noValidate>
             {/* Βασικά Στοιχεία */}
             <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Βασικά Στοιχεία</Typography>
-              <Grid container spacing={2}>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Βασικά Στοιχεία</Typography>
+                <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <TextField required fullWidth name="fullname" label="Ονοματεπώνυμο" variant="filled" onChange={handleInputChange} />
+                  <TextField required fullWidth name="fullname" label="Ονοματεπώνυμο" variant="filled" onChange={handleInputChange}
+                    onBlur={(e) => validateField(e.target.name, e.target.value)}
+                    error={Boolean(fieldErrors.fullname)} helperText={fieldErrors.fullname} />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField required fullWidth name="email" label="Email" type="email" variant="filled" onChange={handleInputChange} />
+                  <Grid item xs={12} md={6}>
+                    <TextField required fullWidth name="email" label="Email" type="email" variant="filled" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
+                      error={Boolean(fieldErrors.email)} helperText={fieldErrors.email} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField required fullWidth name="password" label="Κωδικός Πρόσβασης" type="password" variant="filled" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
+                      error={Boolean(fieldErrors.password)} helperText={fieldErrors.password} />
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField required fullWidth name="password" label="Κωδικός Πρόσβασης" type="password" variant="filled" onChange={handleInputChange} />
-                </Grid>
-              </Grid>
-            </Paper>
+              </Paper>
 
             {/* Επαγγελματικά Στοιχεία για Κτηνίατρο */}
             {role === 'vet' && (
@@ -288,29 +337,35 @@ export default function Register() {
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <TextField required fullWidth name="afm" label="ΑΦΜ" variant="outlined" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
                       error={Boolean(fieldErrors.afm)} helperText={fieldErrors.afm} />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth name="phone" label="Τηλέφωνο Ιατρείου" variant="outlined" onChange={handleInputChange}
+                    <TextField required fullWidth name="phone" label="Τηλέφωνο Ιατρείου" variant="outlined" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
                       error={Boolean(fieldErrors.phone)} helperText={fieldErrors.phone} />
                   </Grid>
                   <Grid item xs={12}>
                     <TextField fullWidth name="address" label="Διεύθυνση Ιατρείου" variant="outlined" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
                       error={Boolean(fieldErrors.address)} helperText={fieldErrors.address} />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField fullWidth name="specialty" label="Ειδικότητα" placeholder="π.χ. Παθολογία Ζώων" variant="outlined" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
                       error={Boolean(fieldErrors.specialty)} helperText={fieldErrors.specialty} />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField fullWidth name="price" label="Ενδεικτική Τιμή Επίσκεψης (€)" type="number" variant="outlined" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
                       error={Boolean(fieldErrors.price)} helperText={fieldErrors.price} />
                   </Grid>
                   <Grid item xs={12}>
                     <TextField fullWidth name="services" label="Υπηρεσίες (χωρισμένες με κόμμα)" placeholder="Γενική Εξέταση, Εμβολιασμός, Αιματολογικός Έλεγχος" variant="outlined" onChange={handleInputChange} />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth name="image" label="Εικόνα Προφίλ (URL)" variant="outlined" onChange={handleInputChange} />
+                    <TextField fullWidth name="image" label="Εικόνα Προφίλ (URL)" variant="outlined" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)} />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Button fullWidth component="label" variant="outlined" startIcon={<CloudUploadIcon />} sx={{ height: '56px' }}>
@@ -354,7 +409,8 @@ export default function Register() {
                 <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Στοιχεία Ιδιοκτήτη</Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth name="phone" label="Τηλέφωνο" variant="outlined" onChange={handleInputChange}
+                    <TextField required fullWidth name="phone" label="Τηλέφωνο" variant="outlined" onChange={handleInputChange}
+                      onBlur={(e) => validateField(e.target.name, e.target.value)}
                       error={Boolean(fieldErrors.phone)} helperText={fieldErrors.phone} />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -362,7 +418,8 @@ export default function Register() {
                       error={Boolean(fieldErrors.afm)} helperText={fieldErrors.afm} />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField fullWidth name="address" label="Διεύθυνση" variant="outlined" onChange={handleInputChange} />
+                    <TextField fullWidth name="address" label="Διεύθυνση" variant="outlined" onChange={handleInputChange}
+                      error={Boolean(fieldErrors.address)} helperText={fieldErrors.address} />
                   </Grid>
                 </Grid>
               </Paper>

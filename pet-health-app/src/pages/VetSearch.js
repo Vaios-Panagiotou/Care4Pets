@@ -190,6 +190,7 @@ export default function VetSearch() {
           if (p.reason) { setAppointmentReason(p.reason); }
           if (p.details) { setSelectedDetails(Array.isArray(p.details) ? p.details : []); }
           if (p.detailNotes) { setDetailNotes(p.detailNotes); }
+          if (p.selectedPet) { setSelectedPet(p.selectedPet); }
           if (typeof p.step === 'number') { setActiveStep(Math.min(Math.max(p.step, 0), STEPS.length - 1)); }
         }
         sessionStorage.removeItem('vetSearchProgress');
@@ -579,7 +580,7 @@ export default function VetSearch() {
         return;
       }
     }
-    if (activeStep === 3 && !selectedPet) { setSelectedPet({ name: 'Kouvelaj', type: 'Golden Retriever', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=200&q=80' }); }
+    // Do not inject a default pet here; if no pet is selected the preview should show empty state.
     if (activeStep < STEPS.length - 1) {
         setActiveStep((prev) => prev + 1);
     } else {
@@ -644,6 +645,35 @@ export default function VetSearch() {
           console.error(e);
           alert('Αποτυχία καταχώρησης ραντεβού. Βεβαιώσου ότι τρέχει το json-server στο port 3001.');
         }
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    // allow saving a draft from the preview step (or earlier if desired)
+    if (!selectedVet) { alert('Επιλέξτε έναν κτηνίατρο πριν αποθηκεύσετε.'); return; }
+    try {
+      const payload = {
+        ownerId: user?.id || null,
+        ownerName: user?.fullname || user?.fullName || user?.email || 'Ιδιοκτήτης',
+        vetId: selectedVet?.id || null,
+        vetUserId: selectedVet?.userId || selectedVet?.id || null,
+        vetEmail: selectedVet?.email || selectedVet?.userEmail || null,
+        vetName: selectedVet?.name || 'Κτηνίατρος',
+        petName: selectedPet?.name || (registerAppointment ? 'Νέα Καταχώριση' : 'Κατοικίδιο'),
+        time: selectedTime || '',
+        date: selectedDate || '',
+        status: 'draft',
+        type: registerAppointment ? 'Registration' : 'Visit',
+        reason: appointmentReason || (registerAppointment ? 'Καταχώριση Κατοικιδίου' : 'Τακτικός Έλεγχος'),
+        details: selectedDetails,
+        detailNotes,
+        updatedAt: new Date().toISOString()
+      };
+      await appointmentsAPI.create(payload);
+      alert('Το ραντεβού αποθηκεύτηκε ως πρόχειρο. Θα το βρείτε στο Ιστορικό → Ραντεβού.');
+    } catch (e) {
+      console.error('Failed to save draft', e);
+      alert('Αποτυχία αποθήκευσης πρόχειρου.');
     }
   };
 
@@ -1371,13 +1401,20 @@ export default function VetSearch() {
                         {activeStep === 0 ? 'Ακύρωση' : 'Προηγούμενο'}
                     </Button>
 
-                    <Button 
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {activeStep === STEPS.length - 1 && (
+                        <Button variant="outlined" color="secondary" onClick={handleSaveDraft} sx={{ px: 3 }}>
+                          Αποθήκευση Πρόχειρου
+                        </Button>
+                      )}
+                      <Button 
                         variant="contained" color="success" endIcon={<ArrowForwardIcon />} 
                         sx={{ px: 4, fontWeight: 'bold', color: 'white' }}
                         onClick={handleNext}
-                    >
+                      >
                         {activeStep === STEPS.length - 1 ? 'Ολοκλήρωση' : 'Επόμενο'}
-                    </Button>
+                      </Button>
+                    </Box>
                 </Box>
 
             </Container>

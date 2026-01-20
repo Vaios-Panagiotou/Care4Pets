@@ -750,8 +750,42 @@ export default function VetSchedule() {
             <TextField label="Τηλέφωνο" type="tel" value={newAppt.phone} onChange={(e) => setNewAppt(prev => ({ ...prev, phone: e.target.value }))} fullWidth />
           </Box>
         </DialogContent>
-        <DialogActions>
+          <DialogActions>
           <Button onClick={() => setNewApptOpen(false)} disabled={creatingAppt}>Άκυρο</Button>
+          <Button variant="outlined" disabled={creatingAppt} onClick={async () => {
+            // Save as draft (status: 'draft')
+            const { ownerId, ownerName, ownerEmail, petName, date, time, type, reason, phone } = newAppt;
+            if (!petName) { alert('Συμπληρώστε όνομα κατοικιδίου πριν αποθηκεύσετε ως πρόχειρο.'); return; }
+            setCreatingAppt(true);
+            const payloadDraft = {
+              ownerId: ownerId || null,
+              ownerName: ownerName || undefined,
+              ownerEmail: ownerEmail || undefined,
+              vetId: String(currentVetId || user?.id || ''),
+              vetUserId: String(user?.id || ''),
+              vetEmail: user?.email || '',
+              vetName: user?.fullname || user?.fullName || user?.name || '',
+              petName,
+              time: time || '',
+              date: date || '',
+              status: 'draft',
+              type: type || 'Visit',
+              reason: reason || '',
+              phone: phone || '',
+              updatedAt: new Date().toISOString(),
+            };
+            try {
+              const created = await appointmentsAPI.create(payloadDraft);
+              setServerAppointments(prev => [...prev, created]);
+              setNewApptOpen(false);
+              setNewAppt({ ownerId: '', ownerName: '', ownerEmail: '', petName: '', date: '', time: '', type: 'Visit', reason: '', phone: '' });
+            } catch (e) {
+              console.error('Failed to save draft appointment', e);
+              alert('Αποτυχία αποθήκευσης πρόχειρου.');
+            } finally {
+              setCreatingAppt(false);
+            }
+          }}>Αποθήκευση Πρόχειρου</Button>
           <Button variant="contained" disabled={creatingAppt} onClick={async () => {
             const { ownerId, ownerName, ownerEmail, petName, date, time, type, reason, phone } = newAppt;
             if (!petName || !date || !time) { alert('Συμπληρώστε Κατοικίδιο, Ημερομηνία και Ώρα.'); return; }

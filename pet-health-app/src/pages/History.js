@@ -8,6 +8,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import DashboardSidebar from '../components/DashboardSidebar';
 import { useAuth } from '../context/AuthContext';
+import { appointmentsAPI } from '../services/api';
 
 // Εικονίδια
 import HistoryIcon from '@mui/icons-material/History';
@@ -141,6 +142,9 @@ export default function History() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
+  const [draftEdit, setDraftEdit] = useState(null);
+  const [draftSaving, setDraftSaving] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [apptError, setApptError] = useState('');
   const [ownerReviews, setOwnerReviews] = useState([]);
@@ -233,6 +237,75 @@ export default function History() {
     };
     fetchAppointments();
   }, [user]);
+
+  const draftItems = appointments.filter(a => String(a.status || '').toLowerCase() === 'draft');
+
+  const handleDeleteDraft = (id) => {
+    setDeleteConfirm({ open: true, id });
+  };
+
+  const confirmDeleteDraft = async () => {
+    const id = deleteConfirm.id;
+    if (!id) { setDeleteConfirm({ open: false, id: null }); return; }
+    try {
+      await appointmentsAPI.delete(id);
+      setAppointments(prev => prev.filter(p => String(p.id) !== String(id)));
+      setSnackbar({ open: true, message: 'Το πρόχειρο διαγράφηκε.', severity: 'success' });
+    } catch (e) {
+      console.error('Failed to delete draft', e);
+      setSnackbar({ open: true, message: 'Αποτυχία διαγραφής.', severity: 'error' });
+    } finally {
+      setDeleteConfirm({ open: false, id: null });
+    }
+  };
+
+  const handleContinueDraft = (draft) => {
+    try {
+      const payload = {
+        step: 3,
+        searchQuery: '',
+        selectedVet: draft.vetId || draft.vetUserId ? {
+          id: draft.vetId || draft.vetUserId || null,
+          userId: draft.vetUserId || draft.vetId || null,
+          name: draft.vetName || draft.vet || '',
+          email: draft.vetEmail || ''
+        } : null,
+        selectedDate: draft.date || '',
+        selectedTime: draft.time || '',
+        selectedPet: draft.petId || draft.petName ? { id: draft.petId || null, name: draft.petName || draft.pet || '' } : null,
+        registerAppointment: String(draft.type || '').toLowerCase() === 'registration',
+        reason: draft.reason || '',
+        details: draft.details || [],
+        detailNotes: draft.detailNotes || {}
+      };
+      sessionStorage.setItem('vetSearchProgress', JSON.stringify(payload));
+      // navigate to vet search (restoration happens there)
+      navigate('/find-vet?find=1');
+    } catch (e) {
+      console.error('Failed to continue draft:', e);
+      // fallback: open edit dialog
+      setDraftEdit({ ...draft });
+      setOpenDialog(true);
+    }
+  };
+
+  const saveDraftAsConfirmed = async (updated) => {
+    if (!updated.petName || !updated.date || !updated.time) { alert('Συμπληρώστε Κατοικίδιο, Ημερομηνία και Ώρα.'); return; }
+    setDraftSaving(true);
+    try {
+      const payload = { ...updated, status: 'confirmed', updatedAt: new Date().toISOString() };
+      await appointmentsAPI.update(payload.id, payload);
+      setAppointments(prev => prev.map(p => (String(p.id) === String(payload.id) ? payload : p)));
+      setOpenDialog(false);
+      setDraftEdit(null);
+      setSnackbar({ open: true, message: 'Το ραντεβού ολοκληρώθηκε.', severity: 'success' });
+    } catch (e) {
+      console.error('Failed to confirm draft', e);
+      setSnackbar({ open: true, message: 'Αποτυχία ενημέρωσης.', severity: 'error' });
+    } finally {
+      setDraftSaving(false);
+    }
+  };
 
   // Ανάκτηση αξιολογήσεων ιδιοκτήτη για το tab Αξιολογήσεις
   useEffect(() => {
@@ -424,6 +497,28 @@ export default function History() {
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
                   Εμφανίζονται όλα τα ραντεβού (Επερχόμενα, Ολοκληρωμένα, Ακυρωμένα).
                 </Typography>
+                {draftItems && draftItems.length > 0 && (
+                  <Paper sx={{ mb: 2, p: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>Πρόχειρα Ραντεβού</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Μπορείτε να συνεχίσετε ή να διαγράψετε τα πρόχειρα ραντεβού.</Typography>
+                    <Grid container spacing={2}>
+                      {draftItems.map(d => (
+                        <Grid item xs={12} md={6} key={d.id}>
+                          <Paper sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box>
+                              <Typography sx={{ fontWeight: 900 }}>{d.petName || 'Κατοικίδιο'}</Typography>
+                              <Typography variant="caption" color="text.secondary">{d.date || '—'} {d.time || ''}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button size="small" variant="contained" onClick={() => handleContinueDraft(d)}>Συνέχεια</Button>
+                              <Button size="small" variant="outlined" color="error" onClick={() => setDeleteConfirm({ open: true, id: d.id })}>Διαγραφή</Button>
+                            </Box>
+                          </Paper>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Paper>
+                )}
                 {apptError && (
                   <Alert severity="warning" sx={{ mb: 2 }}>{apptError}</Alert>
                 )}
@@ -916,6 +1011,57 @@ export default function History() {
             </>
           )}
         </Dialog>
+
+          {/* Draft Edit Dialog */}
+          <Dialog open={Boolean(draftEdit)} onClose={() => { setDraftEdit(null); }} maxWidth="sm" fullWidth>
+            <DialogTitle>Επεξεργασία Πρόχειρου Ραντεβού</DialogTitle>
+            <DialogContent dividers>
+              {draftEdit && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                  <TextField label="Κατοικίδιο" value={draftEdit.petName || ''} onChange={(e) => setDraftEdit(prev => ({ ...prev, petName: e.target.value }))} fullWidth />
+                  <TextField label="Ημερομηνία" type="date" value={draftEdit.date || ''} onChange={(e) => setDraftEdit(prev => ({ ...prev, date: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+                  <TextField label="Ώρα" type="time" value={draftEdit.time || ''} onChange={(e) => setDraftEdit(prev => ({ ...prev, time: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+                  <TextField label="Τηλέφωνο" value={draftEdit.phone || ''} onChange={(e) => setDraftEdit(prev => ({ ...prev, phone: e.target.value }))} fullWidth />
+                  <TextField label="Email" value={draftEdit.ownerEmail || ''} onChange={(e) => setDraftEdit(prev => ({ ...prev, ownerEmail: e.target.value }))} fullWidth sx={{ gridColumn: '1 / -1' }} />
+                  <TextField label="Σημειώσεις / Λόγος" value={draftEdit.reason || ''} onChange={(e) => setDraftEdit(prev => ({ ...prev, reason: e.target.value }))} multiline rows={3} fullWidth sx={{ gridColumn: '1 / -1' }} />
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setDraftEdit(null)}>Άκυρο</Button>
+              <Button color="error" onClick={() => { const id = draftEdit?.id; setDraftEdit(null); if (id) setDeleteConfirm({ open: true, id }); }}>Διαγραφή</Button>
+              <Button onClick={async () => {
+                if (!draftEdit) return;
+                try {
+                  setDraftSaving(true);
+                  const payload = { ...draftEdit, updatedAt: new Date().toISOString() };
+                  await appointmentsAPI.update(payload.id, payload);
+                  setAppointments(prev => prev.map(p => (String(p.id) === String(payload.id) ? payload : p)));
+                  setSnackbar({ open: true, message: 'Οι αλλαγές αποθηκεύτηκαν.', severity: 'success' });
+                  setDraftEdit(null);
+                } catch (e) {
+                  console.error('Failed to save draft changes', e);
+                  setSnackbar({ open: true, message: 'Αποτυχία αποθήκευσης.', severity: 'error' });
+                } finally { setDraftSaving(false); }
+              }}>Αποθήκευση Πρόχειρου</Button>
+              <Button variant="contained" onClick={async () => {
+                if (!draftEdit) return;
+                await saveDraftAsConfirmed(draftEdit);
+              }} disabled={draftSaving}>{draftSaving ? 'Επεξεργασία...' : 'Επιβεβαίωση Ραντεβού'}</Button>
+            </DialogActions>
+          </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog open={deleteConfirm.open} onClose={() => setDeleteConfirm({ open: false, id: null })} maxWidth="xs" fullWidth>
+        <DialogTitle>Διαγραφή Πρόχειρου</DialogTitle>
+        <DialogContent>
+          <Typography>Θέλετε να διαγράψετε αυτό το πρόχειρο ραντεβού; Αυτή η ενέργεια δεν αναστρέφεται.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirm({ open: false, id: null })}>Άκυρο</Button>
+          <Button color="error" onClick={confirmDeleteDraft}>Διαγραφή</Button>
+        </DialogActions>
+      </Dialog>
 
         {/* REVIEW DIALOG */}
         <Dialog 

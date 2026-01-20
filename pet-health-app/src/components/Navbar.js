@@ -284,7 +284,6 @@ export default function Navbar() {
               <Box>
                 <Button endIcon={<KeyboardArrowDownIcon />} onClick={(e) => handleOpenMenu(e, setAnchorElGenika)} sx={navButtonStyle}>Γενικά</Button>
                 <Menu anchorEl={anchorElGenika} open={Boolean(anchorElGenika)} onClose={() => handleCloseMenu(setAnchorElGenika)} PaperProps={{ sx: { minWidth: 260 } }}>
-                  <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/lost-pets'); }}>Αναζήτηση χαμένου κατοικιδίου</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/found-pets'); }}>Δήλωση Εύρεσης</MenuItem>
                   <MenuItem onClick={() => { handleCloseMenu(setAnchorElGenika); navigate('/news'); }}>Νέα και Ενημέρωση</MenuItem>
                 </Menu>
