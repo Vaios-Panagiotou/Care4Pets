@@ -6,9 +6,12 @@ export default function OwnerHelp() {
   const navigate = useNavigate();
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>Οδηγός Χρήσης (Ιδιοκτήτης)</Typography>
-        <Typography variant="body2" color="text.secondary">Σύντομες οδηγίες για τα βασικά.</Typography>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>Οδηγός Χρήσης (Ιδιοκτήτης)</Typography>
+          <Typography variant="body2" color="text.secondary">Σύντομες οδηγίες για τα βασικά.</Typography>
+        </Box>
+        <Button variant="contained" color="primary" onClick={() => navigate('/owner')}>Πίσω στο Dashboard</Button>
       </Box>
 
       <List dense>

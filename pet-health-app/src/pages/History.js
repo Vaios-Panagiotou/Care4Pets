@@ -263,6 +263,7 @@ export default function History() {
     try {
       const payload = {
         step: 3,
+        draftId: draft.id,
         searchQuery: '',
         selectedVet: draft.vetId || draft.vetUserId ? {
           id: draft.vetId || draft.vetUserId || null,

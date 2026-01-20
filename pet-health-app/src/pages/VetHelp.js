@@ -6,9 +6,12 @@ export default function VetHelp() {
   const navigate = useNavigate();
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>Οδηγός Χρήσης (Κτηνίατρος)</Typography>
-        <Typography variant="body2" color="text.secondary">Τα απολύτως απαραίτητα βήματα.</Typography>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>Οδηγός Χρήσης (Κτηνίατρος)</Typography>
+          <Typography variant="body2" color="text.secondary">Τα απολύτως απαραίτητα βήματα.</Typography>
+        </Box>
+        <Button variant="contained" color="primary" onClick={() => navigate('/vet')}>Πίσω στο Dashboard</Button>
       </Box>
 
       <List dense>

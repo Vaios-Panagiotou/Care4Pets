@@ -143,6 +143,7 @@ export default function VetSearch() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
+  const [continuedDraftId, setContinuedDraftId] = useState(null);
   const [unavailableTimes, setUnavailableTimes] = useState([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [availabilityError, setAvailabilityError] = useState('');
@@ -191,6 +192,7 @@ export default function VetSearch() {
           if (p.details) { setSelectedDetails(Array.isArray(p.details) ? p.details : []); }
           if (p.detailNotes) { setDetailNotes(p.detailNotes); }
           if (p.selectedPet) { setSelectedPet(p.selectedPet); }
+          if (p.draftId) { setContinuedDraftId(p.draftId); }
           if (typeof p.step === 'number') { setActiveStep(Math.min(Math.max(p.step, 0), STEPS.length - 1)); }
         }
         sessionStorage.removeItem('vetSearchProgress');
@@ -640,6 +642,15 @@ export default function VetSearch() {
         };
         try {
           await appointmentsAPI.create(payload);
+          // If we continued from a draft, delete the original draft to avoid duplicates
+          if (continuedDraftId) {
+            try {
+              await appointmentsAPI.delete(continuedDraftId);
+              setContinuedDraftId(null);
+            } catch (delErr) {
+              console.warn('Failed to delete original draft after booking:', delErr);
+            }
+          }
           setOpenSuccess(true);
         } catch (e) {
           console.error(e);

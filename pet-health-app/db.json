@@ -6,7 +6,12 @@
       "email": "vaios@gmail.com",
       "password": "vaios123",
       "afm": "111544560",
-      "role": "owner"
+      "role": "owner",
+      "name": "Bios",
+      "phone": "",
+      "address": "",
+      "gender": "ΑΝΤΡΑΣ",
+      "idNumber": ""
     },
     {
       "id": "1765143289475",
@@ -17,7 +22,8 @@
       "role": "vet",
       "visitedPets": [
         "1767818061514",
-        "1768821395404"
+        "1768821395404",
+        "1768912231810"
       ]
     },
     {
@@ -136,6 +142,16 @@
           "status": "completed",
           "reason": "Τακτικός Έλεγχος",
           "note": "ola kala me ton mpoumpi"
+        },
+        {
+          "appointmentId": "1768911703800",
+          "vetUserId": "1765143289475",
+          "vetId": "1",
+          "date": "2026-01-20T12:26:27.124Z",
+          "type": "Visit",
+          "status": "completed",
+          "reason": "Τακτικός Έλεγχος",
+          "note": "Ολα καλα , επομενο checkup σε ενα χρονο "
         }
       ]
     },
@@ -160,6 +176,30 @@
           "status": "completed",
           "reason": "Τακτικός Έλεγχος",
           "note": "Ολα τελεια"
+        }
+      ]
+    },
+    {
+      "id": "1768912231810",
+      "name": "mila",
+      "type": "cat",
+      "breed": "Αιγηπτιακη",
+      "gender": "female",
+      "age": "2",
+      "microchip": "444531094308468",
+      "img": "",
+      "ownerId": "1765141425145",
+      "registeredAt": "2026-01-20T12:30:31.810Z",
+      "visits": [
+        {
+          "appointmentId": "1768912125906",
+          "vetUserId": "1765143289475",
+          "vetId": "1",
+          "date": "2026-01-20T12:30:31.821Z",
+          "type": "Registration",
+          "status": "completed",
+          "reason": "Καταχώριση Κατοικιδίου",
+          "note": ""
         }
       ]
     }
@@ -795,28 +835,6 @@
       "nextVisit": "2027-01-20"
     },
     {
-      "id": "1768908478141",
-      "ownerId": "1765141425145",
-      "ownerName": "vaios",
-      "vetId": "1",
-      "vetUserId": "1765143289475",
-      "vetEmail": "ktiniatros@gmail.com",
-      "vetName": "vaios ktin",
-      "petName": "mpoumpis",
-      "time": "09:00",
-      "date": "Πέμπτη 22 Ιανουαρίου 2026",
-      "status": "draft",
-      "type": "Visit",
-      "reason": "Τακτικός Έλεγχος",
-      "details": [
-        "checkup"
-      ],
-      "detailNotes": {
-        "checkup": "ετησιο checkup"
-      },
-      "updatedAt": "2026-01-20T11:27:58.141Z"
-    },
-    {
       "id": "1768908489453",
       "ownerId": "1765141425145",
       "ownerName": "vaios",
@@ -839,6 +857,80 @@
       "cancelReason": "lathos test",
       "cancelledBy": "vet",
       "updatedAt": "2026-01-20T11:35:06.293Z"
+    },
+    {
+      "id": "1768911703800",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "15:00",
+      "date": "Πέμπτη 22 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ετησιο checkup"
+      },
+      "updatedAt": "2026-01-20T12:26:27.124Z",
+      "note": "Ολα καλα , επομενο checkup σε ενα χρονο ",
+      "diagnosis": "Ολα καλα με τον mpoumpi",
+      "treatment": "Καμια",
+      "nextVisit": "2026-01-22"
+    },
+    {
+      "id": "1768912125906",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mila",
+      "time": "10:00",
+      "date": "Πέμπτη 22 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Registration",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "details": [
+        "new-record"
+      ],
+      "detailNotes": {
+        "new-record": "Θελω να δηλωσω την γατουλα μου"
+      },
+      "updatedAt": "2026-01-20T12:30:31.821Z",
+      "petId": "1768912231810",
+      "completedAt": "2026-01-20T12:30:31.821Z"
+    },
+    {
+      "id": "1768913380539",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "15:00",
+      "date": "Πέμπτη 22 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ετησιο checkup"
+      },
+      "cancelReason": "",
+      "cancelledBy": "vet",
+      "updatedAt": "2026-01-20T13:06:22.263Z"
     }
   ],
   "healthRecords": [
@@ -1045,6 +1137,19 @@
       "rating": 5,
       "comment": "Αψογος Κτηνιατρος Βοηθισε πολυ το ζωακι μου!",
       "date": "2026-01-20"
+    },
+    {
+      "id": "1768912299989",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1765143289475",
+      "vetName": "vaios ktin",
+      "clinic": "—",
+      "appointmentId": "1768912125906",
+      "service": "Καταχώριση Κατοικιδίου",
+      "rating": 5,
+      "comment": "ολα τελεια ελεγξε το ζωακι μου και το καταχωρισε στο μητροο",
+      "date": "2026-01-20"
     }
   ],
   "vets": [
@@ -1213,14 +1318,14 @@
   ],
   "vetClinics": [
     {
-      "id": "1767600000001",
-      "vetId": "1765143289475",
       "name": "VetCare Clinic Pro",
       "description": "Πρότυπο Κτηνιατρικό Κέντρο Αθηνών. Παρέχουμε ολοκληρωμένη φροντίδα για μικρά ζώα με σύγχρονο εξοπλισμό.",
       "address": "Λεωφόρος Κηφισίας 124, Αμπελόκηποι",
       "phone": "+30 210 6543210",
       "email": "contact@vetcarepro.gr",
       "emergency": true,
+      "id": "1767600000001",
+      "vetId": "1765143289475",
       "workingHours": {
         "Δευτέρα": "09:00 - 21:00",
         "Τρίτη": "09:00 - 21:00",
@@ -1260,6 +1365,14 @@
         "thisMonth": 38,
         "upcomingAppointments": 12,
         "completedToday": 5
+      },
+      "hours": {
+        "Δευτέρα": "09:00 - 21:00",
+        "Τρίτη": "09:00 - 21:00",
+        "Τετάρτη": "09:00 - 21:00",
+        "Πέμπτη": "09:00 - 21:00",
+        "Παρασκευή": "09:00 - 21:00",
+        "Σάββατο": "09:00 - 14:00"
       }
     }
   ],
@@ -1325,8 +1438,50 @@
       "fullContent": "Το τράβηγμα στο λουρί είναι ένα από τα πιο συνηθισμένα προβλήματα. Με υπομονή και συνέπεια μπορείτε να το διορθώσετε:\n\n1. Σταματήστε όταν τραβάει\n2. Επιβραβεύστε την ήρεμη συμπεριφορά\n3. Χρησιμοποιήστε θετική ενίσχυση\n4. Εξασκηθείτε σε ήσυχα περιβάλλοντα πρώτα\n5. Να είστε συνεπείς"
     }
   ],
-  "lostPets": [],
+  "lostPets": [
+    {
+      "id": "3d39",
+      "petId": "1768821395404",
+      "name": "αλεξ",
+      "type": "Σκύλος",
+      "breed": "λαμπραντορ",
+      "gender": "male",
+      "age": "3",
+      "color": "",
+      "date": "20 Ιαν 2026",
+      "location": "Ξάνθης, Ασύρματος, Άγιος Δημήτριος, Δήμος Αγίου Δημητρίου, Περιφερειακή Ενότητα Νοτίου Τομέα Αθηνών, Περιφέρεια Αττικής, Αποκεντρωμένη Διοίκηση Αττικής, 173 41, Ελλάδα",
+      "img": "blob:http://localhost:3000/53084107-f85c-45da-af11-67645f70a4d1",
+      "reward": null,
+      "views": 0,
+      "urgent": false,
+      "description": "Λεγεται αλεξ εχει καφετι χρωμα και ειναι τρομαγμενος",
+      "phone": "6977326478",
+      "altPhone": "",
+      "email": "vaios@gmail.com",
+      "preferredContact": "Τηλέφωνο",
+      "contactHours": "Όλη μέρα",
+      "socialLink": "",
+      "contactNotes": "",
+      "showPhone": true,
+      "ownerId": "1765141425145"
+    }
+  ],
   "foundPets": [
-    
+    {
+      "id": "1768911874297",
+      "type": "Σκύλος",
+      "description": "φοβησμενο σκυλακι με κολαρο αλεξ ειναι καφετι χρωμα",
+      "location": "Ξάνθης, Μεσονήσι, Άγιος Δημήτριος, Δήμος Αγίου Δημητρίου, Περιφερειακή Ενότητα Νοτίου Τομέα Αθηνών, Περιφέρεια Αττικής, Αποκεντρωμένη Διοίκηση Αττικής, 173 41, Ελλάδα",
+      "foundAt": "2026-01-22T14:26",
+      "hasOwner": true,
+      "images": [
+        "data:image/jpeg;base64,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"
+      ],
+      "coords": {
+        "lat": 37.9286671,
+        "lng": 23.7250618
+      },
+      "createdAt": "2026-01-20T12:24:34.297Z"
+    }
   ]
 }

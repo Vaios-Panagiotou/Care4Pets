@@ -67,33 +67,45 @@ const ContactItem = ({ icon, bg, color, title, content }) => (
 
 export default function Contact() {
   const [openSuccess, setOpenSuccess] = useState(false);
-  const [formData, setFormData] = useState({ email: '', phone: '' });
-  const [errors, setErrors] = useState({ email: '', phone: '' });
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', message: '', privacy: false });
+  const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', phone: '', message: '', privacy: '' });
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(String(email).trim());
   };
 
   const validatePhone = (phone) => {
+    const phoneDigits = String(phone).replace(/[^0-9]/g, '');
     const phoneRegex = /^[0-9]{10}$/;
-    return phoneRegex.test(phone.replace(/[\s-]/g, ''));
+    return phoneRegex.test(phoneDigits);
+  };
+
+  const handleChange = (field) => (e) => {
+    const value = field === 'privacy' ? e.target.checked : e.target.value;
+    setFormData((f) => ({ ...f, [field]: value }));
+    // Clear field error as user types/selects
+    setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = { email: '', phone: '' };
+    const newErrors = {};
 
-    if (!validateEmail(formData.email)) {
-      newErrors.email = 'Παρακαλώ εισάγετε έγκυρο email';
-    }
-    if (!validatePhone(formData.phone)) {
-      newErrors.phone = 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)';
-    }
+    if (!formData.firstName || !formData.firstName.trim()) newErrors.firstName = 'Παρακαλώ εισάγετε όνομα';
+    if (!formData.lastName || !formData.lastName.trim()) newErrors.lastName = 'Παρακαλώ εισάγετε επώνυμο';
+    if (!validateEmail(formData.email)) newErrors.email = 'Παρακαλώ εισάγετε έγκυρο email';
+    if (!validatePhone(formData.phone)) newErrors.phone = 'Παρακαλώ εισάγετε έγκυρο τηλέφωνο (10 ψηφία)';
+    if (!formData.message || formData.message.trim().length < 5) newErrors.message = 'Παρακαλώ γράψτε ένα σύντομο μήνυμα (τουλάχιστον 5 χαρακτήρες)';
+    if (!formData.privacy) newErrors.privacy = 'Πρέπει να συμφωνήσετε στην πολιτική απορρήτου';
 
     setErrors(newErrors);
-    if (!newErrors.email && !newErrors.phone) {
+
+    if (Object.keys(newErrors).length === 0) {
+      // Simulate successful send
       setOpenSuccess(true);
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '', privacy: false });
+      setErrors({ firstName: '', lastName: '', email: '', phone: '', message: '', privacy: '' });
     }
   };
 
@@ -141,10 +153,10 @@ export default function Contact() {
                 <Box component="form" onSubmit={handleSubmit}>
                   <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                          <TextField required fullWidth label="Όνομα" placeholder="π.χ. Γιάννης" variant="outlined" />
+                          <TextField required fullWidth label="Όνομα" placeholder="π.χ. Γιάννης" variant="outlined" value={formData.firstName} onChange={handleChange('firstName')} error={!!errors.firstName} helperText={errors.firstName} />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                          <TextField required fullWidth label="Επώνυμο" placeholder="π.χ. Παπαδόπουλος" variant="outlined" />
+                          <TextField required fullWidth label="Επώνυμο" placeholder="π.χ. Παπαδόπουλος" variant="outlined" value={formData.lastName} onChange={handleChange('lastName')} error={!!errors.lastName} helperText={errors.lastName} />
                       </Grid>
                       <Grid item xs={12}>
                           <TextField 
@@ -174,16 +186,17 @@ export default function Contact() {
                           />
                       </Grid>
                       <Grid item xs={12}>
-                          <TextField required fullWidth multiline rows={4} label="Πληροφορίες" variant="outlined" />
+                          <TextField required fullWidth multiline rows={4} label="Πληροφορίες" variant="outlined" value={formData.message} onChange={handleChange('message')} error={!!errors.message} helperText={errors.message} />
                       </Grid>
                       <Grid item xs={12}>
                           <FormControlLabel 
-                              control={<Checkbox required sx={{ color: '#7C4DFF', '&.Mui-checked': { color: '#7C4DFF' } }} />} 
+                              control={<Checkbox checked={formData.privacy} onChange={handleChange('privacy')} sx={{ color: '#7C4DFF', '&.Mui-checked': { color: '#7C4DFF' } }} />} 
                               label={<Typography variant="body2" color="text.secondary">Συμφωνώ στην πολιτική απορρήτου*</Typography>} 
                           />
+                          {errors.privacy && <Typography variant="body2" color="error" sx={{ mt: 0.5 }}>{errors.privacy}</Typography>}
                       </Grid>
                       <Grid item xs={12}>
-                          <Button type="submit" variant="contained" fullWidth size="large" sx={{ bgcolor: '#7C4DFF', color: 'white', mt: 1 }}>
+                          <Button type="submit" variant="contained" fullWidth size="large" disabled={!(formData.firstName.trim() && formData.lastName.trim() && validateEmail(formData.email) && validatePhone(formData.phone) && formData.message.trim() && formData.privacy)} sx={{ bgcolor: '#7C4DFF', color: 'white', mt: 1, '&:disabled': { opacity: 0.6 } }}>
                               Αποστολή Μηνύματος
                           </Button>
                       </Grid>

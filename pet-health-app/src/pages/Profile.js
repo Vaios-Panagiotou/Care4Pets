@@ -21,6 +21,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardSidebar from '../components/DashboardSidebar';
+import { usersAPI } from '../services/api';
 
 // Icons
 import EditIcon from '@mui/icons-material/Edit';
@@ -131,12 +132,28 @@ export default function Profile() {
 
   const handleSave = async () => {
     setSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-        setSaving(false);
-        setEditable(false);
-        login({ ...user, ...form });
-    }, 1000);
+    try {
+      if (!user?.id) throw new Error('Missing user id');
+      const payload = { ...user, ...form };
+      const updated = await usersAPI.update(user.id, payload);
+      // Update auth context and local form
+      login(updated);
+      setForm({
+        name: updated.name || '',
+        email: updated.email || '',
+        phone: updated.phone || '',
+        address: updated.address || '',
+        gender: updated.gender || '',
+        idNumber: updated.idNumber || ''
+      });
+      setEditable(false);
+      setSaving(false);
+      alert('Τα στοιχεία αποθηκεύτηκαν με επιτυχία.');
+    } catch (err) {
+      console.error('Failed to update profile', err);
+      setSaving(false);
+      alert('Αποτυχία αποθήκευσης στοιχείων. Βεβαιώσου ότι τρέχει το json-server στο 3001.');
+    }
   };
 
   return (

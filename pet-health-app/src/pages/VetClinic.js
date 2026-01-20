@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Paper, TextField, Avatar, IconButton, Divider, Switch, FormControlLabel, List, ListItem, ListItemText, InputAdornment, Card, CardContent, Chip, Stack, Fade, useTheme
 } from '@mui/material';
@@ -25,6 +25,7 @@ import VaccinesIcon from '@mui/icons-material/Vaccines'; // Using generic icon i
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 
 import DashboardSidebar from '../components/DashboardSidebar';
+import { vetClinicsAPI } from '../services/api';
 
 // Professional Medical Theme
 const theme = createTheme({
@@ -123,6 +124,8 @@ const ServiceRow = ({ service, onDelete, isEditing }) => (
 
 export default function VetClinicProfile() {
   const [isEditing, setIsEditing] = useState(false);
+    const [clinicId, setClinicId] = useState(null);
+    const [saving, setSaving] = useState(false);
   const [services, setServices] = useState([
     { id: 1, name: 'Γενική Εξέταση & Διάγνωση', price: '30', category: 'Επίσκεψη' },
     { id: 2, name: 'Ετήσιος Εμβολιασμός (Σκύλος)', price: '35', category: 'Πρόληψη' },
@@ -140,6 +143,27 @@ export default function VetClinicProfile() {
     email: 'contact@vetcarepro.gr',
     emergency: true
   });
+
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const list = Array.isArray(await vetClinicsAPI.getAll()) ? await vetClinicsAPI.getAll() : [];
+                if (!mounted) return;
+                if (list.length > 0) {
+                    const clinic = list[0];
+                    setClinicId(clinic.id || null);
+                    setInfo((prev) => ({ ...prev, ...(clinic || {}) }));
+                    if (clinic.services) setServices(clinic.services);
+                    if (clinic.hours) setHours(clinic.hours);
+                }
+            } catch (err) {
+                // ignore - keep defaults
+                console.warn('Could not load vet clinic data', err);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
 
   const [hours, setHours] = useState({
     'Δευτέρα': '09:00 - 21:00',
@@ -200,18 +224,56 @@ export default function VetClinicProfile() {
                         
                         {/* 1. Identity Card */}
                         <Card sx={{ borderRadius: 4, border: '1px solid #e2e8f0', overflow: 'visible', position: 'relative' }}>
-                            <Box sx={{ position: 'absolute', top: 110, right: 16, zIndex: 10 }}>
-                                <Button 
-                                    variant="contained" 
-                                    size="small"
-                                    startIcon={isEditing ? <SaveIcon /> : <EditIcon />} 
-                                    onClick={() => setIsEditing(!isEditing)}
-                                    color={isEditing ? "success" : "primary"}
-                                    sx={{ px: 2, boxShadow: '0 4px 14px 0 rgba(14, 116, 144, 0.3)' }}
-                                >
-                                    {isEditing ? 'Αποθήκευση' : 'Επεξεργασία'}
-                                </Button>
-                            </Box>
+                                                        <Box sx={{ position: 'absolute', top: 110, right: 16, zIndex: 10 }}>
+                                                                <Button 
+                                                                        variant="contained" 
+                                                                        size="small"
+                                                                        startIcon={isEditing ? <SaveIcon /> : <EditIcon />} 
+                                                                        onClick={async () => {
+                                                                            if (isEditing) {
+                                                                                // save
+                                                                                setSaving(true);
+                                                                                try {
+                                                                                    const payload = { ...info, services, hours };
+                                                                                    if (clinicId) {
+                                                                                        const updated = await vetClinicsAPI.update(clinicId, payload);
+                                                                                        setInfo((prev) => ({ ...prev, ...(updated || {}) }));
+                                                                                        setServices(updated.services || services);
+                                                                                        setHours(updated.hours || hours);
+                                                                                        alert('Οι αλλαγές αποθηκεύτηκαν.');
+                                                                                    } else {
+                                                                                        // no clinic id: try updating first returned clinic
+                                                                                        const list = Array.isArray(await vetClinicsAPI.getAll()) ? await vetClinicsAPI.getAll() : [];
+                                                                                        if (list.length > 0) {
+                                                                                            const id = list[0].id;
+                                                                                            const updated = await vetClinicsAPI.update(id, payload);
+                                                                                            setClinicId(id);
+                                                                                            setInfo((prev) => ({ ...prev, ...(updated || {}) }));
+                                                                                            setServices(updated.services || services);
+                                                                                            setHours(updated.hours || hours);
+                                                                                            alert('Οι αλλαγές αποθηκεύτηκαν.');
+                                                                                        } else {
+                                                                                            alert('Δεν βρέθηκε εγγραφή κλινικής για ενημέρωση.');
+                                                                                        }
+                                                                                    }
+                                                                                } catch (err) {
+                                                                                    console.error('Failed to save clinic', err);
+                                                                                    alert('Σφάλμα κατά την αποθήκευση. Έλεγξε ότι τρέχει ο json-server στο 3001.');
+                                                                                } finally {
+                                                                                    setSaving(false);
+                                                                                    setIsEditing(false);
+                                                                                }
+                                                                            } else {
+                                                                                setIsEditing(true);
+                                                                            }
+                                                                        }}
+                                                                        color={isEditing ? "success" : "primary"}
+                                                                        sx={{ px: 2, boxShadow: '0 4px 14px 0 rgba(14, 116, 144, 0.3)' }}
+                                                                        disabled={saving}
+                                                                >
+                                                                        {isEditing ? (saving ? 'Αποθήκευση...' : 'Αποθήκευση') : 'Επεξεργασία'}
+                                                                </Button>
+                                                        </Box>
                             <Box sx={{ height: 100, background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)', borderRadius: '16px 16px 0 0', position: 'relative' }}>
                                 <Avatar 
                                     src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=200&q=80" 
