@@ -20,6 +20,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  Grow,
   InputAdornment,
   IconButton,
   ToggleButtonGroup,
@@ -34,6 +35,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -297,6 +299,9 @@ export default function FoundPets() {
   const [hasOwnerOnly, setHasOwnerOnly] = useState(false);
 
   const [userFoundPets, setUserFoundPets] = useState([]);
+  const [selectedPet, setSelectedPet] = useState(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const descriptionLimit = 60;
   const { user } = useAuth();
 
   useEffect(() => {
@@ -648,39 +653,130 @@ export default function FoundPets() {
                 </Paper>
               </Grid>
             ) : (
-              filteredPets.map((pet) => (
-                <Grid key={pet.id} item xs={12} sm={6} md={4}>
-                  <Paper sx={{ borderRadius: 4, overflow: 'hidden', boxShadow: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ height: 200, bgcolor: '#eee' }}>
+              filteredPets.map((pet, index) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={pet.id}>
+                  <Grow in timeout={300 + index * 50}>
+                    <Paper
+                      onClick={() => { setSelectedPet(pet); setDetailsDialogOpen(true); }}
+                      sx={{
+                        borderRadius: 5,
+                        overflow: 'visible',
+                        cursor: 'pointer',
+                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        border: '1px solid rgba(0,0,0,0.06)',
+                        '&:hover': {
+                          transform: 'translateY(-12px)',
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
+                          '& .pet-image': { transform: 'scale(1.1)' },
+                          '& .pet-overlay': { opacity: 1 }
+                        },
+                        '&:active': { transform: 'translateY(-8px) scale(0.98)' }
+                      }}
+                    >
                       <Box
-                        component="img"
-                        src={(pet.images && pet.images[0]) || 'https://via.placeholder.com/600x400?text=Pet'}
-                        alt="found-pet"
-                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </Box>
-                    <Box sx={{ p: 2, flexGrow: 1 }}>
-                      <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-                        {pet.type || 'Άγνωστο ζώο'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {pet.description}
-                      </Typography>
-                      <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <LocationOnIcon fontSize="small" color="action" />
-                        {pet.location || 'Άγνωστη περιοχή'}
-                      </Typography>
-                      <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <ScheduleIcon fontSize="small" color="action" />
-                        {formatDate(pet.foundAt || pet.createdAt)}
-                      </Typography>
-                    </Box>
-                    {pet.hasOwner && (
-                      <Box sx={{ px: 2, pb: 2 }}>
-                        <Chip color="success" size="small" label="Φαίνεται να έχει ιδιοκτήτη" />
+                        sx={{
+                          position: 'relative',
+                          width: '100%',
+                          aspectRatio: '3 / 2',
+                          overflow: 'hidden',
+                          borderTopLeftRadius: 20,
+                          borderTopRightRadius: 20,
+                          backgroundColor: '#eee',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={(pet.images && pet.images[0]) || pet.img || 'https://via.placeholder.com/600x400?text=Pet'}
+                          alt={pet.name || pet.type || 'found-pet'}
+                          className="pet-image"
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                            transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                        />
+
+                        <Box
+                          className="pet-overlay"
+                          sx={{
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: '50%',
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+                            opacity: 0,
+                            transition: 'opacity 0.4s ease',
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            padding: 2,
+                            zIndex: 1,
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <VisibilityIcon sx={{ fontSize: 16, color: 'white' }} />
+                            <Typography variant="caption" sx={{ color: 'white', fontWeight: 600 }}>
+                              {(pet.views ?? 0)} προβολές
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {pet.hasOwner && (
+                          <Chip
+                            icon={<CheckCircleIcon />}
+                            label="Έχει σημάδια ιδιοκτήτη"
+                            size="small"
+                            color="success"
+                            sx={{
+                              position: 'absolute',
+                              top: 8,
+                              left: 8,
+                              zIndex: 2,
+                              boxShadow: '0 2px 8px rgba(56, 142, 60, 0.4)',
+                              '& .MuiChip-icon': { color: '#fff', ml: 0.5 }
+                            }}
+                          />
+                        )}
                       </Box>
-                    )}
-                  </Paper>
+
+                      <Box sx={{ p: 2, bgcolor: 'white', borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}>
+                        <Typography
+                          variant="h6"
+                          fontWeight="800"
+                          sx={{ mb: 0.5, fontSize: '1rem', color: '#1a1a1a', letterSpacing: '-0.3px' }}
+                        >
+                          {pet.type || 'Άγνωστο ζώο'}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, transition: 'all 0.2s', '&:hover': { transform: 'translateX(2px)' } }}>
+                          <PetsIcon sx={{ fontSize: 14, color: 'primary.main', transition: 'transform 0.2s' }} />
+                          <Typography
+                            variant="body2"
+                            sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.8rem' }}
+                          >
+                            {pet.description || 'Χωρίς περιγραφή'}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <LocationOnIcon sx={{ fontSize: 14, color: 'secondary.main' }} />
+                          <Typography
+                            variant="body2"
+                            sx={{ color: 'text.secondary', fontSize: '0.8rem' }}
+                          >
+                            {pet.location || 'Άγνωστη περιοχή'}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ScheduleIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                            {formatDate(pet.foundAt || pet.createdAt) || '—'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  </Grow>
                 </Grid>
               ))
             )}
@@ -691,6 +787,15 @@ export default function FoundPets() {
       ) : (
         <Container maxWidth="lg" sx={{ px: 2, pb: 6 }}>
           <Paper sx={{ p: 3, borderRadius: 4, boxShadow: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/found-pets')}
+                sx={{ borderRadius: '12px' }}
+              >
+                Πίσω στα ευρεθέντα
+              </Button>
+            </Box>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>Δήλωση Εύρεσης Κατοικιδίου</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Η δήλωση αφορά άγνωστο ζώο που βρέθηκε. Δεν δημιουργείται προφίλ κατοικιδίου.
@@ -736,6 +841,8 @@ export default function FoundPets() {
                       label="Περιγραφή"
                       placeholder="Χαρακτηριστικά, σημάδια, συμπεριφορά"
                       value={form.description}
+                      inputProps={{ maxLength: descriptionLimit }}
+                      helperText={`Χαρακτήρες: ${Math.max(0, descriptionLimit - (form.description?.length || 0))}/${descriptionLimit}`}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
                     />
                   </Grid>
@@ -815,6 +922,78 @@ export default function FoundPets() {
           </Paper>
         </Container>
       )}
+
+      <Dialog
+        open={detailsDialogOpen}
+        onClose={() => setDetailsDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        {selectedPet && (
+          <>
+            <Box sx={{ position: 'relative', height: 320, bgcolor: '#eee' }}>
+              <Box
+                component="img"
+                src={(selectedPet.images && selectedPet.images[0]) || selectedPet.img || 'https://via.placeholder.com/800x500?text=Pet'}
+                alt={selectedPet.name || selectedPet.type || 'found-pet'}
+                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              <IconButton
+                onClick={() => setDetailsDialogOpen(false)}
+                sx={{
+                  position: 'absolute',
+                  top: 16,
+                  right: 16,
+                  bgcolor: 'rgba(255,255,255,0.9)',
+                  '&:hover': { bgcolor: 'white' }
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+              {selectedPet.hasOwner && (
+                <Chip
+                  icon={<CheckCircleIcon />}
+                  label="Έχει σημάδια ιδιοκτήτη"
+                  color="success"
+                  sx={{ position: 'absolute', top: 16, left: 16, fontWeight: 700 }}
+                />
+              )}
+            </Box>
+
+            <DialogContent sx={{ p: 3 }}>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                {selectedPet.type || 'Ευρεθέν ζώο'}
+              </Typography>
+              <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
+                {selectedPet.description || 'Χωρίς περιγραφή.'}
+              </Typography>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LocationOnIcon color="action" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Τοποθεσία</Typography>
+                      <Typography variant="body2" fontWeight={600}>{selectedPet.location || 'Άγνωστη περιοχή'}</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <ScheduleIcon color="action" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Ημερομηνία</Typography>
+                      <Typography variant="body2" fontWeight={600}>{formatDate(selectedPet.foundAt || selectedPet.createdAt) || '—'}</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
 
       <Dialog open={howItWorksDialogOpen} onClose={() => setHowItWorksDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogContent>
