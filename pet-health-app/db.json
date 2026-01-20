@@ -793,6 +793,52 @@
       "diagnosis": "Oλα καλα",
       "treatment": "καμια",
       "nextVisit": "2027-01-20"
+    },
+    {
+      "id": "1768908478141",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "09:00",
+      "date": "Πέμπτη 22 Ιανουαρίου 2026",
+      "status": "draft",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ετησιο checkup"
+      },
+      "updatedAt": "2026-01-20T11:27:58.141Z"
+    },
+    {
+      "id": "1768908489453",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "15:00",
+      "date": "Πέμπτη 22 Ιανουαρίου 2026",
+      "status": "cancelled",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "checkup"
+      ],
+      "detailNotes": {
+        "checkup": "ετησιο checkup"
+      },
+      "cancelReason": "lathos test",
+      "cancelledBy": "vet",
+      "updatedAt": "2026-01-20T11:35:06.293Z"
     }
   ],
   "healthRecords": [
@@ -986,6 +1032,19 @@
       "rating": 5,
       "comment": "kalos polu",
       "date": "2026-01-07"
+    },
+    {
+      "id": "1768908424793",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1765143289475",
+      "vetName": "vaios ktin",
+      "clinic": "—",
+      "appointmentId": "1768906226964",
+      "service": "Τακτικός Έλεγχος",
+      "rating": 5,
+      "comment": "Αψογος Κτηνιατρος Βοηθισε πολυ το ζωακι μου!",
+      "date": "2026-01-20"
     }
   ],
   "vets": [
