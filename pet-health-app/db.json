@@ -23,7 +23,8 @@
       "visitedPets": [
         "1767818061514",
         "1768821395404",
-        "1768912231810"
+        "1768912231810",
+        "1769093799129"
       ]
     },
     {
@@ -152,6 +153,16 @@
           "status": "completed",
           "reason": "Τακτικός Έλεγχος",
           "note": "Ολα καλα , επομενο checkup σε ενα χρονο "
+        },
+        {
+          "appointmentId": "1769093187788",
+          "vetUserId": "1765143289475",
+          "vetId": "1",
+          "date": "2026-01-22T14:51:49.927Z",
+          "type": "Visit",
+          "status": "completed",
+          "reason": "Τακτικός Έλεγχος",
+          "note": "τιποτα"
         }
       ]
     },
@@ -196,6 +207,30 @@
           "vetUserId": "1765143289475",
           "vetId": "1",
           "date": "2026-01-20T12:30:31.821Z",
+          "type": "Registration",
+          "status": "completed",
+          "reason": "Καταχώριση Κατοικιδίου",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "1769093799129",
+      "name": "milos",
+      "type": "cat",
+      "breed": "αιγηπτιακη",
+      "gender": "male",
+      "age": "2",
+      "microchip": "123456789012345",
+      "img": "",
+      "ownerId": "1765141425145",
+      "registeredAt": "2026-01-22T14:56:39.129Z",
+      "visits": [
+        {
+          "appointmentId": "1769093732688",
+          "vetUserId": "1765143289475",
+          "vetId": "1",
+          "date": "2026-01-22T14:56:39.139Z",
           "type": "Registration",
           "status": "completed",
           "reason": "Καταχώριση Κατοικιδίου",
@@ -931,6 +966,56 @@
       "cancelReason": "",
       "cancelledBy": "vet",
       "updatedAt": "2026-01-20T13:06:22.263Z"
+    },
+    {
+      "id": "1769093187788",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "mpoumpis",
+      "time": "18:30",
+      "date": "Πέμπτη 22 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Visit",
+      "reason": "Τακτικός Έλεγχος",
+      "details": [
+        "new-prescription"
+      ],
+      "detailNotes": {
+        "new-prescription": "sintagi gia farmako"
+      },
+      "updatedAt": "2026-01-22T14:51:49.927Z",
+      "note": "τιποτα",
+      "diagnosis": "τιποτα",
+      "treatment": "",
+      "nextVisit": "2026-01-27"
+    },
+    {
+      "id": "1769093732688",
+      "ownerId": "1765141425145",
+      "ownerName": "vaios",
+      "vetId": "1",
+      "vetUserId": "1765143289475",
+      "vetEmail": "ktiniatros@gmail.com",
+      "vetName": "vaios ktin",
+      "petName": "milos",
+      "time": "17:00",
+      "date": "Σάββατο 24 Ιανουαρίου 2026",
+      "status": "completed",
+      "type": "Registration",
+      "reason": "Καταχώριση Κατοικιδίου",
+      "details": [
+        "new-record"
+      ],
+      "detailNotes": {
+        "new-record": "kataxorisi gatas"
+      },
+      "updatedAt": "2026-01-22T14:56:39.139Z",
+      "petId": "1769093799129",
+      "completedAt": "2026-01-22T14:56:39.139Z"
     }
   ],
   "healthRecords": [
@@ -1083,6 +1168,21 @@
       "nextVisit": "2026-02-06",
       "warnings": "-",
       "notes": "-"
+    },
+    {
+      "id": "1769093509743",
+      "petName": "mpoumpis",
+      "ownerName": "vaios",
+      "petType": "",
+      "diagnosis": "τιποτα",
+      "medicine": "Antibiotica 250mg",
+      "dosage": "1 δισκιο",
+      "frequency": "",
+      "duration": "7 ημερες",
+      "date": "2026-01-22",
+      "nextVisit": "2026-01-27",
+      "warnings": "μετα απο γευμα",
+      "notes": "τιποτα"
     }
   ],
   "reviews": [
@@ -1456,6 +1556,32 @@
       "urgent": false,
       "description": "Λεγεται αλεξ εχει καφετι χρωμα και ειναι τρομαγμενος",
       "phone": "6977326478",
+      "altPhone": "",
+      "email": "vaios@gmail.com",
+      "preferredContact": "Τηλέφωνο",
+      "contactHours": "Όλη μέρα",
+      "socialLink": "",
+      "contactNotes": "",
+      "showPhone": true,
+      "ownerId": "1765141425145"
+    },
+    {
+      "id": "3c5b",
+      "petId": "1768821395404",
+      "name": "αλεξ",
+      "type": "Σκύλος",
+      "breed": "λαμπραντορ",
+      "gender": "male",
+      "age": "3",
+      "color": "",
+      "date": "22 Ιαν 2026",
+      "location": "Ξάνθης, Ασύρματος, Άγιος Δημήτριος, Δήμος Αγίου Δημητρίου, Περιφερειακή Ενότητα Νοτίου Τομέα Αθηνών, Περιφέρεια Αττικής, Αποκεντρωμένη Διοίκηση Αττικής, 173 41, Ελλάδα",
+      "img": "blob:http://localhost:3000/c1ba5389-9f8b-49e0-b94d-9ded7493db91",
+      "reward": null,
+      "views": 0,
+      "urgent": false,
+      "description": "xathike ston agio dimitrio ",
+      "phone": "6988564019",
       "altPhone": "",
       "email": "vaios@gmail.com",
       "preferredContact": "Τηλέφωνο",
