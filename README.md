@@ -3,6 +3,7 @@
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Material UI](https://img.shields.io/badge/MUI-5-007FFF?logo=mui&logoColor=white)](https://mui.com/)
 [![JSON Server](https://img.shields.io/badge/JSON%20Server-Local%20API-8A2BE2)](https://github.com/typicode/json-server)
+[![React Build Check](https://github.com/Vaios-Panagiotou/Care4Pets/actions/workflows/main.yml/badge.svg)](https://github.com/Vaios-Panagiotou/Care4Pets/actions/workflows/main.yml)
 
 **Web εφαρμογή διαχείρισης κατοικιδίων και κτηνιατρικών υπηρεσιών** για ιδιοκτήτες και κτηνιάτρους, με έμφαση στην οργάνωση, την ασφάλεια και την ευχρηστία.
 
